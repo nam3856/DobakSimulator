@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+
+const EVENT_URL = 'https://maplestory.nexon.com/News/Event/Ongoing/1389';
 
 const BANNERS = [
   { file: 'ad-2.png', name: '스타포스 지금 누르러 가기' },
@@ -22,8 +24,6 @@ function BannerImage({ src, name }: { src: string; name: string }) {
 
 export function FakeAdBanner({ onStarforce }: { onStarforce: () => void }) {
   const [index, setIndex] = useState(() => Math.floor(Math.random() * BANNERS.length));
-  const [notice, setNotice] = useState(false);
-  const noticeTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -33,12 +33,13 @@ export function FakeAdBanner({ onStarforce }: { onStarforce: () => void }) {
     return () => window.clearInterval(interval);
   }, []);
 
-  useEffect(() => () => window.clearTimeout(noticeTimer.current), []);
-
-  function showNotice() {
-    window.clearTimeout(noticeTimer.current);
-    setNotice(true);
-    noticeTimer.current = window.setTimeout(() => setNotice(false), 3_000);
+  function openEvent() {
+    if (
+      window.confirm(
+        `외부 링크로 이동합니다.\n메이플스토리 이벤트 페이지를 새 탭에서 엽니다.\n\n${EVENT_URL}`,
+      )
+    )
+      window.open(EVENT_URL, '_blank', 'noopener,noreferrer');
   }
 
   const banner = BANNERS[index];
@@ -50,12 +51,10 @@ export function FakeAdBanner({ onStarforce }: { onStarforce: () => void }) {
         aria-label={
           banner.file === 'ad-2.png'
             ? '스타포스 시뮬레이터로 이동'
-            : `${banner.name} 가짜 광고 안내 보기`
+            : `${banner.name} 이벤트 페이지 열기 (외부 링크, 새 탭)`
         }
         onClick={() => {
-          if (banner.file !== 'ad-2.png') return showNotice();
-          window.clearTimeout(noticeTimer.current);
-          setNotice(false);
+          if (banner.file !== 'ad-2.png') return openEvent();
           onStarforce();
         }}
       >
@@ -65,11 +64,6 @@ export function FakeAdBanner({ onStarforce }: { onStarforce: () => void }) {
           name={banner.name}
         />
       </button>
-      <div className="fake-ad-status" role="status" aria-atomic="true">
-        {notice && (
-          <div className="fake-ad-toast">가짜 광고입니다. 실제 광고나 외부 링크가 아니에요.</div>
-        )}
-      </div>
     </div>
   );
 }

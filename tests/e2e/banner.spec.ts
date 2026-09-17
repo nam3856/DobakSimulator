@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-const AD_NOTICE = '가짜 광고입니다. 실제 광고나 외부 링크가 아니에요.';
+const EXTERNAL_EVENT_URL = 'https://maplestory.nexon.com/News/Event/Ongoing/1389';
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/app-config.json', (route) =>
@@ -100,36 +100,56 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
   expect(await simulationSnapshot(page)).toEqual(state);
 });
 
-test('banner mouse and keyboard actions show a resettable three-second notice without changing the challenge', async ({
+test('the event banner warns before leaving and opens an isolated new tab only after confirmation', async ({
   page,
+  context,
 }) => {
   await pauseClock(page);
+  await context.route(EXTERNAL_EVENT_URL, (route) =>
+    route.fulfill({
+      contentType: 'text/html; charset=utf-8',
+      body: '<!doctype html><title>공식 메이플스토리 이벤트</title><h1>외부 이벤트</h1>',
+    }),
+  );
   await openBanner(page, 0.75, '#soulAmplification', true);
   await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
   await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
   const state = await simulationSnapshot(page);
   const banner = page.locator('.fake-ad-banner');
-  const toast = page.locator('.fake-ad-toast');
   const url = page.url();
-  await banner.click();
-  await expect(page.locator('.fake-ad-status')).toHaveAttribute('role', 'status');
-  await expect(toast).toHaveText(AD_NOTICE);
-  await page.clock.fastForward(2000);
-  await banner.click();
-  await page.clock.fastForward(2999);
-  await expect(toast).toBeVisible();
-  await page.clock.fastForward(1);
-  await expect(toast).toBeHidden();
-  for (const key of ['Enter', 'Space']) {
-    await banner.focus();
-    await page.keyboard.press(key);
-    await expect(toast).toHaveText(AD_NOTICE);
-    await page.clock.fastForward(3000);
-    await expect(toast).toBeHidden();
-  }
-  expect(await simulationSnapshot(page)).toEqual(state);
+  const cancelledDialog = page.waitForEvent('dialog');
+  const cancelClick = banner.click();
+  const warning = await cancelledDialog;
+  expect(warning.type()).toBe('confirm');
+  expect(warning.message()).toContain('외부 링크');
+  expect(warning.message()).toContain(EXTERNAL_EVENT_URL);
+  await warning.dismiss();
+  await cancelClick;
+  expect(context.pages()).toHaveLength(1);
   expect(page.url()).toBe(url);
-  expect(page.context().pages()).toHaveLength(1);
+  expect(await simulationSnapshot(page)).toEqual(state);
+
+  for (const action of ['click', 'Enter', 'Space']) {
+    if (action !== 'click') await banner.focus();
+    const dialogPromise = page.waitForEvent('dialog');
+    const popupPromise = context.waitForEvent('page');
+    const activation = action === 'click' ? banner.click() : page.keyboard.press(action);
+    const dialog = await dialogPromise;
+    expect(dialog.type()).toBe('confirm');
+    expect(dialog.message()).toContain('외부 링크');
+    expect(dialog.message()).toContain(EXTERNAL_EVENT_URL);
+    await dialog.accept();
+    await activation;
+    const popup = await popupPromise;
+    await expect(popup).toHaveURL(EXTERNAL_EVENT_URL);
+    await expect(popup.getByRole('heading', { name: '외부 이벤트', exact: true })).toBeVisible();
+    expect(await popup.evaluate(() => window.opener)).toBeNull();
+    expect(await popup.evaluate(() => document.referrer)).toBe('');
+    expect(page.url()).toBe(url);
+    expect(await simulationSnapshot(page)).toEqual(state);
+    await popup.close();
+    expect(context.pages()).toHaveLength(1);
+  }
 });
 
 test('banners preserve their full image and layout in both themes, on mobile and on image failure', async ({
@@ -171,6 +191,15 @@ test('banners preserve their full image and layout in both themes, on mobile and
   await page.reload();
   await expect(page.locator('.fake-ad-fallback')).toBeVisible();
   expect(await banner.boundingBox()).toEqual(before);
-  await banner.click();
-  await expect(page.locator('.fake-ad-toast')).toHaveText(AD_NOTICE);
+  const url = page.url();
+  const dialogPromise = page.waitForEvent('dialog');
+  const activation = banner.click();
+  const dialog = await dialogPromise;
+  expect(dialog.type()).toBe('confirm');
+  expect(dialog.message()).toContain('외부 링크');
+  expect(dialog.message()).toContain(EXTERNAL_EVENT_URL);
+  await dialog.dismiss();
+  await activation;
+  expect(page.url()).toBe(url);
+  expect(page.context().pages()).toHaveLength(1);
 });
