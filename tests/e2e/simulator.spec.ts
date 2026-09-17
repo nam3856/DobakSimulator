@@ -118,7 +118,7 @@ test('soul amplification auto completes with a final avatar and displayed percen
   page,
 }) => {
   await boot(page, '#soulAmplification');
-  await page.getByRole('button', { name: '목표까지 자동', exact: true }).click();
+  await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
   await expect(page.locator('.status-badge')).toHaveText('목표 달성');
   await expect(page.locator('.luck-badge')).toContainText(/P<?[\d.]/);
   await expect(page.locator('.ratio-copy')).toContainText('기댓값의');
@@ -134,11 +134,11 @@ test('ability automation stops, resumes and has no final luck verdict while unfi
   await boot(page, '#ability');
   await expect(page.getByLabel('한 번에 자동 실행할 최대 횟수')).toHaveCount(0);
   await page.getByLabel('어빌리티 진행 방식').selectOption('fixed');
-  await page.getByRole('button', { name: '목표까지 자동', exact: true }).click();
+  await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
   await page.getByRole('button', { name: '중지', exact: true }).click();
-  await expect(page.getByRole('button', { name: '목표까지 자동', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: '자동 재설정', exact: true })).toBeEnabled();
   await expect(page.locator('.luck-badge')).toHaveCount(0);
-  await page.getByRole('button', { name: '목표까지 자동', exact: true }).click();
+  await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
   await page.getByRole('button', { name: '중지', exact: true }).click();
   await expect(page.locator('.luck-badge')).toHaveCount(0);
 });
@@ -200,7 +200,7 @@ test('360px layout, keyboard dialog and reduced motion remain usable', async ({ 
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toBeFocused();
-  await page.getByRole('button', { name: '목표까지 자동', exact: true }).click();
+  await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
   await expect(page.locator('.stage-sprite')).toHaveClass(/reaction-jackpot/);
   expect(
     await page.locator('.stage-sprite').evaluate((el) => getComputedStyle(el).animationName),

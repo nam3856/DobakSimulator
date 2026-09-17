@@ -1651,7 +1651,7 @@ export default function App() {
                     ) : (
                       <>
                         <Play size={15} />
-                        목표까지 자동
+                        자동 재설정
                       </>
                     )}
                   </button>

@@ -302,8 +302,8 @@ test('automatic ability execution releases a wrong manual first lock and recompu
   await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('fixed');
   await expect(page.locator('.expected-stat')).toContainText('달성할 수 없음');
   await expect(page.getByRole('button', { name: '3회 재설정하기', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: '목표까지 자동', exact: true })).toBeEnabled();
-  await page.getByRole('button', { name: '목표까지 자동', exact: true }).click();
+  await expect(page.getByRole('button', { name: '자동 재설정', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
   await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('lowerFirst');
   await expect(page.locator('.current-result').getByLabel('2번째 줄 자동 잠금')).toBeVisible();
   await expect(page.locator('.current-result').getByLabel('1번째 줄 자동 잠금')).toHaveCount(0);
@@ -324,7 +324,7 @@ test('automatic ability execution releases a wrong manual first lock and recompu
   await expect(page.locator('.expected-stat strong')).toHaveText(expectedMean);
   await expect(page.locator('.luck-badge')).toHaveCount(0);
 
-  await page.getByRole('button', { name: '목표까지 자동', exact: true }).click();
+  await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
   await expect
     .poll(async () => (await stored(page)).state.attempts)
     .toBeGreaterThan(paused.state.attempts);

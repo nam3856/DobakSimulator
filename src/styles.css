@@ -1129,8 +1129,10 @@ small {
   border-color: var(--accent);
   color: var(--accent-ink);
 }
-.roll-button {
+.roll-button,
+.auto-button {
   flex: 1;
+  min-width: 0;
 }
 .roll-button > svg:last-child {
   margin-left: auto;
@@ -1139,7 +1141,6 @@ small {
   margin-right: auto;
 }
 .auto-button {
-  min-width: 158px;
   background: var(--input);
   color: var(--text);
 }
@@ -2339,7 +2340,6 @@ progress::-moz-progress-bar {
   }
   .auto-button {
     width: 100%;
-    min-width: 112px;
     padding: 11px 9px;
     gap: 5px;
     font-size: 14px;
