@@ -1,5 +1,5 @@
 import type { CharacterSnapshot, SimulationConfig, SimulationState } from '../types';
-import { abilityProgress, usesLowerFirstAbility } from '../engine/ability-strategy';
+import { abilityProgress, usesAbilityProgression } from '../engine/ability-strategy';
 export interface StoredSession {
   version: 1;
   character: CharacterSnapshot;
@@ -69,7 +69,7 @@ export function readSession(): StoredSession | null {
       !validGrade(x.config?.start?.grade) ||
       !Array.isArray(x.config?.lockedSlots) ||
       (x.config.abilityStrategy !== undefined &&
-        !['lowerFirst', 'fixed'].includes(x.config.abilityStrategy)) ||
+        !['lowerFirst', 'firstLocked', 'fixed'].includes(x.config.abilityStrategy)) ||
       (x.state?.lockedSlots !== undefined && !validLocks(x.state.lockedSlots)) ||
       !x.config?.unitPrices ||
       !Array.isArray(x.config?.target?.conditions) ||
@@ -88,7 +88,7 @@ export function readSession(): StoredSession | null {
       !validCost(x.state?.spent)
     )
       return null;
-    if (usesLowerFirstAbility(x.config))
+    if (usesAbilityProgression(x.config))
       x.state.lockedSlots = abilityProgress(x.config, x.state.lines).lockedSlots;
     return x;
   } catch {

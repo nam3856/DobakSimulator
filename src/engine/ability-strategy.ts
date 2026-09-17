@@ -23,6 +23,19 @@ export function usesLowerFirstAbility(config: SimulationConfig): boolean {
   );
 }
 
+export function usesFirstLockedAbility(config: SimulationConfig): boolean {
+  return (
+    config.mode === 'ability' &&
+    config.abilityStrategy === 'firstLocked' &&
+    config.target.mode === 'ability' &&
+    config.target.match === 'all'
+  );
+}
+
+export function usesAbilityProgression(config: SimulationConfig): boolean {
+  return usesLowerFirstAbility(config) || usesFirstLockedAbility(config);
+}
+
 function allowsSlot(condition: TargetCondition, slot: number): boolean {
   return (
     (condition.slot === undefined || condition.slot === slot) &&
@@ -64,17 +77,23 @@ export function abilityProgress(
     }
   }
   visit(0, []);
-  return { lockedSlots, matchedLower: lockedSlots.length, requiredLower: conditions.length };
+  const matchedLower = lockedSlots.length;
+  // A first-line lock leaves room for only one secondary lock, even on a complete result.
+  if (usesFirstLockedAbility(config)) lockedSlots = [0, ...lockedSlots.slice(0, 1)];
+  return { lockedSlots, matchedLower, requiredLower: conditions.length };
 }
 
 export function abilityConfigForState(
   config: SimulationConfig,
   state: Pick<SimulationState, 'lines' | 'lockedSlots'>,
 ): SimulationConfig {
-  if (!usesLowerFirstAbility(config)) return config;
+  if (!usesAbilityProgression(config)) return config;
+  const lockedSlots = state.lockedSlots ?? abilityProgress(config, state.lines).lockedSlots;
   return {
     ...config,
-    lockedSlots: [...(state.lockedSlots ?? abilityProgress(config, state.lines).lockedSlots)],
+    lockedSlots: usesFirstLockedAbility(config)
+      ? [0, ...lockedSlots.filter((slot) => slot !== 0).slice(0, 1)]
+      : [...lockedSlots],
   };
 }
 
@@ -100,7 +119,8 @@ export function pickAbilityCandidate(
 }
 
 export function abilityStrategyErrors(config: SimulationConfig): string[] {
-  if (!usesLowerFirstAbility(config)) return [];
+  if (!usesAbilityProgression(config)) return [];
+  const firstLocked = usesFirstLockedAbility(config);
   const conditions = config.target.conditions;
   const first = conditions.filter(
     (condition) =>
@@ -116,9 +136,19 @@ export function abilityStrategyErrors(config: SimulationConfig): string[] {
     conditions.some((condition) => (condition.count ?? 1) !== 1)
   )
     errors.push(
-      '아랫줄 우선 방식은 첫째 줄 목표 하나와 둘째·셋째 줄의 보조 목표 한 개 또는 두 개가 필요합니다.',
+      `${firstLocked ? '첫 줄 고정' : '아랫줄 우선'} 방식은 첫째 줄 목표 하나와 둘째·셋째 줄의 보조 목표 한 개 또는 두 개가 필요합니다.`,
     );
-  if (config.lockedSlots.length)
+  if (firstLocked) {
+    if (config.lockedSlots.length !== 1 || config.lockedSlots[0] !== 0)
+      errors.push('첫 줄 고정 방식은 첫째 줄만 고정하고 보조 목표를 자동으로 잠급니다.');
+    if (
+      first.length === 1 &&
+      (!config.start.lines[0] || !conditionMatchesLine(first[0], config.start.lines[0], 0))
+    )
+      errors.push(
+        '고정할 첫째 줄이 첫 줄 목표를 만족하지 않습니다. 목표를 현재 첫째 줄에 맞춰 주세요.',
+      );
+  } else if (config.lockedSlots.length)
     errors.push(
       '아랫줄 우선 방식은 목표를 자동으로 잠급니다. 수동 잠금을 해제하거나 고정 잠금 방식으로 변경해 주세요.',
     );

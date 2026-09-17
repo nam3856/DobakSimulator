@@ -42,7 +42,7 @@ export interface SimulationConfig {
   level: number;
   start: StartState;
   lockedSlots: number[];
-  abilityStrategy?: 'lowerFirst' | 'fixed';
+  abilityStrategy?: 'lowerFirst' | 'firstLocked' | 'fixed';
   abilityPresetJob?: string;
   batchSize: 1 | 3;
   target: Goal;

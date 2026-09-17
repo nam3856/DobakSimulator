@@ -174,48 +174,64 @@ test('completed amplification restarts immediately, resets costs, archives resul
   }
 });
 
-test('ability retry returns to the original lower locks and pays both phases again', async ({
-  page,
-}) => {
-  await boot(page, 'ability');
-  await abilityStart(page, ['attackFlat', 'strFlat', 'dexFlat']);
-  const initial = await stored(page);
-  expect(initial.state.lockedSlots).toEqual([]);
-  await forceWorkerRandom(
+for (const strategy of ['lowerFirst', 'firstLocked'] as const)
+  test(`ability ${strategy} retry returns to the original locks and pays both phases again`, async ({
     page,
-    abilityDraws(initial.config, initial.state, [
-      ['attackFlat', 'bossDamagePercent', 'dexFlat'],
-      ['passiveSkillLevel', 'bossDamagePercent', 'intFlat'],
-    ]),
-  );
-  const mean = (await page.locator('.expected-stat strong').textContent())!;
-  await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
-  await expect(page.getByRole('button', { name: '다시 자동재설정', exact: true })).toBeEnabled();
-  const first = await stored(page);
-  expect(first.state.lockedSlots).toEqual([1]);
-  expect(first.state.attempts).toBe(6n);
-  expect(first.state.spent.meso).toBe(24000000n);
-  await page.getByRole('button', { name: '다시 자동재설정', exact: true }).click();
-  await expect.poll(async () => (await runs(page)).length).toBe(2);
-  await expect(page.getByRole('button', { name: '다시 자동재설정', exact: true })).toBeEnabled();
-  const restarted = (await runs(page))[1];
-  expect(restarted.config).toEqual(initial.config);
-  expect(restarted.state.lines).toEqual(initial.state.lines);
-  expect(restarted.state.lockedSlots).toEqual([]);
-  expect(restarted.state.attempts).toBe(0n);
-  expect(restarted.state.spent).toEqual(initial.state.spent);
-  const second = await stored(page);
-  expect(second.state.status).toBe('success');
-  expect(second.state.attempts).toBe(6n);
-  expect(second.state.spent).toEqual(first.state.spent);
-  expect(second.state.spent.honor).toBe(150000n);
-  expect(second.state.history[0].sequence).toBe(1n);
-  await ready(page);
-  await expect(page.locator('.expected-stat strong')).toHaveText(mean);
-  const saved = await archives(page);
-  expect(saved).toHaveLength(1);
-  expect(saved[0].state).toEqual(first.state);
-});
+  }) => {
+    await boot(page, 'ability');
+    const firstLocked = strategy === 'firstLocked';
+    await abilityStart(page, [
+      firstLocked ? 'passiveSkillLevel' : 'attackFlat',
+      'strFlat',
+      'dexFlat',
+    ]);
+    if (firstLocked) {
+      await page.getByLabel('어빌리티 목표 줄 수').selectOption('3');
+      await page.getByLabel('어빌리티 진행 방식').selectOption('firstLocked');
+      await ready(page);
+    }
+    const initial = await stored(page);
+    const initialLocks = firstLocked ? [0] : [];
+    expect(initial.state.lockedSlots).toEqual(initialLocks);
+    await forceWorkerRandom(
+      page,
+      abilityDraws(initial.config, initial.state, [
+        [firstLocked ? 'passiveSkillLevel' : 'attackFlat', 'bossDamagePercent', 'dexFlat'],
+        [
+          'passiveSkillLevel',
+          'bossDamagePercent',
+          firstLocked ? 'statusAilmentDamagePercent' : 'intFlat',
+        ],
+      ]),
+    );
+    const mean = (await page.locator('.expected-stat strong').textContent())!;
+    await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
+    await expect(page.getByRole('button', { name: '다시 자동재설정', exact: true })).toBeEnabled();
+    const first = await stored(page);
+    expect(first.state.lockedSlots).toEqual(firstLocked ? [0, 1] : [1]);
+    expect(first.state.attempts).toBe(6n);
+    expect(first.state.spent.meso).toBe(firstLocked ? 63000000n : 24000000n);
+    await page.getByRole('button', { name: '다시 자동재설정', exact: true }).click();
+    await expect.poll(async () => (await runs(page)).length).toBe(2);
+    await expect(page.getByRole('button', { name: '다시 자동재설정', exact: true })).toBeEnabled();
+    const restarted = (await runs(page))[1];
+    expect(restarted.config).toEqual(initial.config);
+    expect(restarted.state.lines).toEqual(initial.state.lines);
+    expect(restarted.state.lockedSlots).toEqual(initialLocks);
+    expect(restarted.state.attempts).toBe(0n);
+    expect(restarted.state.spent).toEqual(initial.state.spent);
+    const second = await stored(page);
+    expect(second.state.status).toBe('success');
+    expect(second.state.attempts).toBe(6n);
+    expect(second.state.spent).toEqual(first.state.spent);
+    expect(second.state.spent.honor).toBe(firstLocked ? 210000n : 150000n);
+    expect(second.state.history[0].sequence).toBe(1n);
+    await ready(page);
+    await expect(page.locator('.expected-stat strong')).toHaveText(mean);
+    const saved = await archives(page);
+    expect(saved).toHaveLength(1);
+    expect(saved[0].state).toEqual(first.state);
+  });
 
 test('paused automation resumes its costs and attempts instead of creating a new challenge', async ({
   page,

@@ -46,6 +46,8 @@ import {
 import {
   abilityProgress,
   abilityStrategyErrors,
+  usesAbilityProgression,
+  usesFirstLockedAbility,
   usesLowerFirstAbility,
 } from './engine/ability-strategy';
 import {
@@ -224,6 +226,7 @@ export default function App() {
     benchmark?.status !== 'already';
   const automaticAbilityTarget =
     config?.mode === 'ability' &&
+    config.abilityStrategy !== 'firstLocked' &&
     !usesLowerFirstAbility(config) &&
     usesLowerFirstAbility({ ...config, abilityStrategy: 'lowerFirst' }) &&
     !abilityStrategyErrors({ ...config, abilityStrategy: 'lowerFirst', lockedSlots: [] }).length
@@ -612,6 +615,10 @@ export default function App() {
       draft.lockedSlots = state?.lockedSlots ?? config.lockedSlots;
       strategyNotice =
         '변경한 목표는 수동 잠금 방식으로 진행합니다. 아랫줄 우선 방식은 첫 줄 목표 하나와 보조 줄 목표 한두 개가 필요합니다.';
+    } else if (draft.abilityStrategy === 'firstLocked' && !usesFirstLockedAbility(draft)) {
+      draft.abilityStrategy = 'fixed';
+      draft.lockedSlots = state?.lockedSlots ?? config.lockedSlots;
+      strategyNotice = '변경한 목표는 현재 잠금을 유지하는 수동 잠금 방식으로 진행합니다.';
     }
     if (resetLines) draft.start = { ...draft.start, lines: [], failures: 0 };
     if ((draft.mode === 'cube' || draft.mode === 'soulPotential') && draft.target.mode === 'sum') {
@@ -640,8 +647,8 @@ export default function App() {
     patchConfig({
       target,
       abilityPresetJob: preset.job,
-      abilityStrategy: 'lowerFirst',
-      lockedSlots: [],
+      abilityStrategy: config.abilityStrategy === 'firstLocked' ? 'firstLocked' : 'lowerFirst',
+      lockedSlots: config.abilityStrategy === 'firstLocked' ? [0] : [],
     });
   }
   function chooseAbilityGoalCount(count: 2 | 3) {
@@ -664,13 +671,13 @@ export default function App() {
       patchConfig({
         target,
         abilityPresetJob: config.abilityPresetJob,
-        abilityStrategy: 'lowerFirst',
-        lockedSlots: [],
+        abilityStrategy: config.abilityStrategy === 'firstLocked' ? 'firstLocked' : 'lowerFirst',
+        lockedSlots: config.abilityStrategy === 'firstLocked' ? [0] : [],
       });
   }
   function toggleAbilityLock(slot: number) {
     if (!config || !state || config.mode !== 'ability' || auto) return;
-    const currentLocks = usesLowerFirstAbility(config)
+    const currentLocks = usesAbilityProgression(config)
       ? (state.lockedSlots ?? abilityProgress(config, state.lines).lockedSlots)
       : config.lockedSlots;
     const locks = currentLocks.includes(slot)
@@ -1234,7 +1241,7 @@ export default function App() {
                       <div className="ability-lock-count">
                         <span>고정 옵션</span>
                         <strong>
-                          {usesLowerFirstAbility(config) && state
+                          {usesAbilityProgression(config) && state
                             ? (
                                 state.lockedSlots ??
                                 abilityProgress(config, state.lines).lockedSlots
@@ -1270,8 +1277,10 @@ export default function App() {
                     <summary>
                       시작 옵션{' '}
                       {config.mode === 'ability'
-                        ? usesLowerFirstAbility(config)
-                          ? '· 목표 보조 줄 자동 잠금'
+                        ? usesAbilityProgression(config)
+                          ? usesFirstLockedAbility(config)
+                            ? '· 첫 줄 고정, 보조 줄 자동 잠금'
+                            : '· 목표 보조 줄 자동 잠금'
                           : '· 잠금 설정'
                         : '직접 설정'}
                       <ChevronDown size={14} />
@@ -1280,7 +1289,7 @@ export default function App() {
                       lines={config.start.lines}
                       options={editorOptions}
                       onChange={(lines) => patchConfig({ start: { ...config.start, lines } })}
-                      canLock={config.mode === 'ability' && !usesLowerFirstAbility(config)}
+                      canLock={config.mode === 'ability' && !usesAbilityProgression(config)}
                       locks={config.lockedSlots}
                       onLock={toggleAbilityLock}
                     />
@@ -1399,34 +1408,43 @@ export default function App() {
                   <Field label="어빌리티 진행 방식">
                     <select
                       aria-label="어빌리티 진행 방식"
-                      value={usesLowerFirstAbility(config) ? 'lowerFirst' : 'fixed'}
+                      value={config.abilityStrategy ?? 'fixed'}
                       onChange={(e) => {
-                        const strategy = e.target.value as 'lowerFirst' | 'fixed';
+                        const strategy = e.target.value as NonNullable<
+                          SimulationConfig['abilityStrategy']
+                        >;
                         const target = lowerFirstGoal(config.target);
                         patchConfig({
                           abilityStrategy: strategy,
                           lockedSlots:
                             strategy === 'lowerFirst'
                               ? []
-                              : (state?.lockedSlots ?? config.lockedSlots),
-                          ...(strategy === 'lowerFirst' && target ? { target } : {}),
+                              : strategy === 'firstLocked'
+                                ? [0]
+                                : (state?.lockedSlots ?? config.lockedSlots),
+                          ...(strategy !== 'fixed' && target ? { target } : {}),
                         });
                       }}
                     >
                       <option value="lowerFirst" disabled={!lowerFirstGoal(config.target)}>
                         아랫줄부터 자동 잠금 → 첫 줄
                       </option>
+                      <option value="firstLocked" disabled={!lowerFirstGoal(config.target)}>
+                        첫 줄 고정 → 보조 줄 자동 잠금
+                      </option>
                       <option value="fixed">수동 잠금 유지</option>
                     </select>
                   </Field>
                   <p className="inline-note">
-                    {usesLowerFirstAbility(config)
-                      ? requiredAbilityLower === 1
-                        ? '2·3번째 줄 중 하나에 보조 목표 확보 → 해당 줄 잠금 → 첫 줄 완성. 남은 한 줄은 무관하며, 기댓값도 이 순서로 계산합니다.'
-                        : '보조 목표 중 하나 확보 → 해당 줄 잠금 → 남은 보조 줄 확보·잠금 → 첫 줄 완성. 기댓값도 이 순서로 계산합니다.'
-                      : automaticAbilityTarget
-                        ? '직접 재설정은 선택한 잠금을 유지합니다. 자동 실행은 목표에 맞게 잠금을 다시 판단하고 아랫줄부터 완성합니다.'
-                        : '선택한 줄의 잠금을 유지하며 목표 전체가 완성될 때까지 재설정합니다.'}
+                    {usesFirstLockedAbility(config)
+                      ? '목표에 맞는 첫 줄을 고정하고 2·3번째 줄을 뽑습니다. 보조 목표 하나를 확보하면 그 줄도 잠급니다. 첫 줄 확보 비용은 제외하며, 기댓값도 같은 잠금 순서로 계산합니다.'
+                      : usesLowerFirstAbility(config)
+                        ? requiredAbilityLower === 1
+                          ? '2·3번째 줄 중 하나에 보조 목표 확보 → 해당 줄 잠금 → 첫 줄 완성. 남은 한 줄은 무관하며, 기댓값도 이 순서로 계산합니다.'
+                          : '보조 목표 중 하나 확보 → 해당 줄 잠금 → 남은 보조 줄 확보·잠금 → 첫 줄 완성. 기댓값도 이 순서로 계산합니다.'
+                        : automaticAbilityTarget
+                          ? '직접 재설정은 선택한 잠금을 유지합니다. 자동 실행은 목표에 맞게 잠금을 다시 판단하고 아랫줄부터 완성합니다.'
+                          : '선택한 줄의 잠금을 유지하며 목표 전체가 완성될 때까지 재설정합니다.'}
                   </p>
                 </div>
               )}
@@ -1517,20 +1535,22 @@ export default function App() {
                     lines={state?.lines ?? config.start.lines}
                     locks={
                       config.mode === 'ability'
-                        ? usesLowerFirstAbility(config)
+                        ? usesAbilityProgression(config)
                           ? state?.lockedSlots
                           : config.lockedSlots
                         : undefined
                     }
                     onToggleLock={config.mode === 'ability' ? toggleAbilityLock : undefined}
                     locksDisabled={auto || !state}
-                    automaticLocks={usesLowerFirstAbility(config)}
+                    automaticLocks={usesAbilityProgression(config)}
                   />
                   {config.mode === 'ability' && (
                     <p className="inline-note">
                       최대 두 줄까지 직접 잠글 수 있습니다.
-                      {(usesLowerFirstAbility(config) || automaticAbilityTarget) &&
-                        ' 자동 실행은 목표에 맞게 잠금을 다시 설정합니다.'}
+                      {usesFirstLockedAbility(config)
+                        ? ' 자동 실행은 첫 줄을 고정하고 맞는 보조 줄을 잠급니다.'
+                        : (usesLowerFirstAbility(config) || automaticAbilityTarget) &&
+                          ' 자동 실행은 목표에 맞게 잠금을 다시 설정합니다.'}
                     </p>
                   )}
                   {config.mode === 'cube' && isPrime(config.cubeType) && (
@@ -1540,23 +1560,31 @@ export default function App() {
               )}
               {config.mode === 'ability' && (
                 <div className="ability-progress-slot">
-                  {usesLowerFirstAbility(config) && state ? (
+                  {usesAbilityProgression(config) && state ? (
                     <div className="ability-progress" aria-label="어빌리티 자동 잠금 진행">
                       <strong>
                         {state.status === 'success'
                           ? requiredAbilityLower === 1
                             ? '두 줄 완성'
                             : '세 줄 완성'
-                          : (state.lockedSlots?.length ?? 0) === requiredAbilityLower
-                            ? '첫 번째 줄 도전 중'
-                            : (state.lockedSlots?.length ?? 0) === 1
-                              ? '남은 보조 줄 도전 중'
-                              : '첫 보조 줄 도전 중'}
+                          : usesFirstLockedAbility(config)
+                            ? (state.lockedSlots?.length ?? 0) > 1
+                              ? '마지막 보조 줄 도전 중'
+                              : '보조 줄 도전 중'
+                            : (state.lockedSlots?.length ?? 0) === requiredAbilityLower
+                              ? '첫 번째 줄 도전 중'
+                              : (state.lockedSlots?.length ?? 0) === 1
+                                ? '남은 보조 줄 도전 중'
+                                : '첫 보조 줄 도전 중'}
                       </strong>
                       <div className="ability-progress-steps">
-                        {(requiredAbilityLower === 1
-                          ? ['보조 줄 하나', '첫 줄 완성']
-                          : ['보조 줄 하나', '보조 줄 두 개', '첫 줄 완성']
+                        {(usesFirstLockedAbility(config)
+                          ? requiredAbilityLower === 1
+                            ? ['첫 줄 고정', '보조 줄 완성']
+                            : ['첫 줄 고정', '보조 줄 하나', '보조 줄 완성']
+                          : requiredAbilityLower === 1
+                            ? ['보조 줄 하나', '첫 줄 완성']
+                            : ['보조 줄 하나', '보조 줄 두 개', '첫 줄 완성']
                         ).map((label, index) => (
                           <span
                             key={label}
@@ -1578,8 +1606,9 @@ export default function App() {
                       </div>
                       {state.status !== 'success' && (
                         <small>
-                          자동 잠금 {state.lockedSlots?.length ?? 0}/{requiredAbilityLower}줄 · 다음
-                          1회{' '}
+                          {usesFirstLockedAbility(config) ? '첫 줄 고정 · 잠금 ' : '자동 잠금 '}
+                          {state.lockedSlots?.length ?? 0}/
+                          {usesFirstLockedAbility(config) ? 2 : requiredAbilityLower}줄 · 다음 1회{' '}
                           {formatAmount(
                             Number(
                               data.ability.costs.find(
@@ -1758,10 +1787,10 @@ export default function App() {
                   {config.batchSize === 3
                     ? effectiveBatchSize(config, state?.grade ?? config.start.grade) === 1
                       ? '등급 상승 구간은 1회씩 진행하고, 레전드리에 도달하면 3회 비교로 자동 전환합니다.'
-                      : usesLowerFirstAbility(config)
+                      : usesAbilityProgression(config)
                         ? '같은 잠금 상태에서 3회분을 모두 사용하고, 목표 달성 또는 보조 줄을 더 많이 확보한 결과를 채택합니다.'
                         : '3개를 모두 뽑고 비용도 3회분을 사용합니다.'
-                    : usesLowerFirstAbility(config)
+                    : usesAbilityProgression(config)
                       ? '목표 보조 줄을 확보하면 채택·잠금합니다. 나머지 결과는 기존 옵션을 유지합니다.'
                       : '목표 미달 시 기존 옵션을 유지하며, 등급 상승은 적용합니다.'}
                 </p>

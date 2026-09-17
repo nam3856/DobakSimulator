@@ -537,6 +537,150 @@ test('two ability goals reassess manual locks before automatic reset and use one
   await expect(page.locator('.expected-stat strong')).toHaveText(mean);
 });
 
+test('fixed first ability line acquires and locks lower goals, restores progress and charges both phases', async ({
+  page,
+}) => {
+  await boot(page);
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+  await selectStart(page, ['passiveSkillLevel', 'strFlat', 'dexFlat']);
+  await page.getByLabel('어빌리티 진행 방식').selectOption('firstLocked');
+  await benchmarkReady(page);
+  const initial = await stored(page);
+  const mean = (await page.locator('.expected-stat strong').textContent())!;
+  expect(initial.config.lockedSlots).toEqual([0]);
+  expect(initial.state.lockedSlots).toEqual([0]);
+  await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('보조 줄 도전 중');
+  await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('첫 줄 고정 · 잠금 1/2줄');
+  await expect(page.locator('.current-result').getByLabel('1번째 줄 자동 잠금')).toBeVisible();
+  await forceOneRoll(page, ['passiveSkillLevel', 'bossDamagePercent', 'dexFlat'], 3);
+  await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('마지막 보조 줄 도전 중');
+  await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('첫 줄 고정 · 잠금 2/2줄');
+  const acquired = await stored(page);
+  expect(acquired.state.lockedSlots).toEqual([0, 1]);
+  expect(acquired.state.spent.meso).toBe(18000000n);
+  expect(acquired.state.spent.honor).toBe(90000n);
+  for (const candidate of acquired.state.candidates)
+    expect(candidate.lines[0]).toEqual(initial.state.lines[0]);
+  await expect(page.locator('.expected-stat strong')).toHaveText(mean);
+  await page.reload();
+  await benchmarkReady(page);
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('firstLocked');
+  expect((await stored(page)).state.lockedSlots).toEqual([0, 1]);
+  await forceOneRoll(
+    page,
+    ['passiveSkillLevel', 'bossDamagePercent', 'statusAilmentDamagePercent'],
+    3,
+  );
+  await expect(page.locator('.status-badge')).toHaveText('목표 달성');
+  const completed = await stored(page);
+  expect(completed.config.start).toEqual(initial.config.start);
+  expect(completed.state.lockedSlots).toEqual([0, 1]);
+  expect(completed.state.attempts).toBe(6n);
+  expect(completed.state.spent.meso).toBe(63000000n);
+  expect(completed.state.spent.honor).toBe(210000n);
+  for (const candidate of completed.state.candidates)
+    expect(candidate.lines.slice(0, 2)).toEqual(acquired.state.lines.slice(0, 2));
+  await benchmarkReady(page);
+  await expect(page.locator('.expected-stat strong')).toHaveText(mean);
+});
+
+test('fixed first ability line accepts either lower slot for two goals and persists through target controls', async ({
+  page,
+}) => {
+  await boot(page);
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+  await selectStart(page, ['passiveSkillLevel', 'strFlat', 'dexFlat']);
+  await page.getByLabel('어빌리티 진행 방식').selectOption('firstLocked');
+  await page.getByLabel('어빌리티 목표 줄 수').selectOption('2');
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('메르세데스');
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('firstLocked');
+  await expect(page.getByLabel('어빌리티 목표 줄 수')).toHaveValue('2');
+  for (const lowerSlot of [1, 2]) {
+    await selectStart(page, ['passiveSkillLevel', 'strFlat', 'dexFlat']);
+    await benchmarkReady(page);
+    const original = await stored(page);
+    const result = ['passiveSkillLevel', 'strFlat', 'dexFlat'];
+    result[lowerSlot] = 'bossDamagePercent';
+    await forceOneRoll(page, result, 3);
+    await expect(page.locator('.status-badge')).toHaveText('목표 달성');
+    await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('두 줄 완성');
+    const completed = await stored(page);
+    expect(completed.config.abilityStrategy).toBe('firstLocked');
+    expect(completed.state.lines[0]).toEqual(original.state.lines[0]);
+    expect(completed.state.lockedSlots).toEqual([0, lowerSlot]);
+    expect(completed.state.spent.meso).toBe(18000000n);
+    expect(completed.state.spent.honor).toBe(90000n);
+  }
+  await page.getByLabel('어빌리티 목표 줄 수').selectOption('3');
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('firstLocked');
+  await expect(page.getByLabel('목표 조건 3 옵션')).toHaveValue('criticalRatePercent');
+  expect((await stored(page)).config.lockedSlots).toEqual([0]);
+});
+
+test('fixed first ability line must satisfy its first goal before simulation is enabled', async ({
+  page,
+}) => {
+  await boot(page);
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+  await selectStart(page, ['attackFlat', 'strFlat', 'dexFlat']);
+  await page.getByLabel('어빌리티 진행 방식').selectOption('firstLocked');
+  await expect(page.getByRole('alert')).toContainText(
+    '고정할 첫째 줄이 첫 줄 목표를 만족하지 않습니다',
+  );
+  await expect(page.getByRole('button', { name: '자동 재설정', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '3회 재설정하기', exact: true })).toBeDisabled();
+  await expect(page.locator('.expected-stat strong')).not.toContainText(/\d/);
+  await expect(page.locator('.expected-stat')).not.toContainText('같은 조건의 평균 소비');
+  await page.getByLabel('1번째 시작 옵션').selectOption({
+    label: `[레전드리] ${maximum('passiveSkillLevel').label}`,
+  });
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await benchmarkReady(page);
+  await expect(page.getByRole('button', { name: '자동 재설정', exact: true })).toBeEnabled();
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('firstLocked');
+  expect((await stored(page)).state.lockedSlots).toEqual([0]);
+});
+
+test('fixed first ability line remains fixed during real automatic execution and pause resume', async ({
+  page,
+}) => {
+  await page.route('**/assets/simulator.worker-*.js', async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      body: `self.crypto.getRandomValues = array => { array.fill(0); return array; };\n${await response.text()}`,
+    });
+  });
+  await boot(page);
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+  await selectStart(page, ['passiveSkillLevel', 'bossDamagePercent', 'dexFlat']);
+  await page.getByLabel('어빌리티 진행 방식').selectOption('firstLocked');
+  await benchmarkReady(page);
+  const initial = await stored(page);
+  const mean = (await page.locator('.expected-stat strong').textContent())!;
+  await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
+  await expect.poll(async () => (await stored(page)).state.attempts).toBeGreaterThan(0n);
+  await page.getByRole('button', { name: '중지', exact: true }).click();
+  const paused = await stored(page);
+  expect(paused.config).toEqual(initial.config);
+  expect(paused.state.lockedSlots).toEqual([0, 1]);
+  expect(paused.state.lines).toEqual(initial.state.lines);
+  expect(paused.state.spent.meso).toBe(paused.state.attempts * 15000000n);
+  expect(paused.state.spent.honor).toBe(paused.state.attempts * 40000n);
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('firstLocked');
+  await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
+  await expect
+    .poll(async () => (await stored(page)).state.attempts)
+    .toBeGreaterThan(paused.state.attempts);
+  await page.getByRole('button', { name: '중지', exact: true }).click();
+  const resumed = await stored(page);
+  expect(resumed.config).toEqual(initial.config);
+  expect(resumed.state.lines).toEqual(initial.state.lines);
+  expect(resumed.state.spent.meso).toBeGreaterThan(paused.state.spent.meso);
+  await benchmarkReady(page);
+  await expect(page.locator('.expected-stat strong')).toHaveText(mean);
+});
+
 test('ability presets and automatic lock progress fit a 360px screen', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await boot(page);

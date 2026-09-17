@@ -22,7 +22,7 @@ import {
   validateConfig,
 } from './simulation';
 import { conditionMatchesLine, matchTarget, metricValue } from './target';
-import { usesLowerFirstAbility } from './ability-strategy';
+import { usesAbilityProgression } from './ability-strategy';
 import { abilityStrategyBenchmark } from './ability-benchmark';
 import {
   finiteGeometricMean,
@@ -495,7 +495,7 @@ export function computeBenchmark(
   if (config.mode === 'soulAmplification') return amplificationBenchmark(data, config, actualCost);
   if (config.start.lines.length !== 3)
     throw new Error('초기 옵션 세 줄을 먼저 생성한 뒤 예상 비용을 계산해주세요.');
-  if (usesLowerFirstAbility(config))
+  if (usesAbilityProgression(config))
     return abilityStrategyBenchmark(data, config, actualCost, options);
   if (config.mode === 'ability' || isPrime(config) || config.start.grade === 'legendary') {
     const analysis = analyzeOutcomes(data, config, config.start.grade, false);

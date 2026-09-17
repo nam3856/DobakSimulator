@@ -1,5 +1,5 @@
 import type { BenchmarkResult, OptionLine, SimulationConfig } from '../types';
-import { abilityProgress } from './ability-strategy';
+import { abilityProgress, usesFirstLockedAbility } from './ability-strategy';
 import { geometric, seededRandom, stableStringify, upperBound } from './math';
 import {
   allCandidates,
@@ -28,6 +28,7 @@ interface RankGroup {
 interface Phase {
   key: string;
   locks: number[];
+  matchedLower: number;
   lines: OptionLine[];
   fixed: Candidate[];
   cost: number;
@@ -53,7 +54,8 @@ const resultCache = new WeakMap<
 /**
  * A retained miss changes only the excluded tuple probability r. The distribution of
  * strictly improving outcomes, conditional on their rank, does not depend on r.
- * This is a finite DAG (0 -> required lower locks -> success), not a reroll Monte Carlo.
+ * This is a finite DAG of acquired lower goals, not a reroll Monte Carlo.
+ * A permanent first-line lock affects costs and exclusions but is not lower progress.
  */
 export function abilityStrategyBenchmark(
   data: RuleData,
@@ -103,7 +105,7 @@ export function abilityStrategyBenchmark(
       );
       if (outcomes.size > 1)
         throw new Error(
-          '같은 표시 옵션이 등급에 따라 목표 판정이 달라지는 확률표는 아랫줄 우선 계산에서 지원하지 않습니다. 현재 공식 어빌리티 표에는 이 중복이 없습니다.',
+          '같은 표시 옵션이 등급에 따라 목표 판정이 달라지는 확률표는 어빌리티 순차 잠금 계산에서 지원하지 않습니다. 현재 공식 어빌리티 표에는 이 중복이 없습니다.',
         );
     }
   // Lines with equal target behavior and equal per-result probabilities are exchangeable.
@@ -162,7 +164,8 @@ export function abilityStrategyBenchmark(
     return rows;
   };
   const getPhase = (lines: readonly OptionLine[]): Phase => {
-    const locks = abilityProgress(config, lines).lockedSlots;
+    const progress = abilityProgress(config, lines);
+    const locks = progress.lockedSlots;
     const fixed = locks.map((slot) => {
       const rows = byIdentity[slot].get(lineIdentity(lines[slot])) ?? [];
       const candidate = rows.find((row) => row.line.grade === lines[slot].grade) ?? rows[0];
@@ -177,6 +180,7 @@ export function abilityStrategyBenchmark(
     const phase: Phase = {
       key,
       locks,
+      matchedLower: progress.matchedLower,
       lines: [...lines],
       fixed,
       cost: Number(
@@ -295,7 +299,7 @@ export function abilityStrategyBenchmark(
           stage: config.start.stage,
         });
         const progress = abilityProgress(config, selected).matchedLower;
-        if (!hit && progress <= phase.locks.length) return;
+        if (!hit && progress <= phase.matchedLower) return;
         const rank = hit ? 3 : progress;
         const destination = hit ? undefined : getPhase(selected);
         const repeat = destination ? repeatProbability(destination, selected) : 0;
@@ -311,7 +315,7 @@ export function abilityStrategyBenchmark(
       let candidates = eligible(slot, prefix);
       if (
         depth === slots.length - 1 &&
-        abilityProgress(config, selected).matchedLower <= phase.locks.length &&
+        abilityProgress(config, selected).matchedLower <= phase.matchedLower &&
         !matchTarget(config.target, {
           grade: 'legendary',
           lines: selected,
@@ -337,7 +341,7 @@ export function abilityStrategyBenchmark(
         // Skip only complete outcomes that neither improve the locks nor hit the goal.
         if (
           depth === slots.length - 1 &&
-          abilityProgress(config, selected).matchedLower <= phase.locks.length &&
+          abilityProgress(config, selected).matchedLower <= phase.matchedLower &&
           !matchTarget(config.target, {
             grade: 'legendary',
             lines: selected,
@@ -456,7 +460,7 @@ export function abilityStrategyBenchmark(
       actualCost === undefined ? undefined : upperBound(samples, actualCost) / sampleCount,
     note: partial
       ? '자동 잠금 이후 목표 달성에 실패할 수 있는 경로가 있어 무조건부 기댓값은 무한대입니다.'
-      : `아랫줄 목표 확보 → 자동 잠금 → ${config.target.conditions.length === 3 ? '나머지 아랫줄 → ' : ''}첫째 줄 순서입니다. 평균은 해석 계산, 분포는 고정 시드 ${sampleCount.toLocaleString('ko-KR')}개 역누적분포 표본입니다.${config.batchSize === 3 ? ' 매 비교는 같은 잠금에서 3회 전부 과금하고, 목표 성공 우선·잠금 진척 우선으로 채택합니다.' : ''}`,
+      : `${usesFirstLockedAbility(config) ? `첫째 줄을 고정한 채 아랫줄 목표를 노립니다.${config.target.conditions.length === 3 ? ' 보조 목표 하나를 확보하면 추가 잠금 후 남은 보조 줄을 완성합니다.' : ''}` : `아랫줄 목표 확보 → 자동 잠금 → ${config.target.conditions.length === 3 ? '나머지 아랫줄 → ' : ''}첫째 줄 순서입니다.`} 평균은 해석 계산, 분포는 고정 시드 ${sampleCount.toLocaleString('ko-KR')}개 역누적분포 표본입니다.${config.batchSize === 3 ? ' 매 비교는 같은 잠금에서 3회 전부 과금하고, 목표 성공 우선·잠금 진척 우선으로 채택합니다.' : ''}`,
   };
   let cache = resultCache.get(data);
   if (!cache) resultCache.set(data, (cache = new Map()));

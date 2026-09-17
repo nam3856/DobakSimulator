@@ -30,7 +30,7 @@ import {
   abilityProgress,
   abilityStrategyErrors,
   pickAbilityCandidate,
-  usesLowerFirstAbility,
+  usesAbilityProgression,
 } from './ability-strategy';
 
 export const emptyCost = (): ResourceCost => ({
@@ -280,7 +280,7 @@ export function createState(
     attempts: 0n,
     ...(config.mode === 'ability'
       ? {
-          lockedSlots: usesLowerFirstAbility(config)
+          lockedSlots: usesAbilityProgression(config)
             ? abilityProgress(config, lines).lockedSlots
             : [...config.lockedSlots],
         }
@@ -349,8 +349,10 @@ export function rollBatch(
     const baseline = [...state.lines];
     const baselineGrade = state.grade;
     const drawConfig = abilityConfigForState(config, state);
-    const lowerFirst = usesLowerFirstAbility(config);
-    const previousProgress = lowerFirst ? abilityProgress(config, baseline).matchedLower : 0;
+    const abilityProgression = usesAbilityProgression(config);
+    const previousProgress = abilityProgression
+      ? abilityProgress(config, baseline).matchedLower
+      : 0;
     const count = effectiveBatchSize(config, baselineGrade);
     if (
       count === 3 &&
@@ -389,7 +391,7 @@ export function rollBatch(
         amplified: false,
         hit,
         cost,
-        ...(lowerFirst
+        ...(abilityProgression
           ? {
               lockedSlots: abilityProgress(config, lines).lockedSlots,
               progressed: abilityProgress(config, lines).matchedLower > previousProgress,
@@ -400,13 +402,13 @@ export function rollBatch(
       next.candidates.push(result);
       next.history.push(result);
     }
-    const selected = lowerFirst
+    const selected = abilityProgression
       ? pickAbilityCandidate(config, baseline, next.candidates)
       : (next.candidates.find((r) => r.hit) ?? next.candidates.find((r) => r.promoted));
     if (selected) {
       next.grade = selected.grade;
       next.lines = selected.lines;
-      if (lowerFirst) {
+      if (abilityProgression) {
         selected.adopted = true;
         next.lockedSlots = [...selected.lockedSlots!];
       }
