@@ -1,6 +1,7 @@
 import { test, expect, type Page, type Request } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import type { CharacterSnapshot } from '../../src/types.ts';
+import { deserialize, type StoredSession } from '../../src/ui/storage';
 
 const SHARED_API = 'https://fixture-api.example/api';
 const SHARED_ROUTE = `${SHARED_API}/character?*`;
@@ -33,6 +34,7 @@ async function openSharedSearch(page: Page) {
   await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
   await expect(page.getByRole('button', { name: '개인 키로 전환', exact: true })).toBeVisible();
   await expect(page.getByLabel('개인 Nexon Open API 키')).toHaveCount(0);
+  await expect(page.getByLabel('캐릭터 닉네임')).toHaveValue('');
   return directApiRequests;
 }
 
@@ -71,6 +73,105 @@ test('runtime configuration enables nickname-only lookup through the shared serv
   expect(requests).toHaveLength(1);
   await expectPublicRequest(requests[0], '공용테스트');
   expect(directApiRequests).toEqual([]);
+  await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
+  await expect(page.getByLabel('캐릭터 닉네임')).toHaveValue('');
+});
+
+test('nickname selection drags stay open while backdrop clicks and explicit close actions dismiss', async ({
+  page,
+}) => {
+  await openSharedSearch(page);
+  const dialog = page.getByRole('dialog');
+  const input = page.getByLabel('캐릭터 닉네임');
+  await expect(page.getByRole('button', { name: '캐릭터 불러오기', exact: true })).toBeDisabled();
+  await input.fill('드래그할닉네임');
+  const bounds = await input.boundingBox();
+  expect(bounds).not.toBeNull();
+  const outside = { x: 5, y: bounds!.y + bounds!.height / 2 };
+  const inside = { x: bounds!.x + bounds!.width - 12, y: outside.y };
+  await page.mouse.move(inside.x, inside.y);
+  await page.mouse.down();
+  await page.mouse.move(outside.x, outside.y, { steps: 12 });
+  await page.mouse.up();
+  await expect(dialog).toBeVisible();
+  expect(
+    await input.evaluate((element: HTMLInputElement) =>
+      Math.abs((element.selectionEnd ?? 0) - (element.selectionStart ?? 0)),
+    ),
+  ).toBeGreaterThan(0);
+  await expect(input).toHaveValue('드래그할닉네임');
+
+  await page.mouse.move(outside.x, outside.y);
+  await page.mouse.down();
+  await page.mouse.move(inside.x, inside.y, { steps: 12 });
+  await page.mouse.up();
+  await expect(dialog).toBeVisible();
+
+  await page.mouse.click(5, 5);
+  await expect(dialog).toHaveCount(0);
+  await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
+  await expect(input).toHaveValue('');
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
+  await input.fill('지울닉네임');
+  await page.getByRole('button', { name: '캐릭터 검색 닫기' }).click();
+  await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
+  await expect(input).toHaveValue('');
+});
+
+test('searching a different job selects its endgame ability goal from the imported active preset and restores it', async ({
+  page,
+}) => {
+  const character = characterFixture('비숍테스트');
+  character.job = '비숍';
+  character.profile = { mainStats: ['int'], secondaryStats: ['luk'], attackType: 'magicAttack' };
+  character.activeAbilityPreset = '2';
+  await page.route(SHARED_ROUTE, (route) =>
+    route.fulfill({ headers: { 'Access-Control-Allow-Origin': '*' }, json: character }),
+  );
+  await openSharedSearch(page);
+  await page.getByRole('button', { name: '캐릭터 검색 닫기' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: '어빌리티', exact: true }).click();
+  await expect(page.getByLabel('직업별 종결 어빌리티')).toHaveValue('메카닉');
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+  await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
+  await page.getByLabel('캐릭터 닉네임').fill(character.name);
+  await page.getByRole('button', { name: '캐릭터 불러오기', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
+  async function expectImportedAbility() {
+    await expect(page.getByLabel('직업별 종결 어빌리티')).toHaveValue('비숍');
+    await expect(page.getByLabel('어빌리티 프리셋')).toHaveValue('2');
+    await expect(page.locator('.mode-fixed')).toContainText('지금부터 업그레이드');
+    await expect(page.getByRole('button', { name: '현재 옵션 재현', exact: true })).toHaveCount(0);
+    for (const [index, type, value] of [
+      [1, 'bossDamagePercent', '20'],
+      [2, 'statusAilmentDamagePercent', '10'],
+      [3, 'magicAttackFlat', '30'],
+    ] as const) {
+      await expect(page.getByLabel(`목표 조건 ${index} 옵션`)).toHaveValue(type);
+      await expect(page.getByLabel(`목표 조건 ${index} 수치`)).toHaveValue(value);
+      await expect(page.getByLabel(`목표 조건 ${index} 등급`)).toHaveValue('legendary');
+    }
+    for (const line of character.abilityPresets['2'].lines)
+      await expect(page.locator('.current-result')).toContainText(line.text);
+    await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('0회');
+  }
+  await expectImportedAbility();
+  const raw = await page.evaluate(() => {
+    window.dispatchEvent(new Event('pagehide'));
+    return localStorage.getItem('isekai-jikjak:session:v1')!;
+  });
+  const saved = deserialize<StoredSession>(raw);
+  expect(saved.playMode).toBe('upgrade');
+  expect(saved.config.abilityPresetJob).toBe('비숍');
+  expect(saved.config.start.lines.map((line) => line.text)).toEqual(
+    character.abilityPresets['2'].lines.map((line) => line.text),
+  );
+  await page.reload();
+  await expectImportedAbility();
 });
 
 test('personal keys appear only after switching modes and stay out of shared searches and storage', async ({

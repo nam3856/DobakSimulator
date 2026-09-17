@@ -81,7 +81,94 @@ describe('user-supplied advanced ability endgame presets', () => {
     });
     expect(makeAbilityPresetGoal(data, '불독').lines[2].type).toBe('magicAttackFlat');
   });
-  it('defaults imported ability challenges to lower-first and preserves target values', () => {
+  it.each(['recreate', 'upgrade'] as const)(
+    'starts from the selected imported ability preset and selects the loaded job in %s mode',
+    (playMode) => {
+      for (const job of ['메카닉', '비숍', '아크메이지 (불, 독)']) {
+        for (const abilityPreset of ['1', '2']) {
+          const cfg = makeConfig(
+            data,
+            { ...character, job },
+            undefined,
+            'ability',
+            'black',
+            playMode,
+            abilityPreset,
+          );
+          expect(cfg.abilityPresetJob).toBe(resolveAbilityPreset(job)?.job);
+          expect(cfg.target).toEqual(makeAbilityPresetGoal(data, job));
+          expect(cfg.start.lines.map((line) => [line.text, line.grade])).toEqual(
+            character.abilityPresets[abilityPreset].lines.map((line) => [line.text, line.grade]),
+          );
+          expect(cfg.abilityStrategy).toBe('lowerFirst');
+          expect(cfg.batchSize).toBe(3);
+          expect(abilityStrategyErrors(cfg)).toEqual([]);
+        }
+      }
+    },
+  );
+  it.each(['recreate', 'upgrade'] as const)(
+    'uses current ability targets for an unknown job in %s mode',
+    (playMode) => {
+      const cfg = makeConfig(
+        data,
+        { ...character, job: '알 수 없는 직업' },
+        undefined,
+        'ability',
+        'black',
+        playMode,
+        '1',
+      );
+      expect(cfg.abilityPresetJob).toBeUndefined();
+      expect(cfg.start.lines).toHaveLength(3);
+      expect(cfg.target.lines).toEqual(cfg.start.lines);
+      expect(cfg.target.conditions.map((condition) => condition.minValue)).toEqual(
+        cfg.start.lines.map((line) => line.value),
+      );
+      expect(cfg.abilityStrategy).toBe('lowerFirst');
+    },
+  );
+  it('keeps a known job target when the imported ability data is missing', () => {
+    const cfg = makeConfig(
+      data,
+      { ...character, abilityPresets: {} },
+      undefined,
+      'ability',
+      'black',
+      'upgrade',
+      '1',
+    );
+    expect(cfg.start.lines).toEqual([]);
+    expect(cfg.target).toEqual(makeAbilityPresetGoal(data, character.job));
+    expect(cfg.abilityStrategy).toBe('lowerFirst');
+    expect(abilityStrategyErrors(cfg)).toEqual([]);
+  });
+  it('keeps recreate and upgrade behavior for cube and soul modes', () => {
+    const item = {
+      ...character.equipmentPresets['1'][0],
+      soul: {
+        name: '테스트 소울',
+        active: true,
+        stage: 2,
+        grade: 'legendary' as const,
+        lines: makeAbilityPresetGoal(data, '메카닉').lines.slice(0, 1),
+      },
+    };
+    for (const mode of ['cube', 'soulPotential', 'soulAmplification'] as const) {
+      const recreate = makeConfig(data, character, item, mode, 'black', 'recreate', '1');
+      const upgrade = makeConfig(data, character, item, mode, 'black', 'upgrade', '1');
+      expect(recreate.abilityPresetJob).toBeUndefined();
+      expect(upgrade.abilityPresetJob).toBeUndefined();
+      if (mode === 'soulAmplification') {
+        expect(recreate.start.stage).toBe(0);
+        expect(upgrade.start.stage).toBe(2);
+      } else {
+        expect(recreate.start.lines).toEqual([]);
+        expect(upgrade.start.lines.length).toBeGreaterThan(0);
+      }
+    }
+  });
+  it('keeps lower slots interchangeable and rejects unsupported strategy goals', () => {
     const cfg = makeConfig(data, character, undefined, 'ability', 'black', 'upgrade', '1');
     expect(cfg.abilityStrategy).toBe('lowerFirst');
     expect(cfg.target.conditions[0].slot).toBe(0);
@@ -89,9 +176,6 @@ describe('user-supplied advanced ability endgame presets', () => {
       [1, 2],
       [1, 2],
     ]);
-    expect(cfg.target.conditions.map((c) => c.minValue)).toEqual(
-      cfg.start.lines.map((l) => l.value),
-    );
     expect(lowerFirstGoal({ ...cfg.target, mode: 'exact' })).toBeUndefined();
     expect(
       lowerFirstGoal({ ...cfg.target, conditions: cfg.target.conditions.slice(0, 2) }),

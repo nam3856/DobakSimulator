@@ -120,6 +120,7 @@ test('ability automation stops, resumes and has no final luck verdict while unfi
   page,
 }) => {
   await boot(page, '#ability');
+  await expect(page.getByLabel('한 번에 자동 실행할 최대 횟수')).toHaveCount(0);
   await page.getByLabel('어빌리티 진행 방식').selectOption('fixed');
   await page.getByRole('button', { name: '목표까지 자동', exact: true }).click();
   await page.getByRole('button', { name: '중지', exact: true }).click();
@@ -134,7 +135,6 @@ test('two ability locks survive a roll and consume the corresponding honor and m
   page,
 }) => {
   await boot(page, '#ability');
-  await page.getByRole('button', { name: '지금부터 업그레이드', exact: true }).click();
   await page.getByLabel('어빌리티 진행 방식').selectOption('fixed');
   await page.getByRole('button', { name: '1회', exact: true }).click();
   // Switching to manual preserves the already acquired lower locks; set this test's own pair.
@@ -142,6 +142,9 @@ test('two ability locks survive a roll and consume the corresponding honor and m
     const unlock = page.getByRole('button', { name: `${slot}번째 옵션 잠금 해제`, exact: true });
     if (await unlock.count()) await unlock.click();
   }
+  await page.getByLabel('목표 조건 2 수치').fill('8');
+  await page.getByLabel('목표 조건 2 등급').selectOption('unique');
+  await page.getByLabel('목표 조건 3 옵션').selectOption('buffDurationPercent');
   await page.getByLabel('목표 조건 3 수치').fill('40');
   await page.getByRole('button', { name: '1번째 옵션 잠금', exact: true }).click();
   await page.getByRole('button', { name: '2번째 옵션 잠금', exact: true }).click();
@@ -218,6 +221,8 @@ test('API error and cancellation retain the previous character and never store t
     route.fulfill({ status: 400, json: { error: { name: 'OPENAPI00005' } } }),
   );
   await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
+  await expect(page.getByLabel('캐릭터 닉네임')).toHaveValue('');
+  await page.getByLabel('캐릭터 닉네임').fill('깽미니');
   await page.getByLabel('개인 Nexon Open API 키').fill('test-memory-only-key');
   await page.getByRole('button', { name: '캐릭터 불러오기', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('유효하지 않은');

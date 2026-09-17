@@ -8,6 +8,7 @@ import type {
   SimulatorMode,
 } from '../types';
 import { suggestPotentialTargets } from '../character';
+import { makeAbilityPresetGoal, resolveAbilityPreset } from '../character/ability-presets';
 import { getLineOptions } from '../engine';
 import type { RuleData } from '../engine/rules';
 import { isPrime, RULE_VERSION } from './constants';
@@ -117,6 +118,13 @@ export function makeConfig(
     const ability =
       character.abilityPresets[abilityPreset] ?? Object.values(character.abilityPresets)[0];
     const lines = reconcileLines(data, config, ability?.lines ?? []);
+    config.start.lines = lines;
+    const preset = resolveAbilityPreset(character.job);
+    if (preset) {
+      config.abilityPresetJob = preset.job;
+      config.target = makeAbilityPresetGoal(data, preset.job);
+      return config;
+    }
     config.target.lines = lines;
     config.target.conditions = lines.map((line, slot) => {
       const type = line.type === 'unknown' ? (line.abilityTypeId ?? line.type) : line.type;
@@ -131,7 +139,6 @@ export function makeConfig(
         ...(slot === 0 ? { slot: 0 } : { slots: [1, 2] }),
       };
     });
-    if (playMode === 'upgrade') config.start.lines = lines;
     if (lines.length !== 3 || new Set(config.target.conditions.map((c) => c.type)).size !== 3)
       config.abilityStrategy = 'fixed';
   } else {

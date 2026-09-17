@@ -149,7 +149,6 @@ export type WorkerRequest =
       id: string;
       config: SimulationConfig;
       state: SimulationState;
-      maxAttempts: number;
       baseUrl?: string;
     }
   | { type: 'stop'; id: string };

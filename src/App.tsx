@@ -103,13 +103,14 @@ export default function App() {
   const [abilityPreset, setAbilityPreset] = useState('1');
   const [equipmentId, setEquipmentId] = useState('');
   const [playMode, setPlayMode] = useState<'recreate' | 'upgrade'>('recreate');
+  const effectivePlayMode = config?.mode === 'ability' ? 'upgrade' : playMode;
   const [benchmark, setBenchmark] = useState<BenchmarkResult>();
   const [bootError, setBootError] = useState('');
   const [message, setMessage] = useState('');
   const [auto, setAuto] = useState(false);
   const [benchmarkBusy, setBenchmarkBusy] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [name, setName] = useState('깽미니');
+  const [name, setName] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [sharedApiBase, setSharedApiBase] = useState<string>();
   const [searchReady, setSearchReady] = useState(false);
@@ -136,7 +137,6 @@ export default function App() {
   }, []);
   const [searchBusy, setSearchBusy] = useState(false);
   const [searchError, setSearchError] = useState('');
-  const [maxAttempts, setMaxAttempts] = useState(100000);
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem('isekai:theme') ?? 'dark';
@@ -150,6 +150,7 @@ export default function App() {
   const benchId = useRef('');
   const runId = useRef('');
   const searchAbort = useRef<AbortController | null>(null);
+  const backdropPress = useRef(false);
   const latest = useRef({ config, state });
   latest.current = { config, state };
   const sessionRef = useRef<Parameters<typeof saveSession>[0] | null>(null);
@@ -162,7 +163,7 @@ export default function App() {
       equipmentPreset,
       abilityPreset,
       equipmentId,
-      playMode,
+      playMode: effectivePlayMode,
     };
   useEffect(() => {
     const flush = () => {
@@ -312,7 +313,6 @@ export default function App() {
         const stored = readSession();
         if (stored && stored.config.ruleVersion === RULE_VERSION) {
           setCharacter(stored.character);
-          setName(stored.character.name);
           setEquipmentPreset(stored.equipmentPreset);
           setAbilityPreset(stored.abilityPreset);
           setEquipmentId(stored.equipmentId);
@@ -337,6 +337,29 @@ export default function App() {
               ),
               rules,
               false,
+            );
+          } else if (stored.config.mode === 'ability' && stored.playMode === 'recreate') {
+            archiveSession(stored.config, stored.state);
+            const draft = makeConfig(
+              rules,
+              stored.character,
+              undefined,
+              'ability',
+              stored.config.cubeType,
+              'upgrade',
+              stored.abilityPreset,
+            );
+            begin(
+              {
+                ...draft,
+                batchSize: stored.config.batchSize,
+                unitPrices: stored.config.unitPrices,
+              },
+              rules,
+              false,
+            );
+            setMessage(
+              '어빌리티는 현재 옵션에서 업그레이드합니다. 불러온 어빌리티와 내 직업 목표로 새 도전을 시작했어요.',
             );
           } else if (
             stored.config.mode === 'ability' &&
@@ -374,7 +397,6 @@ export default function App() {
           }
         } else {
           setCharacter(defaultCharacter);
-          setName(defaultCharacter.name);
           setEquipmentPreset(defaultCharacter.activeEquipmentPreset);
           setAbilityPreset(defaultCharacter.activeAbilityPreset);
           const items = defaultCharacter.equipmentPresets[defaultCharacter.activeEquipmentPreset];
@@ -485,13 +507,13 @@ export default function App() {
             equipmentPreset,
             abilityPreset,
             equipmentId,
-            playMode,
+            playMode: effectivePlayMode,
           }),
         ),
       300,
     );
     return () => clearTimeout(handle);
-  }, [character, config, state, equipmentPreset, abilityPreset, equipmentId, playMode]);
+  }, [character, config, state, equipmentPreset, abilityPreset, equipmentId, effectivePlayMode]);
   useEffect(
     () => () => {
       benchWorker.current?.terminate();
@@ -590,9 +612,21 @@ export default function App() {
     begin(makeConfig(data, character, item, 'cube', cubeType, playMode, abilityPreset));
   }
   function choosePlayMode(next: 'recreate' | 'upgrade') {
-    if (!data || !character || !config) return;
+    if (!data || !character || !config || config.mode === 'ability') return;
     setPlayMode(next);
     begin(makeConfig(data, character, item, config.mode, config.cubeType, next, abilityPreset));
+  }
+  function openSearch() {
+    setName('');
+    setSearchError('');
+    backdropPress.current = false;
+    setSearchOpen(true);
+  }
+  function closeSearch() {
+    searchAbort.current?.abort();
+    setSearchBusy(false);
+    backdropPress.current = false;
+    setSearchOpen(false);
   }
   async function searchCharacter(event: React.FormEvent) {
     event.preventDefault();
@@ -660,7 +694,7 @@ export default function App() {
         if (response.done) {
           setAuto(false);
           if (response.state.status !== 'success' && response.state.status !== 'impossible')
-            setMessage('자동 실행 구간을 마쳤어요. 이어서 도전할 수 있습니다.');
+            setMessage('자동 실행을 중지했어요. 이어서 도전할 수 있습니다.');
         }
       } else if (response.type === 'error') {
         setAuto(false);
@@ -672,7 +706,7 @@ export default function App() {
       setMessage('자동 실행 중 오류가 발생했습니다. 현재 기록은 보관되어 있어요.');
     };
     setState({ ...state, status: 'running' });
-    worker.postMessage({ type: 'run', id, config, state, maxAttempts, baseUrl });
+    worker.postMessage({ type: 'run', id, config, state, baseUrl });
   }
 
   if (bootError)
@@ -773,11 +807,7 @@ export default function App() {
               <br className="mobile-break" /> 목표를 정하고, 또 다른 나의 운을 확인해 보세요.
             </p>
           </div>
-          <button
-            className="character-card"
-            onClick={() => setSearchOpen(true)}
-            aria-label="캐릭터 검색 열기"
-          >
+          <button className="character-card" onClick={openSearch} aria-label="캐릭터 검색 열기">
             <div className="portrait-frame">
               <Avatar character={character} />
             </div>
@@ -819,20 +849,29 @@ export default function App() {
                 </h2>
                 <span className="panel-step">01</span>
               </div>
-              <div className="segmented">
-                <button
-                  className={playMode === 'recreate' ? 'selected' : ''}
-                  onClick={() => choosePlayMode('recreate')}
-                >
-                  현재 옵션 재현
-                </button>
-                <button
-                  className={playMode === 'upgrade' ? 'selected' : ''}
-                  onClick={() => choosePlayMode('upgrade')}
-                >
-                  지금부터 업그레이드
-                </button>
-              </div>
+              {config.mode === 'ability' ? (
+                <div className="mode-fixed">
+                  <span>
+                    <ArrowUpRight size={16} /> 지금부터 업그레이드
+                  </span>
+                  <small>불러온 현재 어빌리티에서 목표 옵션을 완성합니다.</small>
+                </div>
+              ) : (
+                <div className="segmented">
+                  <button
+                    className={playMode === 'recreate' ? 'selected' : ''}
+                    onClick={() => choosePlayMode('recreate')}
+                  >
+                    현재 옵션 재현
+                  </button>
+                  <button
+                    className={playMode === 'upgrade' ? 'selected' : ''}
+                    onClick={() => choosePlayMode('upgrade')}
+                  >
+                    지금부터 업그레이드
+                  </button>
+                </div>
+              )}
               {config.mode !== 'ability' ? (
                 <>
                   <div className="field-row equipment-fields">
@@ -1144,7 +1183,7 @@ export default function App() {
                         첫 번째 옵션은 고정됩니다. 확보 과정은 비용에 포함되지 않습니다.
                       </small>
                     )}
-                    {playMode === 'recreate' && (
+                    {effectivePlayMode === 'recreate' && (
                       <small className="inline-note">
                         재현 목표와 별개로 생성한 시작 옵션입니다. 생성 비용은 포함하지 않습니다.
                       </small>
@@ -1152,60 +1191,54 @@ export default function App() {
                   </details>
                 </>
               )}
-              <details className="advanced-settings">
-                <summary>
-                  실행 한도와 재료 단가 <ChevronDown size={14} />
-                </summary>
-                <Field label="한 번에 자동 실행할 최대 횟수">
-                  <input
-                    type="number"
-                    min="1"
-                    max="10000000"
-                    step="1000"
-                    value={maxAttempts}
-                    onChange={(e) =>
-                      setMaxAttempts(Math.min(10000000, Math.max(1, Number(e.target.value))))
-                    }
-                  />
-                </Field>
-                {config.mode === 'cube' && isItemCube(config.cubeType) && (
-                  <Field label="큐브 1개 시세 (메소, 선택)">
-                    <input
-                      aria-label="큐브 단가"
-                      type="text"
-                      inputMode="numeric"
-                      value={config.unitPrices[config.cubeType] ?? ''}
-                      placeholder="미입력"
-                      onChange={(e) => {
-                        if (/^\d*$/.test(e.target.value))
-                          patchConfig({
-                            unitPrices: { ...config.unitPrices, [config.cubeType]: e.target.value },
-                          });
-                      }}
-                    />
-                  </Field>
-                )}
-                {config.mode === 'soulAmplification' &&
-                  [1, 2, 3, 4].map((x) => (
-                    <Field label={`${x}단계 에테르 단가 (메소, 선택)`} key={x}>
+              {(config.mode === 'soulAmplification' ||
+                (config.mode === 'cube' && isItemCube(config.cubeType))) && (
+                <details className="advanced-settings">
+                  <summary>
+                    재료 단가 (선택) <ChevronDown size={14} />
+                  </summary>
+                  {config.mode === 'cube' && isItemCube(config.cubeType) && (
+                    <Field label="큐브 1개 시세 (메소, 선택)">
                       <input
+                        aria-label="큐브 단가"
+                        type="text"
                         inputMode="numeric"
-                        value={config.unitPrices[`ether${x}`] ?? ''}
+                        value={config.unitPrices[config.cubeType] ?? ''}
                         placeholder="미입력"
                         onChange={(e) => {
                           if (/^\d*$/.test(e.target.value))
                             patchConfig({
-                              unitPrices: { ...config.unitPrices, [`ether${x}`]: e.target.value },
+                              unitPrices: {
+                                ...config.unitPrices,
+                                [config.cubeType]: e.target.value,
+                              },
                             });
                         }}
                       />
                     </Field>
-                  ))}
-                <small className="inline-note">
-                  시세 환산은 별도 표시합니다. 행운 판정은 공식 메소 또는 큐브 개수를 기준으로
-                  합니다.
-                </small>
-              </details>
+                  )}
+                  {config.mode === 'soulAmplification' &&
+                    [1, 2, 3, 4].map((x) => (
+                      <Field label={`${x}단계 에테르 단가 (메소, 선택)`} key={x}>
+                        <input
+                          inputMode="numeric"
+                          value={config.unitPrices[`ether${x}`] ?? ''}
+                          placeholder="미입력"
+                          onChange={(e) => {
+                            if (/^\d*$/.test(e.target.value))
+                              patchConfig({
+                                unitPrices: { ...config.unitPrices, [`ether${x}`]: e.target.value },
+                              });
+                          }}
+                        />
+                      </Field>
+                    ))}
+                  <small className="inline-note">
+                    시세 환산은 별도 표시합니다. 행운 판정은 공식 메소 또는 큐브 개수를 기준으로
+                    합니다.
+                  </small>
+                </details>
+              )}
             </section>
             <section className="panel goal-panel">
               <div className="panel-heading">
@@ -1732,12 +1765,19 @@ export default function App() {
       {searchOpen && (
         <div
           className="modal-backdrop"
+          onPointerDown={(e) => {
+            backdropPress.current = e.button === 0 && e.target === e.currentTarget;
+          }}
+          onPointerUp={(e) => {
+            backdropPress.current = backdropPress.current && e.target === e.currentTarget;
+          }}
+          onPointerCancel={() => {
+            backdropPress.current = false;
+          }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              searchAbort.current?.abort();
-              setSearchBusy(false);
-              setSearchOpen(false);
-            }
+            const dismiss = backdropPress.current && e.target === e.currentTarget;
+            backdropPress.current = false;
+            if (dismiss) closeSearch();
           }}
         >
           <section
@@ -1763,20 +1803,14 @@ export default function App() {
                 }
               }
               if (e.key === 'Escape') {
-                searchAbort.current?.abort();
-                setSearchBusy(false);
-                setSearchOpen(false);
+                closeSearch();
               }
             }}
           >
             <button
               className="icon-button modal-close"
               aria-label="캐릭터 검색 닫기"
-              onClick={() => {
-                searchAbort.current?.abort();
-                setSearchBusy(false);
-                setSearchOpen(false);
-              }}
+              onClick={closeSearch}
             >
               <X size={20} />
             </button>
@@ -1795,7 +1829,7 @@ export default function App() {
                   aria-label="캐릭터 닉네임"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="깽미니"
+                  placeholder="캐릭터 닉네임을 입력하세요"
                   maxLength={20}
                 />
               </Field>

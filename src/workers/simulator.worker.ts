@@ -33,27 +33,20 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
       return;
     }
     let state = request.state;
-    const starting = state.attempts;
-    const limit = BigInt(Math.max(1, Math.floor(request.maxAttempts)));
-    while (
-      activeId === request.id &&
-      state.attempts - starting < limit &&
-      state.status !== 'success' &&
-      state.status !== 'impossible'
-    ) {
+    if (state.status === 'success' || state.status === 'impossible') {
+      send({ type: 'state', id: request.id, state, done: true });
+      return;
+    }
+    while (activeId === request.id && state.status !== 'success' && state.status !== 'impossible') {
       const frameStart = performance.now();
       do {
         state = rollBatch(data, request.config, state);
       } while (
         performance.now() - frameStart < 24 &&
-        state.attempts - starting < limit &&
         state.status !== 'success' &&
         state.status !== 'impossible'
       );
-      const done =
-        state.status === 'success' ||
-        state.status === 'impossible' ||
-        state.attempts - starting >= limit;
+      const done = state.status === 'success' || state.status === 'impossible';
       send({ type: 'state', id: request.id, state, done });
       if (done) return;
       await new Promise((resolve) => setTimeout(resolve, 0));

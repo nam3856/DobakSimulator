@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { abilityConfigForState } from '../../src/engine/ability-strategy';
 import { eligibleCandidates, type RuleData } from '../../src/engine/rules';
 import { prepareDraw } from '../../src/engine/simulation';
-import { deserialize, type StoredSession } from '../../src/ui/storage';
+import { deserialize, serialize, type StoredSession } from '../../src/ui/storage';
+import type { CharacterSnapshot, SimulationConfig, SimulationState } from '../../src/types';
 
 const readRule = (name: string) =>
   JSON.parse(readFileSync(new URL(`../../public/rules/${name}.json`, import.meta.url), 'utf8'));
@@ -14,6 +15,9 @@ const data: RuleData = {
   ability: readRule('ability'),
   soul: readRule('soul'),
 };
+const bundledCharacter = JSON.parse(
+  readFileSync(new URL('../../public/character/snapshot.json', import.meta.url), 'utf8'),
+) as CharacterSnapshot;
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/app-config.json', (route) =>
@@ -105,6 +109,18 @@ test('job presets set three legendary maxima and interchangeable secondary slots
   page,
 }) => {
   await boot(page);
+  await expect(page.locator('.mode-fixed')).toContainText('지금부터 업그레이드');
+  await expect(page.getByRole('button', { name: '현재 옵션 재현', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '지금부터 업그레이드', exact: true })).toHaveCount(
+    0,
+  );
+  await expect(page.getByLabel('직업별 종결 어빌리티')).toHaveValue('메카닉');
+  await expect(page.getByLabel('목표 조건 1 옵션')).toHaveValue('bossDamagePercent');
+  await expect(page.getByLabel('목표 조건 2 옵션')).toHaveValue('statusAilmentDamagePercent');
+  await expect(page.getByLabel('목표 조건 3 옵션')).toHaveValue('attackFlat');
+  for (const line of bundledCharacter.abilityPresets['1'].lines)
+    await expect(page.locator('.current-result')).toContainText(line.text);
+  expect((await stored(page)).playMode).toBe('upgrade');
   await expect(page.getByRole('button', { name: '3회 비교', exact: true })).toHaveClass(/selected/);
   await expect(page.getByRole('button', { name: '3회 재설정하기', exact: true })).toBeVisible();
   await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
@@ -157,6 +173,46 @@ test('matching secondary starts lock for free in reversed order and persist paid
   await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('자동 잠금 2/2줄');
   await expect(page.locator('.spent-stat')).toContainText('명성치 4만');
   expect((await stored(page)).state.spent.meso).toBe(15000000n);
+  expect((await stored(page)).playMode).toBe('upgrade');
+});
+
+test('legacy recreate ability sessions archive paid progress and migrate to the loaded character upgrade target', async ({
+  page,
+}) => {
+  await boot(page);
+  await page.getByRole('button', { name: '1회', exact: true }).click();
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+  await selectStart(page, ['attackFlat', 'statusAilmentDamagePercent', 'bossDamagePercent']);
+  await benchmarkReady(page);
+  await forceOneRoll(page, ['magicAttackFlat', 'statusAilmentDamagePercent', 'bossDamagePercent']);
+  const previous = await stored(page);
+  previous.playMode = 'recreate';
+  await page.addInitScript((session) => {
+    localStorage.setItem('isekai-jikjak:session:v1', session);
+  }, serialize(previous));
+  await page.reload();
+  await expect(page.getByLabel('직업별 종결 어빌리티')).toHaveValue('메카닉');
+  await expect(page.locator('.mode-fixed')).toContainText('지금부터 업그레이드');
+  await expect(page.getByLabel('목표 조건 3 옵션')).toHaveValue('attackFlat');
+  await expect(page.getByRole('button', { name: '1회', exact: true })).toHaveClass(/selected/);
+  await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('0회');
+  await expect(page.locator('.spent-stat strong')).toHaveAttribute('title', '0');
+  await expect(page.locator('.candidate-card')).toHaveCount(0);
+  for (const line of bundledCharacter.abilityPresets['1'].lines)
+    await expect(page.locator('.current-result')).toContainText(line.text);
+  const migrated = await stored(page);
+  expect(migrated.playMode).toBe('upgrade');
+  expect(migrated.config.abilityPresetJob).toBe('메카닉');
+  expect(migrated.config.start.lines.map((line) => line.text)).toEqual(
+    bundledCharacter.abilityPresets['1'].lines.map((line) => line.text),
+  );
+  expect(migrated.state.attempts).toBe(0n);
+  const archive = deserialize<{ config: SimulationConfig; state: SimulationState }[]>(
+    await page.evaluate(() => localStorage.getItem('isekai-jikjak:archive:v1')!),
+  );
+  expect(archive[0].config).toEqual(previous.config);
+  expect(archive[0].state.attempts).toBe(1n);
+  expect(archive[0].state.spent).toEqual(previous.state.spent);
 });
 
 test('paid phases adopt lower goals and keep the original benchmark through completion', async ({
