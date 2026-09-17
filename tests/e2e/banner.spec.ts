@@ -46,13 +46,11 @@ async function simulationSnapshot(page: Page) {
   };
 }
 
-test('each equal random third loads an enabled banner under the Pages subpath', async ({
-  page,
-}) => {
+test('each equal random half loads an enabled banner under the Pages subpath', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  for (let index = 0; index < 3; index++) {
-    await openBanner(page, (index + 0.5) / 3);
+  for (let index = 0; index < 2; index++) {
+    await openBanner(page, (index + 0.5) / 2);
     const image = page.locator('.fake-ad-banner img');
     await expect(image).toHaveAttribute(
       'src',
@@ -75,7 +73,7 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
   await pauseClock(page);
   await openBanner(page, 0, '#soulAmplification', true);
   const image = page.locator('.fake-ad-banner img');
-  await expect(image).not.toHaveAttribute('src', /ad-1\.png/);
+  await expect(image).toHaveAttribute('src', /banners\/ad-[23]\.png(?:\?|$)/);
   const first = await image.getAttribute('src');
   await page.clock.fastForward(29700);
   await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
@@ -91,11 +89,12 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
   await expect(image).toHaveAttribute('src', first!);
   await page.clock.fastForward(1);
   await expect(image).not.toHaveAttribute('src', first!);
+  await expect(image).toHaveAttribute('src', /banners\/ad-[23]\.png(?:\?|$)/);
   let previous = await image.getAttribute('src');
   for (let index = 0; index < 3; index++) {
     await page.clock.fastForward(60000);
     await expect(image).not.toHaveAttribute('src', previous!);
-    await expect(image).not.toHaveAttribute('src', /ad-1\.png/);
+    await expect(image).toHaveAttribute('src', /banners\/ad-[23]\.png(?:\?|$)/);
     previous = await image.getAttribute('src');
   }
   expect(await simulationSnapshot(page)).toEqual(state);
