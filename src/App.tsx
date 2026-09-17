@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   BookOpen,
   Boxes,
+  Route,
   Check,
   ChevronDown,
   CircleHelp,
@@ -75,6 +76,7 @@ import {
   CATEGORIES,
   CUBES,
   getModeFromHash,
+  getTabFromHash,
   GRADE_NAMES,
   GRADES,
   isItemCube,
@@ -82,6 +84,8 @@ import {
   METRIC_LABELS,
   MODES,
   RULE_VERSION,
+  TABS,
+  type AppTab,
 } from './ui/constants';
 import { formatAmount, formatPercent, safePrice } from './ui/format';
 import { archiveSession, readSession, saveSession } from './ui/storage';
@@ -89,6 +93,7 @@ import { lowerFirstGoal, makeConfig, reconcileLines, resizeAbilityGoal } from '.
 import { boundAbilityCondition, clampConditionValue } from './ui/ability-bounds';
 import { getPotentialConditionBounds } from './ui/potential-bounds';
 import { FakeAdBanner } from './ui/FakeAdBanner';
+import { AbilityOptimizer } from './ui/AbilityOptimizer';
 import { getLinkedCharacter, replaceCharacterLink } from './ui/character-link';
 
 const baseUrl = new URL(import.meta.env.BASE_URL, document.baseURI).href;
@@ -96,11 +101,18 @@ const forMode = (items: EquipmentSnapshot[], mode: SimulatorMode) =>
   mode === 'soulAmplification' || mode === 'soulPotential'
     ? items.filter((item) => item.eligibleSoul)
     : items;
-const tabIcons = { cube: Boxes, ability: Sparkles, soulAmplification: Orbit, soulPotential: Gem };
+const tabIcons = {
+  cube: Boxes,
+  ability: Sparkles,
+  soulAmplification: Orbit,
+  soulPotential: Gem,
+  abilityOptimizer: Route,
+};
 const workerFactory = () =>
   new Worker(new URL('./workers/simulator.worker.ts', import.meta.url), { type: 'module' });
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<AppTab>(getTabFromHash);
   const [data, setData] = useState<RuleData>();
   const [character, setCharacter] = useState<CharacterSnapshot>();
   const [config, setConfig] = useState<SimulationConfig>();
@@ -364,7 +376,12 @@ export default function App() {
           setAbilityPreset(stored.abilityPreset);
           setEquipmentId(stored.equipmentId);
           if (stored.playMode === 'recreate') archiveSession(stored.config, stored.state);
-          const requested = linkError ? stored.config.mode : getModeFromHash();
+          const requested =
+            linkError || getTabFromHash() === 'abilityOptimizer'
+              ? stored.config.mode
+              : getModeFromHash();
+          if (getTabFromHash() !== 'abilityOptimizer')
+            setActiveTab(location.hash && !linkError ? requested : stored.config.mode);
           if (location.hash && requested !== stored.config.mode) {
             if (stored.playMode !== 'recreate') archiveSession(stored.config, stored.state);
             const items = stored.character.equipmentPresets[stored.equipmentPreset] ?? [];
@@ -450,7 +467,8 @@ export default function App() {
               ...stored.state,
               status: stored.state.status === 'running' ? 'paused' : stored.state.status,
             });
-            history.replaceState(null, '', `#${stored.config.mode}`);
+            if (getTabFromHash() !== 'abilityOptimizer')
+              history.replaceState(null, '', `#${stored.config.mode}`);
           }
         } else {
           setCharacter(defaultCharacter);
@@ -493,6 +511,10 @@ export default function App() {
     benchWorker.current?.terminate();
     benchWorker.current = null;
     setBenchmark(undefined);
+    if (activeTab === 'abilityOptimizer') {
+      setBenchmarkBusy(false);
+      return;
+    }
     if (errors.length) {
       setBenchmarkBusy(false);
       return;
@@ -540,7 +562,7 @@ export default function App() {
       benchWorker.current?.terminate();
       benchWorker.current = null;
     };
-  }, [config, data, errors.length]);
+  }, [config, data, errors.length, activeTab]);
 
   useEffect(() => {
     if (
@@ -587,7 +609,13 @@ export default function App() {
   useEffect(() => {
     if (!data || !character || !config) return;
     const listener = () => {
-      const mode = getModeFromHash();
+      const tab = getTabFromHash();
+      setActiveTab(tab);
+      if (tab === 'abilityOptimizer') {
+        stop();
+        return;
+      }
+      const mode = tab;
       if (mode !== latest.current.config?.mode) switchMode(mode);
     };
     addEventListener('hashchange', listener);
@@ -691,6 +719,7 @@ export default function App() {
   }
   function switchMode(mode: SimulatorMode) {
     if (!data || !character || !config) return;
+    setActiveTab(mode);
     let nextItem = item;
     if ((mode === 'soulPotential' || mode === 'soulAmplification') && !nextItem?.eligibleSoul) {
       nextItem = equipment.find((x) => x.eligibleSoul);
@@ -698,6 +727,16 @@ export default function App() {
     }
     history.replaceState(null, '', `#${mode}`);
     begin(makeConfig(data, character, nextItem, mode, config.cubeType, abilityPreset));
+  }
+  function switchTab(tab: AppTab) {
+    if (tab === 'abilityOptimizer') {
+      stop();
+      setActiveTab(tab);
+      history.replaceState(null, '', `#${tab}`);
+    } else if (activeTab === 'abilityOptimizer' && config?.mode === tab) {
+      setActiveTab(tab);
+      history.replaceState(null, '', `#${tab}`);
+    } else switchMode(tab);
   }
   function chooseItem(id: string) {
     if (!data || !character || !config) return;
@@ -758,7 +797,7 @@ export default function App() {
       rules,
       preserve,
     );
-    replaceCharacterLink(next.name, mode);
+    replaceCharacterLink(next.name, activeTab === 'abilityOptimizer' ? activeTab : mode);
   }
   async function searchCharacter(event: React.FormEvent) {
     event.preventDefault();
@@ -958,278 +997,216 @@ export default function App() {
           </button>
         </section>
         <nav className="sim-tabs" aria-label="시뮬레이터">
-          {MODES.map((tab) => {
+          {TABS.map((tab) => {
             const Icon = tabIcons[tab.id];
             return (
               <button
                 key={tab.id}
-                className={config.mode === tab.id ? 'active' : ''}
-                aria-current={config.mode === tab.id ? 'page' : undefined}
-                onClick={() => switchMode(tab.id)}
+                className={activeTab === tab.id ? 'active' : ''}
+                aria-current={activeTab === tab.id ? 'page' : undefined}
+                onClick={() => switchTab(tab.id)}
               >
                 <Icon size={19} />
                 <span>{tab.name}</span>
-                {config.mode === tab.id && <span className="tab-active-dot" />}
+                {activeTab === tab.id && <span className="tab-active-dot" />}
               </button>
             );
           })}
         </nav>
-        <div className="workspace">
-          <aside className="setup-column">
-            <section className="panel settings-panel">
-              <div className="panel-heading">
-                <h2>
-                  <Settings2 size={17} /> 도전 설정
-                </h2>
-                <span className="panel-step">01</span>
-              </div>
-              <div className="mode-fixed">
-                <span>
-                  <ArrowUpRight size={16} /> 지금부터 업그레이드
-                </span>
-                <small>
-                  {config.mode === 'ability'
-                    ? '불러온 현재 어빌리티에서 목표 옵션을 완성합니다.'
-                    : config.mode === 'soulAmplification'
-                      ? '불러온 현재 소울 증폭 단계에서 목표 단계에 도전합니다.'
-                      : '불러온 현재 장비 옵션에서 목표 옵션을 완성합니다.'}
-                </small>
-              </div>
-              {config.mode !== 'ability' ? (
-                <>
-                  <div className="field-row equipment-fields">
-                    <Field label="장비 프리셋">
-                      <select
-                        aria-label="장비 프리셋"
-                        value={equipmentPreset}
-                        onChange={(e) => choosePreset(e.target.value)}
-                      >
-                        {['1', '2', '3'].map((x) => (
-                          <option key={x} value={x}>
-                            프리셋 {x}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                    <Field label="장비 선택">
-                      <select
-                        aria-label="장비 선택"
-                        value={equipmentId}
-                        onChange={(e) => chooseItem(e.target.value)}
-                      >
-                        <option value="">직접 설정</option>
-                        {itemOptions.map((x) => (
-                          <option key={x.id} value={x.id}>
-                            {x.slot} · {x.name}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                  </div>
-                  {effectiveItem && (
-                    <div className="selected-item">
-                      <img
-                        src={effectiveItem.imageUrl}
-                        alt=""
-                        onError={(e) => {
-                          e.currentTarget.style.visibility = 'hidden';
-                        }}
-                      />
-                      <div>
-                        <strong>{effectiveItem.name}</strong>
-                        <span>
-                          Lv.{effectiveItem.level} · {effectiveItem.slot}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <Field label="어빌리티 프리셋">
-                  <select
-                    aria-label="어빌리티 프리셋"
-                    value={abilityPreset}
-                    onChange={(e) => {
-                      setAbilityPreset(e.target.value);
-                      begin(
-                        makeConfig(
-                          data,
-                          character,
-                          item,
-                          config.mode,
-                          config.cubeType,
-                          e.target.value,
-                        ),
-                      );
-                    }}
-                  >
-                    {['1', '2', '3'].map((x) => (
-                      <option key={x} value={x}>
-                        프리셋 {x}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              )}
-              {config.mode === 'cube' && (
-                <>
-                  <div className="field-label">재설정 종류</div>
-                  <div className="cube-picker">
-                    {CUBES.map((cube) => (
-                      <button
-                        key={cube.id}
-                        className={cube.id === config.cubeType ? 'selected' : ''}
-                        onClick={() => chooseCube(cube.id)}
-                      >
-                        <span
-                          className="cube-icon"
-                          style={{ '--cube-color': cube.color } as React.CSSProperties}
+        {activeTab === 'abilityOptimizer' ? (
+          <AbilityOptimizer key={character.name} character={character} data={data} />
+        ) : (
+          <div className="workspace">
+            <aside className="setup-column">
+              <section className="panel settings-panel">
+                <div className="panel-heading">
+                  <h2>
+                    <Settings2 size={17} /> 도전 설정
+                  </h2>
+                  <span className="panel-step">01</span>
+                </div>
+                <div className="mode-fixed">
+                  <span>
+                    <ArrowUpRight size={16} /> 지금부터 업그레이드
+                  </span>
+                  <small>
+                    {config.mode === 'ability'
+                      ? '불러온 현재 어빌리티에서 목표 옵션을 완성합니다.'
+                      : config.mode === 'soulAmplification'
+                        ? '불러온 현재 소울 증폭 단계에서 목표 단계에 도전합니다.'
+                        : '불러온 현재 장비 옵션에서 목표 옵션을 완성합니다.'}
+                  </small>
+                </div>
+                {config.mode !== 'ability' ? (
+                  <>
+                    <div className="field-row equipment-fields">
+                      <Field label="장비 프리셋">
+                        <select
+                          aria-label="장비 프리셋"
+                          value={equipmentPreset}
+                          onChange={(e) => choosePreset(e.target.value)}
                         >
-                          <Boxes size={20} />
-                        </span>
-                        <span>
-                          {cube.name}
-                          <small>{cube.short}</small>
-                        </span>
-                        {cube.id === config.cubeType && <Check size={13} />}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="inline-note">
-                    <CircleHelp size={13} />
-                    {selectedCube.description}
-                  </p>
-                </>
-              )}
-              {config.mode === 'cube' && (
-                <div className="field-row">
-                  <Field label="장비 부위">
+                          {['1', '2', '3'].map((x) => (
+                            <option key={x} value={x}>
+                              프리셋 {x}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                      <Field label="장비 선택">
+                        <select
+                          aria-label="장비 선택"
+                          value={equipmentId}
+                          onChange={(e) => chooseItem(e.target.value)}
+                        >
+                          <option value="">직접 설정</option>
+                          {itemOptions.map((x) => (
+                            <option key={x.id} value={x.id}>
+                              {x.slot} · {x.name}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    </div>
+                    {effectiveItem && (
+                      <div className="selected-item">
+                        <img
+                          src={effectiveItem.imageUrl}
+                          alt=""
+                          onError={(e) => {
+                            e.currentTarget.style.visibility = 'hidden';
+                          }}
+                        />
+                        <div>
+                          <strong>{effectiveItem.name}</strong>
+                          <span>
+                            Lv.{effectiveItem.level} · {effectiveItem.slot}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Field label="어빌리티 프리셋">
                     <select
-                      aria-label="장비 부위"
-                      value={config.category}
+                      aria-label="어빌리티 프리셋"
+                      value={abilityPreset}
                       onChange={(e) => {
-                        setEquipmentId('');
-                        patchConfig({ category: e.target.value }, true);
+                        setAbilityPreset(e.target.value);
+                        begin(
+                          makeConfig(
+                            data,
+                            character,
+                            item,
+                            config.mode,
+                            config.cubeType,
+                            e.target.value,
+                          ),
+                        );
                       }}
                     >
-                      {CATEGORIES.map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
+                      {['1', '2', '3'].map((x) => (
+                        <option key={x} value={x}>
+                          프리셋 {x}
                         </option>
                       ))}
                     </select>
                   </Field>
-                  <Field label="장비 레벨">
-                    <input
-                      aria-label="장비 레벨"
-                      type="number"
-                      min="1"
-                      max="250"
-                      value={config.level}
-                      onChange={(e) => {
-                        setEquipmentId('');
-                        patchConfig({ level: Number(e.target.value) }, true);
-                      }}
-                    />
-                  </Field>
-                </div>
-              )}
-              {config.mode === 'soulAmplification' ? (
-                <>
+                )}
+                {config.mode === 'cube' && (
+                  <>
+                    <div className="field-label">재설정 종류</div>
+                    <div className="cube-picker">
+                      {CUBES.map((cube) => (
+                        <button
+                          key={cube.id}
+                          className={cube.id === config.cubeType ? 'selected' : ''}
+                          onClick={() => chooseCube(cube.id)}
+                        >
+                          <span
+                            className="cube-icon"
+                            style={{ '--cube-color': cube.color } as React.CSSProperties}
+                          >
+                            <Boxes size={20} />
+                          </span>
+                          <span>
+                            {cube.name}
+                            <small>{cube.short}</small>
+                          </span>
+                          {cube.id === config.cubeType && <Check size={13} />}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="inline-note">
+                      <CircleHelp size={13} />
+                      {selectedCube.description}
+                    </p>
+                  </>
+                )}
+                {config.mode === 'cube' && (
                   <div className="field-row">
-                    <Field label="시작 증폭">
+                    <Field label="장비 부위">
                       <select
-                        aria-label="시작 증폭"
-                        value={config.start.stage}
-                        onChange={(e) =>
-                          patchConfig({
-                            start: { ...config.start, stage: Number(e.target.value), failures: 0 },
-                          })
-                        }
+                        aria-label="장비 부위"
+                        value={config.category}
+                        onChange={(e) => {
+                          setEquipmentId('');
+                          patchConfig({ category: e.target.value }, true);
+                        }}
                       >
-                        {[0, 1, 2, 3, 4].map((x) => (
-                          <option value={x} key={x}>
-                            {x}단계
+                        {CATEGORIES.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
                           </option>
                         ))}
                       </select>
                     </Field>
-                    <Field label="누적 실패">
+                    <Field label="장비 레벨">
                       <input
-                        aria-label="누적 실패"
+                        aria-label="장비 레벨"
                         type="number"
-                        min="0"
-                        max="50"
-                        value={config.start.failures}
-                        onChange={(e) =>
-                          patchConfig({
-                            start: { ...config.start, failures: Number(e.target.value) },
-                          })
-                        }
+                        min="1"
+                        max="250"
+                        value={config.level}
+                        onChange={(e) => {
+                          setEquipmentId('');
+                          patchConfig({ level: Number(e.target.value) }, true);
+                        }}
                       />
                     </Field>
                   </div>
-                  <p className="inline-note">
-                    200레벨 이상, 위대한 소울이 있는 영구 무기 기준입니다. 단계마다 에테르 1개와
-                    메소를 사용합니다.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div className="field-row">
-                    <Field label="시작 등급">
-                      <select
-                        aria-label="시작 등급"
-                        value={config.start.grade}
-                        disabled={
-                          config.mode === 'ability' ||
-                          (config.mode === 'cube' && isPrime(config.cubeType))
-                        }
-                        onChange={(e) =>
-                          patchConfig({
-                            start: {
-                              ...config.start,
-                              grade: e.target.value as Grade,
-                              lines: [],
-                              failures: 0,
-                            },
-                          })
-                        }
-                      >
-                        {GRADES.map((x) => (
-                          <option value={x} key={x}>
-                            {GRADE_NAMES[x]}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                    {config.mode === 'soulPotential' ? (
-                      <Field label="증폭 단계">
+                )}
+                {config.mode === 'soulAmplification' ? (
+                  <>
+                    <div className="field-row">
+                      <Field label="시작 증폭">
                         <select
+                          aria-label="시작 증폭"
                           value={config.start.stage}
                           onChange={(e) =>
                             patchConfig({
-                              start: { ...config.start, stage: Number(e.target.value), lines: [] },
+                              start: {
+                                ...config.start,
+                                stage: Number(e.target.value),
+                                failures: 0,
+                              },
                             })
                           }
                         >
-                          {[1, 2, 3, 4].map((x) => (
+                          {[0, 1, 2, 3, 4].map((x) => (
                             <option value={x} key={x}>
                               {x}단계
                             </option>
                           ))}
                         </select>
                       </Field>
-                    ) : config.mode !== 'ability' ? (
-                      <Field label="등급 상승 누적 실패">
+                      <Field label="누적 실패">
                         <input
-                          aria-label="등급 상승 누적 실패"
+                          aria-label="누적 실패"
                           type="number"
                           min="0"
+                          max="50"
                           value={config.start.failures}
-                          disabled={
-                            config.start.grade === 'legendary' || config.cubeType === 'gold'
-                          }
                           onChange={(e) =>
                             patchConfig({
                               start: { ...config.start, failures: Number(e.target.value) },
@@ -1237,735 +1214,824 @@ export default function App() {
                           }
                         />
                       </Field>
-                    ) : (
-                      <div className="ability-lock-count">
-                        <span>고정 옵션</span>
-                        <strong>
-                          {usesAbilityProgression(config) && state
-                            ? (
-                                state.lockedSlots ??
-                                abilityProgress(config, state.lines).lockedSlots
-                              ).length
-                            : config.lockedSlots.length}
-                          <small> / 2줄</small>
-                        </strong>
-                      </div>
-                    )}
-                  </div>
-                  {config.mode === 'soulPotential' && (
-                    <Field label="등급 상승 누적 실패">
-                      <input
-                        aria-label="등급 상승 누적 실패"
-                        type="number"
-                        min="0"
-                        value={config.start.failures}
-                        onChange={(e) =>
-                          patchConfig({
-                            start: { ...config.start, failures: Number(e.target.value) },
-                          })
-                        }
-                      />
-                    </Field>
-                  )}
-                  <details
-                    className="start-details"
-                    open={
-                      config.mode === 'ability' ||
-                      (config.mode === 'cube' && isPrime(config.cubeType))
-                    }
-                  >
-                    <summary>
-                      시작 옵션{' '}
-                      {config.mode === 'ability'
-                        ? usesAbilityProgression(config)
-                          ? usesFirstLockedAbility(config)
-                            ? '· 첫 줄 고정, 보조 줄 자동 잠금'
-                            : '· 목표 보조 줄 자동 잠금'
-                          : '· 잠금 설정'
-                        : '직접 설정'}
-                      <ChevronDown size={14} />
-                    </summary>
-                    <LineEditor
-                      lines={config.start.lines}
-                      options={editorOptions}
-                      onChange={(lines) => patchConfig({ start: { ...config.start, lines } })}
-                      canLock={config.mode === 'ability' && !usesAbilityProgression(config)}
-                      locks={config.lockedSlots}
-                      onLock={toggleAbilityLock}
-                    />
-                    {config.mode === 'cube' && isPrime(config.cubeType) && (
-                      <small className="inline-note">
-                        첫 번째 옵션은 고정됩니다. 확보 과정은 비용에 포함되지 않습니다.
-                      </small>
-                    )}
-                  </details>
-                </>
-              )}
-              {(config.mode === 'soulAmplification' ||
-                (config.mode === 'cube' && isItemCube(config.cubeType))) && (
-                <details className="advanced-settings">
-                  <summary>
-                    재료 단가 (선택) <ChevronDown size={14} />
-                  </summary>
-                  {config.mode === 'cube' && isItemCube(config.cubeType) && (
-                    <Field label="큐브 1개 시세 (메소, 선택)">
-                      <input
-                        aria-label="큐브 단가"
-                        type="text"
-                        inputMode="numeric"
-                        value={config.unitPrices[config.cubeType] ?? ''}
-                        placeholder="미입력"
-                        onChange={(e) => {
-                          if (/^\d*$/.test(e.target.value))
+                    </div>
+                    <p className="inline-note">
+                      200레벨 이상, 위대한 소울이 있는 영구 무기 기준입니다. 단계마다 에테르 1개와
+                      메소를 사용합니다.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="field-row">
+                      <Field label="시작 등급">
+                        <select
+                          aria-label="시작 등급"
+                          value={config.start.grade}
+                          disabled={
+                            config.mode === 'ability' ||
+                            (config.mode === 'cube' && isPrime(config.cubeType))
+                          }
+                          onChange={(e) =>
                             patchConfig({
-                              unitPrices: {
-                                ...config.unitPrices,
-                                [config.cubeType]: e.target.value,
+                              start: {
+                                ...config.start,
+                                grade: e.target.value as Grade,
+                                lines: [],
+                                failures: 0,
                               },
-                            });
-                        }}
-                      />
-                    </Field>
-                  )}
-                  {config.mode === 'soulAmplification' &&
-                    [1, 2, 3, 4].map((x) => (
-                      <Field label={`${x}단계 에테르 단가 (메소, 선택)`} key={x}>
+                            })
+                          }
+                        >
+                          {GRADES.map((x) => (
+                            <option value={x} key={x}>
+                              {GRADE_NAMES[x]}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                      {config.mode === 'soulPotential' ? (
+                        <Field label="증폭 단계">
+                          <select
+                            value={config.start.stage}
+                            onChange={(e) =>
+                              patchConfig({
+                                start: {
+                                  ...config.start,
+                                  stage: Number(e.target.value),
+                                  lines: [],
+                                },
+                              })
+                            }
+                          >
+                            {[1, 2, 3, 4].map((x) => (
+                              <option value={x} key={x}>
+                                {x}단계
+                              </option>
+                            ))}
+                          </select>
+                        </Field>
+                      ) : config.mode !== 'ability' ? (
+                        <Field label="등급 상승 누적 실패">
+                          <input
+                            aria-label="등급 상승 누적 실패"
+                            type="number"
+                            min="0"
+                            value={config.start.failures}
+                            disabled={
+                              config.start.grade === 'legendary' || config.cubeType === 'gold'
+                            }
+                            onChange={(e) =>
+                              patchConfig({
+                                start: { ...config.start, failures: Number(e.target.value) },
+                              })
+                            }
+                          />
+                        </Field>
+                      ) : (
+                        <div className="ability-lock-count">
+                          <span>고정 옵션</span>
+                          <strong>
+                            {usesAbilityProgression(config) && state
+                              ? (
+                                  state.lockedSlots ??
+                                  abilityProgress(config, state.lines).lockedSlots
+                                ).length
+                              : config.lockedSlots.length}
+                            <small> / 2줄</small>
+                          </strong>
+                        </div>
+                      )}
+                    </div>
+                    {config.mode === 'soulPotential' && (
+                      <Field label="등급 상승 누적 실패">
                         <input
+                          aria-label="등급 상승 누적 실패"
+                          type="number"
+                          min="0"
+                          value={config.start.failures}
+                          onChange={(e) =>
+                            patchConfig({
+                              start: { ...config.start, failures: Number(e.target.value) },
+                            })
+                          }
+                        />
+                      </Field>
+                    )}
+                    <details
+                      className="start-details"
+                      open={
+                        config.mode === 'ability' ||
+                        (config.mode === 'cube' && isPrime(config.cubeType))
+                      }
+                    >
+                      <summary>
+                        시작 옵션{' '}
+                        {config.mode === 'ability'
+                          ? usesAbilityProgression(config)
+                            ? usesFirstLockedAbility(config)
+                              ? '· 첫 줄 고정, 보조 줄 자동 잠금'
+                              : '· 목표 보조 줄 자동 잠금'
+                            : '· 잠금 설정'
+                          : '직접 설정'}
+                        <ChevronDown size={14} />
+                      </summary>
+                      <LineEditor
+                        lines={config.start.lines}
+                        options={editorOptions}
+                        onChange={(lines) => patchConfig({ start: { ...config.start, lines } })}
+                        canLock={config.mode === 'ability' && !usesAbilityProgression(config)}
+                        locks={config.lockedSlots}
+                        onLock={toggleAbilityLock}
+                      />
+                      {config.mode === 'cube' && isPrime(config.cubeType) && (
+                        <small className="inline-note">
+                          첫 번째 옵션은 고정됩니다. 확보 과정은 비용에 포함되지 않습니다.
+                        </small>
+                      )}
+                    </details>
+                  </>
+                )}
+                {(config.mode === 'soulAmplification' ||
+                  (config.mode === 'cube' && isItemCube(config.cubeType))) && (
+                  <details className="advanced-settings">
+                    <summary>
+                      재료 단가 (선택) <ChevronDown size={14} />
+                    </summary>
+                    {config.mode === 'cube' && isItemCube(config.cubeType) && (
+                      <Field label="큐브 1개 시세 (메소, 선택)">
+                        <input
+                          aria-label="큐브 단가"
+                          type="text"
                           inputMode="numeric"
-                          value={config.unitPrices[`ether${x}`] ?? ''}
+                          value={config.unitPrices[config.cubeType] ?? ''}
                           placeholder="미입력"
                           onChange={(e) => {
                             if (/^\d*$/.test(e.target.value))
                               patchConfig({
-                                unitPrices: { ...config.unitPrices, [`ether${x}`]: e.target.value },
+                                unitPrices: {
+                                  ...config.unitPrices,
+                                  [config.cubeType]: e.target.value,
+                                },
                               });
                           }}
                         />
                       </Field>
-                    ))}
-                  <small className="inline-note">
-                    시세 환산은 별도 표시합니다. 행운 판정은 공식 메소 또는 큐브 개수를 기준으로
-                    합니다.
-                  </small>
-                </details>
-              )}
-            </section>
-            <section className="panel goal-panel">
-              <div className="panel-heading">
-                <h2>
-                  <WandSparkles size={17} /> 이 세계의 목표
-                </h2>
-                <span className="panel-step">02</span>
-              </div>
-              {config.mode === 'ability' && (
-                <div className="ability-presets">
-                  <Field label="직업별 종결 어빌리티">
-                    <select
-                      aria-label="직업별 종결 어빌리티"
-                      value={config.abilityPresetJob ?? ''}
-                      onChange={(e) => chooseAbilityJob(e.target.value)}
-                    >
-                      <option value="" disabled>
-                        프리셋 선택 · 현재 목표 직접 설정
-                      </option>
-                      {ABILITY_JOB_PRESETS.map((preset) => (
-                        <option key={preset.job} value={preset.job}>
-                          {preset.job} · {preset.code}
-                        </option>
+                    )}
+                    {config.mode === 'soulAmplification' &&
+                      [1, 2, 3, 4].map((x) => (
+                        <Field label={`${x}단계 에테르 단가 (메소, 선택)`} key={x}>
+                          <input
+                            inputMode="numeric"
+                            value={config.unitPrices[`ether${x}`] ?? ''}
+                            placeholder="미입력"
+                            onChange={(e) => {
+                              if (/^\d*$/.test(e.target.value))
+                                patchConfig({
+                                  unitPrices: {
+                                    ...config.unitPrices,
+                                    [`ether${x}`]: e.target.value,
+                                  },
+                                });
+                            }}
+                          />
+                        </Field>
                       ))}
-                    </select>
-                  </Field>
-                  {resolveAbilityPreset(character.job) && (
-                    <button className="text-button" onClick={() => chooseAbilityJob(character.job)}>
-                      내 직업 종결 적용 · {character.job}
-                    </button>
-                  )}
-                  <p className="inline-note">
-                    모든 목표는 레전드리 조합입니다. 목표 수치는 옵션의 최저치로 시작하며 직접 높일
-                    수 있습니다. 첫 글자는 1번째 줄, 보조 옵션은 2·3번째 줄 순서 무관입니다.
-                  </p>
-                  {lowerFirstGoal(config.target) && (
-                    <Field label="어빌리티 목표 줄 수">
+                    <small className="inline-note">
+                      시세 환산은 별도 표시합니다. 행운 판정은 공식 메소 또는 큐브 개수를 기준으로
+                      합니다.
+                    </small>
+                  </details>
+                )}
+              </section>
+              <section className="panel goal-panel">
+                <div className="panel-heading">
+                  <h2>
+                    <WandSparkles size={17} /> 이 세계의 목표
+                  </h2>
+                  <span className="panel-step">02</span>
+                </div>
+                {config.mode === 'ability' && (
+                  <div className="ability-presets">
+                    <Field label="직업별 종결 어빌리티">
                       <select
-                        aria-label="어빌리티 목표 줄 수"
-                        value={config.target.conditions.length}
-                        onChange={(e) => chooseAbilityGoalCount(Number(e.target.value) as 2 | 3)}
+                        aria-label="직업별 종결 어빌리티"
+                        value={config.abilityPresetJob ?? ''}
+                        onChange={(e) => chooseAbilityJob(e.target.value)}
                       >
-                        <option value={2}>2줄 · 첫 줄 + 보조 줄 하나</option>
-                        <option value={3}>3줄 · 첫 줄 + 보조 줄 두 개</option>
+                        <option value="" disabled>
+                          프리셋 선택 · 현재 목표 직접 설정
+                        </option>
+                        {ABILITY_JOB_PRESETS.map((preset) => (
+                          <option key={preset.job} value={preset.job}>
+                            {preset.job} · {preset.code}
+                          </option>
+                        ))}
                       </select>
                     </Field>
-                  )}
-                  <details className="ability-legend">
-                    <summary>
-                      패·재·상·보·크·공 뜻 <ChevronDown size={13} />
-                    </summary>
-                    <p>
-                      패: 패시브 스킬 레벨 · 재: 재사용 대기시간 미적용 · 상: 상태 이상 대상 데미지
-                      · 보: 보스 데미지 · 크: 크리티컬 확률 · 공: 공격력/마력
-                    </p>
-                  </details>
-                  <Field label="어빌리티 진행 방식">
-                    <select
-                      aria-label="어빌리티 진행 방식"
-                      value={config.abilityStrategy ?? 'fixed'}
-                      onChange={(e) => {
-                        const strategy = e.target.value as NonNullable<
-                          SimulationConfig['abilityStrategy']
-                        >;
-                        const target = lowerFirstGoal(config.target);
-                        patchConfig({
-                          abilityStrategy: strategy,
-                          lockedSlots:
-                            strategy === 'lowerFirst'
-                              ? []
-                              : strategy === 'firstLocked'
-                                ? [0]
-                                : (state?.lockedSlots ?? config.lockedSlots),
-                          ...(strategy !== 'fixed' && target ? { target } : {}),
-                        });
-                      }}
-                    >
-                      <option value="lowerFirst" disabled={!lowerFirstGoal(config.target)}>
-                        아랫줄부터 자동 잠금 → 첫 줄
-                      </option>
-                      <option value="firstLocked" disabled={!lowerFirstGoal(config.target)}>
-                        첫 줄 고정 → 보조 줄 자동 잠금
-                      </option>
-                      <option value="fixed">수동 잠금 유지</option>
-                    </select>
-                  </Field>
-                  <p className="inline-note">
-                    {usesFirstLockedAbility(config)
-                      ? '목표에 맞는 첫 줄을 고정하고 2·3번째 줄을 뽑습니다. 보조 목표 하나를 확보하면 그 줄도 잠급니다. 첫 줄 확보 비용은 제외하며, 기댓값도 같은 잠금 순서로 계산합니다.'
-                      : usesLowerFirstAbility(config)
-                        ? requiredAbilityLower === 1
-                          ? '2·3번째 줄 중 하나에 보조 목표 확보 → 해당 줄 잠금 → 첫 줄 완성. 남은 한 줄은 무관하며, 기댓값도 이 순서로 계산합니다.'
-                          : '보조 목표 중 하나 확보 → 해당 줄 잠금 → 남은 보조 줄 확보·잠금 → 첫 줄 완성. 기댓값도 이 순서로 계산합니다.'
-                        : automaticAbilityTarget
-                          ? '직접 재설정은 선택한 잠금을 유지합니다. 자동 실행은 목표에 맞게 잠금을 다시 판단하고 아랫줄부터 완성합니다.'
-                          : '선택한 줄의 잠금을 유지하며 목표 전체가 완성될 때까지 재설정합니다.'}
-                  </p>
-                </div>
-              )}
-              <GoalEditor
-                goal={config.target}
-                mode={config.mode}
-                options={targetOptions}
-                conditionBounds={conditionBounds}
-                onChange={(target) => patchConfig({ target })}
-              />
-              <details className="imported-details">
-                <summary>
-                  불러온 현재 옵션 <ChevronDown size={14} />
-                </summary>
-                <OptionLines lines={importedLines} empty="직접 목표를 설정하는 도전입니다." />
-              </details>
-            </section>
-          </aside>
-          <div className="result-column">
-            <section
-              className={`panel simulation-panel mode-${config.mode}`}
-              data-batch-size={effectiveBatchSize(config, state?.grade ?? config.start.grade)}
-            >
-              <div className="simulation-heading">
-                <div>
-                  <div className="eyebrow">YOUR PARALLEL UNIVERSE</div>
-                  <h2>
-                    {displayName} <span>시뮬레이터</span>
-                  </h2>
-                  <p>{modeInfo.caption}</p>
-                </div>
-                <span className="simulation-icon">
-                  {(() => {
-                    const Icon = modeIcon;
-                    return <Icon size={28} />;
-                  })()}
-                </span>
-              </div>
-              <div className="status-line">
-                <span
-                  className={`status-badge ${state?.status === 'success' ? 'is-success' : auto ? 'is-running' : ''}`}
-                >
-                  <i />
-                  {state?.status === 'success'
-                    ? '목표 달성'
-                    : auto
-                      ? '다른 세계에서 도전 중'
-                      : state?.attempts
-                        ? '다음 도전을 기다리는 중'
-                        : '준비 완료'}
-                </span>
-                <span className="source-stamp">
-                  <ShieldCheck size={12} /> 공식 확률 적용
-                </span>
-              </div>
-              {config.mode === 'soulAmplification' ? (
-                <div className="amplification-display">
-                  <span className="amp-orb">
-                    <Orbit size={54} />
-                  </span>
-                  <div>
-                    <span className="small-label">현재 소울 증폭</span>
-                    <div className="amp-stage">
-                      {state?.stage ?? config.start.stage}
-                      <small>단계</small>
-                      <ArrowRight size={22} />
-                      <span>
-                        {config.target.stage}
-                        <small>단계</small>
-                      </span>
-                    </div>
-                  </div>
-                  <div className="amp-steps">
-                    {[1, 2, 3, 4].map((x) => (
-                      <span key={x} className={x <= (state?.stage ?? 0) ? 'complete' : ''}>
-                        {x <= (state?.stage ?? 0) ? <Check size={16} /> : x}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="current-result">
-                  <div className="card-title">
-                    <span>현재 보관 옵션</span>
-                    <GradeBadge grade={state?.grade ?? config.start.grade} />
-                  </div>
-                  <OptionLines
-                    lines={state?.lines ?? config.start.lines}
-                    locks={
-                      config.mode === 'ability'
-                        ? usesAbilityProgression(config)
-                          ? state?.lockedSlots
-                          : config.lockedSlots
-                        : undefined
-                    }
-                    onToggleLock={config.mode === 'ability' ? toggleAbilityLock : undefined}
-                    locksDisabled={auto || !state}
-                    automaticLocks={usesAbilityProgression(config)}
-                  />
-                  {config.mode === 'ability' && (
-                    <p className="inline-note">
-                      최대 두 줄까지 직접 잠글 수 있습니다.
-                      {usesFirstLockedAbility(config)
-                        ? ' 자동 실행은 첫 줄을 고정하고 맞는 보조 줄을 잠급니다.'
-                        : (usesLowerFirstAbility(config) || automaticAbilityTarget) &&
-                          ' 자동 실행은 목표에 맞게 잠금을 다시 설정합니다.'}
-                    </p>
-                  )}
-                  {config.mode === 'cube' && isPrime(config.cubeType) && (
-                    <span className="kept-label">첫 번째 옵션 고정</span>
-                  )}
-                </div>
-              )}
-              {config.mode === 'ability' && (
-                <div className="ability-progress-slot">
-                  {usesAbilityProgression(config) && state ? (
-                    <div className="ability-progress" aria-label="어빌리티 자동 잠금 진행">
-                      <strong>
-                        {state.status === 'success'
-                          ? requiredAbilityLower === 1
-                            ? '두 줄 완성'
-                            : '세 줄 완성'
-                          : usesFirstLockedAbility(config)
-                            ? (state.lockedSlots?.length ?? 0) > 1
-                              ? '마지막 보조 줄 도전 중'
-                              : '보조 줄 도전 중'
-                            : (state.lockedSlots?.length ?? 0) === requiredAbilityLower
-                              ? '첫 번째 줄 도전 중'
-                              : (state.lockedSlots?.length ?? 0) === 1
-                                ? '남은 보조 줄 도전 중'
-                                : '첫 보조 줄 도전 중'}
-                      </strong>
-                      <div className="ability-progress-steps">
-                        {(usesFirstLockedAbility(config)
-                          ? requiredAbilityLower === 1
-                            ? ['첫 줄 고정', '보조 줄 완성']
-                            : ['첫 줄 고정', '보조 줄 하나', '보조 줄 완성']
-                          : requiredAbilityLower === 1
-                            ? ['보조 줄 하나', '첫 줄 완성']
-                            : ['보조 줄 하나', '보조 줄 두 개', '첫 줄 완성']
-                        ).map((label, index) => (
-                          <span
-                            key={label}
-                            className={
-                              index < (state.lockedSlots?.length ?? 0) || state.status === 'success'
-                                ? 'complete'
-                                : ''
-                            }
-                          >
-                            {index < (state.lockedSlots?.length ?? 0) ||
-                            state.status === 'success' ? (
-                              <Check size={13} />
-                            ) : (
-                              index + 1
-                            )}{' '}
-                            {label}
-                          </span>
-                        ))}
-                      </div>
-                      {state.status !== 'success' && (
-                        <small>
-                          {usesFirstLockedAbility(config) ? '첫 줄 고정 · 잠금 ' : '자동 잠금 '}
-                          {state.lockedSlots?.length ?? 0}/
-                          {usesFirstLockedAbility(config) ? 2 : requiredAbilityLower}줄 · 다음 1회{' '}
-                          {formatAmount(
-                            Number(
-                              data.ability.costs.find(
-                                (cost) => cost.locked === (state.lockedSlots?.length ?? 0),
-                              )!.meso,
-                            ),
-                          )}{' '}
-                          메소 · 명성치{' '}
-                          {formatAmount(
-                            data.ability.costs.find(
-                              (cost) => cost.locked === (state.lockedSlots?.length ?? 0),
-                            )!.honor,
-                          )}
-                        </small>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="ability-progress">
-                      <strong>직접 잠금 설정</strong>
-                      <p className="inline-note">
-                        보관 옵션 오른쪽에서 잠금을 선택하세요. 직접 재설정은 선택한 잠금을
-                        유지합니다.
-                      </p>
-                      <small>
-                        {automaticAbilityTarget
-                          ? '자동 실행은 목표에 맞춰 잠금을 다시 판단합니다.'
-                          : '현재 목표와 선택한 잠금으로 도전합니다.'}
-                      </small>
-                    </div>
-                  )}
-                </div>
-              )}
-              {state && <ProgressDisplay data={data} config={config} state={state} />}
-              {state?.candidates.length ? (
-                config.mode !== 'soulAmplification' && (
-                  <div className={`candidate-grid count-${state.candidates.length}`}>
-                    {state.candidates.map((candidate, i) => (
-                      <article
-                        className={`candidate-card ${candidate.hit ? 'is-hit' : ''}`}
-                        key={`${candidate.sequence}-${i}`}
+                    {resolveAbilityPreset(character.job) && (
+                      <button
+                        className="text-button"
+                        onClick={() => chooseAbilityJob(character.job)}
                       >
-                        <div className="card-title">
-                          <span>
-                            {candidate.hit ? (
-                              <>
-                                <Check size={13} />
-                                목표 달성
-                              </>
-                            ) : (
-                              `재설정 ${state.candidates.length === 1 ? formatAmount(candidate.sequence) : i + 1}`
-                            )}
-                          </span>
-                          <GradeBadge grade={candidate.grade} />
-                        </div>
-                        <OptionLines lines={candidate.lines} />
-                        <div className="candidate-footer">
-                          {candidate.adopted && candidate.progressed && (
-                            <span className="kept-label">보조 목표 확보 · 자동 잠금</span>
-                          )}
-                          {!candidate.hit && (
-                            <button
-                              className="text-button accept-option"
-                              disabled={auto}
-                              onClick={() =>
-                                begin({
-                                  ...config,
-                                  start: {
-                                    grade: candidate.grade,
-                                    lines: candidate.lines,
-                                    stage: candidate.stage,
-                                    failures: state.failures,
-                                  },
-                                })
+                        내 직업 종결 적용 · {character.job}
+                      </button>
+                    )}
+                    <p className="inline-note">
+                      모든 목표는 레전드리 조합입니다. 목표 수치는 옵션의 최저치로 시작하며 직접
+                      높일 수 있습니다. 첫 글자는 1번째 줄, 보조 옵션은 2·3번째 줄 순서 무관입니다.
+                    </p>
+                    {lowerFirstGoal(config.target) && (
+                      <Field label="어빌리티 목표 줄 수">
+                        <select
+                          aria-label="어빌리티 목표 줄 수"
+                          value={config.target.conditions.length}
+                          onChange={(e) => chooseAbilityGoalCount(Number(e.target.value) as 2 | 3)}
+                        >
+                          <option value={2}>2줄 · 첫 줄 + 보조 줄 하나</option>
+                          <option value={3}>3줄 · 첫 줄 + 보조 줄 두 개</option>
+                        </select>
+                      </Field>
+                    )}
+                    <details className="ability-legend">
+                      <summary>
+                        패·재·상·보·크·공 뜻 <ChevronDown size={13} />
+                      </summary>
+                      <p>
+                        패: 패시브 스킬 레벨 · 재: 재사용 대기시간 미적용 · 상: 상태 이상 대상
+                        데미지 · 보: 보스 데미지 · 크: 크리티컬 확률 · 공: 공격력/마력
+                      </p>
+                    </details>
+                    <Field label="어빌리티 진행 방식">
+                      <select
+                        aria-label="어빌리티 진행 방식"
+                        value={config.abilityStrategy ?? 'fixed'}
+                        onChange={(e) => {
+                          const strategy = e.target.value as NonNullable<
+                            SimulationConfig['abilityStrategy']
+                          >;
+                          const target = lowerFirstGoal(config.target);
+                          patchConfig({
+                            abilityStrategy: strategy,
+                            lockedSlots:
+                              strategy === 'lowerFirst'
+                                ? []
+                                : strategy === 'firstLocked'
+                                  ? [0]
+                                  : (state?.lockedSlots ?? config.lockedSlots),
+                            ...(strategy !== 'fixed' && target ? { target } : {}),
+                          });
+                        }}
+                      >
+                        <option value="lowerFirst" disabled={!lowerFirstGoal(config.target)}>
+                          아랫줄부터 자동 잠금 → 첫 줄
+                        </option>
+                        <option value="firstLocked" disabled={!lowerFirstGoal(config.target)}>
+                          첫 줄 고정 → 보조 줄 자동 잠금
+                        </option>
+                        <option value="fixed">수동 잠금 유지</option>
+                      </select>
+                    </Field>
+                    <p className="inline-note">
+                      {usesFirstLockedAbility(config)
+                        ? '목표에 맞는 첫 줄을 고정하고 2·3번째 줄을 뽑습니다. 보조 목표 하나를 확보하면 그 줄도 잠급니다. 첫 줄 확보 비용은 제외하며, 기댓값도 같은 잠금 순서로 계산합니다.'
+                        : usesLowerFirstAbility(config)
+                          ? requiredAbilityLower === 1
+                            ? '2·3번째 줄 중 하나에 보조 목표 확보 → 해당 줄 잠금 → 첫 줄 완성. 남은 한 줄은 무관하며, 기댓값도 이 순서로 계산합니다.'
+                            : '보조 목표 중 하나 확보 → 해당 줄 잠금 → 남은 보조 줄 확보·잠금 → 첫 줄 완성. 기댓값도 이 순서로 계산합니다.'
+                          : automaticAbilityTarget
+                            ? '직접 재설정은 선택한 잠금을 유지합니다. 자동 실행은 목표에 맞게 잠금을 다시 판단하고 아랫줄부터 완성합니다.'
+                            : '선택한 줄의 잠금을 유지하며 목표 전체가 완성될 때까지 재설정합니다.'}
+                    </p>
+                  </div>
+                )}
+                <GoalEditor
+                  goal={config.target}
+                  mode={config.mode}
+                  options={targetOptions}
+                  conditionBounds={conditionBounds}
+                  onChange={(target) => patchConfig({ target })}
+                />
+                <details className="imported-details">
+                  <summary>
+                    불러온 현재 옵션 <ChevronDown size={14} />
+                  </summary>
+                  <OptionLines lines={importedLines} empty="직접 목표를 설정하는 도전입니다." />
+                </details>
+              </section>
+            </aside>
+            <div className="result-column">
+              <section
+                className={`panel simulation-panel mode-${config.mode}`}
+                data-batch-size={effectiveBatchSize(config, state?.grade ?? config.start.grade)}
+              >
+                <div className="simulation-heading">
+                  <div>
+                    <div className="eyebrow">YOUR PARALLEL UNIVERSE</div>
+                    <h2>
+                      {displayName} <span>시뮬레이터</span>
+                    </h2>
+                    <p>{modeInfo.caption}</p>
+                  </div>
+                  <span className="simulation-icon">
+                    {(() => {
+                      const Icon = modeIcon;
+                      return <Icon size={28} />;
+                    })()}
+                  </span>
+                </div>
+                <div className="status-line">
+                  <span
+                    className={`status-badge ${state?.status === 'success' ? 'is-success' : auto ? 'is-running' : ''}`}
+                  >
+                    <i />
+                    {state?.status === 'success'
+                      ? '목표 달성'
+                      : auto
+                        ? '다른 세계에서 도전 중'
+                        : state?.attempts
+                          ? '다음 도전을 기다리는 중'
+                          : '준비 완료'}
+                  </span>
+                  <span className="source-stamp">
+                    <ShieldCheck size={12} /> 공식 확률 적용
+                  </span>
+                </div>
+                {config.mode === 'soulAmplification' ? (
+                  <div className="amplification-display">
+                    <span className="amp-orb">
+                      <Orbit size={54} />
+                    </span>
+                    <div>
+                      <span className="small-label">현재 소울 증폭</span>
+                      <div className="amp-stage">
+                        {state?.stage ?? config.start.stage}
+                        <small>단계</small>
+                        <ArrowRight size={22} />
+                        <span>
+                          {config.target.stage}
+                          <small>단계</small>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="amp-steps">
+                      {[1, 2, 3, 4].map((x) => (
+                        <span key={x} className={x <= (state?.stage ?? 0) ? 'complete' : ''}>
+                          {x <= (state?.stage ?? 0) ? <Check size={16} /> : x}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="current-result">
+                    <div className="card-title">
+                      <span>현재 보관 옵션</span>
+                      <GradeBadge grade={state?.grade ?? config.start.grade} />
+                    </div>
+                    <OptionLines
+                      lines={state?.lines ?? config.start.lines}
+                      locks={
+                        config.mode === 'ability'
+                          ? usesAbilityProgression(config)
+                            ? state?.lockedSlots
+                            : config.lockedSlots
+                          : undefined
+                      }
+                      onToggleLock={config.mode === 'ability' ? toggleAbilityLock : undefined}
+                      locksDisabled={auto || !state}
+                      automaticLocks={usesAbilityProgression(config)}
+                    />
+                    {config.mode === 'ability' && (
+                      <p className="inline-note">
+                        최대 두 줄까지 직접 잠글 수 있습니다.
+                        {usesFirstLockedAbility(config)
+                          ? ' 자동 실행은 첫 줄을 고정하고 맞는 보조 줄을 잠급니다.'
+                          : (usesLowerFirstAbility(config) || automaticAbilityTarget) &&
+                            ' 자동 실행은 목표에 맞게 잠금을 다시 설정합니다.'}
+                      </p>
+                    )}
+                    {config.mode === 'cube' && isPrime(config.cubeType) && (
+                      <span className="kept-label">첫 번째 옵션 고정</span>
+                    )}
+                  </div>
+                )}
+                {config.mode === 'ability' && (
+                  <div className="ability-progress-slot">
+                    {usesAbilityProgression(config) && state ? (
+                      <div className="ability-progress" aria-label="어빌리티 자동 잠금 진행">
+                        <strong>
+                          {state.status === 'success'
+                            ? requiredAbilityLower === 1
+                              ? '두 줄 완성'
+                              : '세 줄 완성'
+                            : usesFirstLockedAbility(config)
+                              ? (state.lockedSlots?.length ?? 0) > 1
+                                ? '마지막 보조 줄 도전 중'
+                                : '보조 줄 도전 중'
+                              : (state.lockedSlots?.length ?? 0) === requiredAbilityLower
+                                ? '첫 번째 줄 도전 중'
+                                : (state.lockedSlots?.length ?? 0) === 1
+                                  ? '남은 보조 줄 도전 중'
+                                  : '첫 보조 줄 도전 중'}
+                        </strong>
+                        <div className="ability-progress-steps">
+                          {(usesFirstLockedAbility(config)
+                            ? requiredAbilityLower === 1
+                              ? ['첫 줄 고정', '보조 줄 완성']
+                              : ['첫 줄 고정', '보조 줄 하나', '보조 줄 완성']
+                            : requiredAbilityLower === 1
+                              ? ['보조 줄 하나', '첫 줄 완성']
+                              : ['보조 줄 하나', '보조 줄 두 개', '첫 줄 완성']
+                          ).map((label, index) => (
+                            <span
+                              key={label}
+                              className={
+                                index < (state.lockedSlots?.length ?? 0) ||
+                                state.status === 'success'
+                                  ? 'complete'
+                                  : ''
                               }
                             >
-                              이 옵션에서 새 도전 <ArrowUpRight size={12} />
-                            </button>
-                          )}
+                              {index < (state.lockedSlots?.length ?? 0) ||
+                              state.status === 'success' ? (
+                                <Check size={13} />
+                              ) : (
+                                index + 1
+                              )}{' '}
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                        {state.status !== 'success' && (
+                          <small>
+                            {usesFirstLockedAbility(config) ? '첫 줄 고정 · 잠금 ' : '자동 잠금 '}
+                            {state.lockedSlots?.length ?? 0}/
+                            {usesFirstLockedAbility(config) ? 2 : requiredAbilityLower}줄 · 다음 1회{' '}
+                            {formatAmount(
+                              Number(
+                                data.ability.costs.find(
+                                  (cost) => cost.locked === (state.lockedSlots?.length ?? 0),
+                                )!.meso,
+                              ),
+                            )}{' '}
+                            메소 · 명성치{' '}
+                            {formatAmount(
+                              data.ability.costs.find(
+                                (cost) => cost.locked === (state.lockedSlots?.length ?? 0),
+                              )!.honor,
+                            )}
+                          </small>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="ability-progress">
+                        <strong>직접 잠금 설정</strong>
+                        <p className="inline-note">
+                          보관 옵션 오른쪽에서 잠금을 선택하세요. 직접 재설정은 선택한 잠금을
+                          유지합니다.
+                        </p>
+                        <small>
+                          {automaticAbilityTarget
+                            ? '자동 실행은 목표에 맞춰 잠금을 다시 판단합니다.'
+                            : '현재 목표와 선택한 잠금으로 도전합니다.'}
+                        </small>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {state && <ProgressDisplay data={data} config={config} state={state} />}
+                {state?.candidates.length ? (
+                  config.mode !== 'soulAmplification' && (
+                    <div className={`candidate-grid count-${state.candidates.length}`}>
+                      {state.candidates.map((candidate, i) => (
+                        <article
+                          className={`candidate-card ${candidate.hit ? 'is-hit' : ''}`}
+                          key={`${candidate.sequence}-${i}`}
+                        >
+                          <div className="card-title">
+                            <span>
+                              {candidate.hit ? (
+                                <>
+                                  <Check size={13} />
+                                  목표 달성
+                                </>
+                              ) : (
+                                `재설정 ${state.candidates.length === 1 ? formatAmount(candidate.sequence) : i + 1}`
+                              )}
+                            </span>
+                            <GradeBadge grade={candidate.grade} />
+                          </div>
+                          <OptionLines lines={candidate.lines} />
+                          <div className="candidate-footer">
+                            {candidate.adopted && candidate.progressed && (
+                              <span className="kept-label">보조 목표 확보 · 자동 잠금</span>
+                            )}
+                            {!candidate.hit && (
+                              <button
+                                className="text-button accept-option"
+                                disabled={auto}
+                                onClick={() =>
+                                  begin({
+                                    ...config,
+                                    start: {
+                                      grade: candidate.grade,
+                                      lines: candidate.lines,
+                                      stage: candidate.stage,
+                                      failures: state.failures,
+                                    },
+                                  })
+                                }
+                              >
+                                이 옵션에서 새 도전 <ArrowUpRight size={12} />
+                              </button>
+                            )}
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )
+                ) : config.mode === 'ability' ? (
+                  <div className={`candidate-grid count-${config.batchSize}`}>
+                    {Array.from({ length: config.batchSize }, (_, index) => (
+                      <article className="candidate-placeholder" key={index}>
+                        <div className="card-title">
+                          <span>재설정 {index + 1}</span>
+                          <GradeBadge grade="legendary" />
+                        </div>
+                        <div className="option-lines" aria-hidden="true">
+                          {[0, 1, 2].map((slot) => (
+                            <div className="option-row" key={slot}>
+                              <i className="grade-dot grade-legendary" />
+                              <span>—</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="candidate-footer">
+                          <span>재설정 결과가 표시됩니다.</span>
                         </div>
                       </article>
                     ))}
                   </div>
-                )
-              ) : config.mode === 'ability' ? (
-                <div className={`candidate-grid count-${config.batchSize}`}>
-                  {Array.from({ length: config.batchSize }, (_, index) => (
-                    <article className="candidate-placeholder" key={index}>
-                      <div className="card-title">
-                        <span>재설정 {index + 1}</span>
-                        <GradeBadge grade="legendary" />
-                      </div>
-                      <div className="option-lines" aria-hidden="true">
-                        {[0, 1, 2].map((slot) => (
-                          <div className="option-row" key={slot}>
-                            <i className="grade-dot grade-legendary" />
-                            <span>—</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="candidate-footer">
-                        <span>재설정 결과가 표시됩니다.</span>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                config.mode !== 'soulAmplification' && (
-                  <div className="empty-result">
-                    <span className="empty-cube">
-                      <Boxes size={24} />
-                    </span>
-                    <p>아직 열어보지 않은 가능성</p>
-                    <span>아래 버튼을 눌러 첫 번째 결과를 만나보세요.</span>
-                  </div>
-                )
-              )}
-              <div className="roll-controls">
-                <div className="roll-options">
-                  <span>한 번에</span>
-                  <div className="segmented mini">
-                    <button
-                      className={config.batchSize === 1 ? 'selected' : ''}
-                      disabled={auto}
-                      onClick={() => config.batchSize !== 1 && patchConfig({ batchSize: 1 })}
-                    >
-                      1회
-                    </button>
-                    <button
-                      className={config.batchSize === 3 ? 'selected' : ''}
-                      disabled={auto || config.mode === 'soulAmplification'}
-                      onClick={() => config.batchSize !== 3 && patchConfig({ batchSize: 3 })}
-                    >
-                      3회 비교
+                ) : (
+                  config.mode !== 'soulAmplification' && (
+                    <div className="empty-result">
+                      <span className="empty-cube">
+                        <Boxes size={24} />
+                      </span>
+                      <p>아직 열어보지 않은 가능성</p>
+                      <span>아래 버튼을 눌러 첫 번째 결과를 만나보세요.</span>
+                    </div>
+                  )
+                )}
+                <div className="roll-controls">
+                  <div className="roll-options">
+                    <span>한 번에</span>
+                    <div className="segmented mini">
+                      <button
+                        className={config.batchSize === 1 ? 'selected' : ''}
+                        disabled={auto}
+                        onClick={() => config.batchSize !== 1 && patchConfig({ batchSize: 1 })}
+                      >
+                        1회
+                      </button>
+                      <button
+                        className={config.batchSize === 3 ? 'selected' : ''}
+                        disabled={auto || config.mode === 'soulAmplification'}
+                        onClick={() => config.batchSize !== 3 && patchConfig({ batchSize: 3 })}
+                      >
+                        3회 비교
+                      </button>
+                    </div>
+                    <button className="text-button reset-button" onClick={() => begin(config)}>
+                      <RotateCcw size={13} /> 새 도전
                     </button>
                   </div>
-                  <button className="text-button reset-button" onClick={() => begin(config)}>
-                    <RotateCcw size={13} /> 새 도전
-                  </button>
-                </div>
-                <div className="roll-button-row">
-                  <button
-                    className="button primary roll-button"
-                    disabled={!canRun || auto}
-                    onClick={oneRoll}
-                  >
-                    <Boxes size={18} />
-                    {config.mode === 'soulAmplification'
-                      ? '증폭 시도하기'
-                      : `${effectiveBatchSize(config, state?.grade ?? config.start.grade)}회 재설정하기`}
-                    <ArrowRight size={17} />
-                  </button>
-                  <button
-                    className={`button auto-button ${auto ? 'stop' : ''}`}
-                    disabled={!auto && !canAutoRun && !canRestartAuto}
-                    onClick={auto ? stop : startAuto}
-                  >
-                    {auto ? (
-                      <>
-                        <Pause size={16} />
-                        중지
-                      </>
-                    ) : canRestartAuto ? (
-                      <>
-                        <RotateCcw size={16} />
-                        다시 자동재설정
-                      </>
-                    ) : (
-                      <>
-                        <Play size={15} />
-                        자동 재설정
-                      </>
-                    )}
-                  </button>
-                </div>
-                <p className="control-hint">
-                  {config.batchSize === 3
-                    ? effectiveBatchSize(config, state?.grade ?? config.start.grade) === 1
-                      ? '등급 상승 구간은 1회씩 진행하고, 레전드리에 도달하면 3회 비교로 자동 전환합니다.'
+                  <div className="roll-button-row">
+                    <button
+                      className="button primary roll-button"
+                      disabled={!canRun || auto}
+                      onClick={oneRoll}
+                    >
+                      <Boxes size={18} />
+                      {config.mode === 'soulAmplification'
+                        ? '증폭 시도하기'
+                        : `${effectiveBatchSize(config, state?.grade ?? config.start.grade)}회 재설정하기`}
+                      <ArrowRight size={17} />
+                    </button>
+                    <button
+                      className={`button auto-button ${auto ? 'stop' : ''}`}
+                      disabled={!auto && !canAutoRun && !canRestartAuto}
+                      onClick={auto ? stop : startAuto}
+                    >
+                      {auto ? (
+                        <>
+                          <Pause size={16} />
+                          중지
+                        </>
+                      ) : canRestartAuto ? (
+                        <>
+                          <RotateCcw size={16} />
+                          다시 자동재설정
+                        </>
+                      ) : (
+                        <>
+                          <Play size={15} />
+                          자동 재설정
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <p className="control-hint">
+                    {config.batchSize === 3
+                      ? effectiveBatchSize(config, state?.grade ?? config.start.grade) === 1
+                        ? '등급 상승 구간은 1회씩 진행하고, 레전드리에 도달하면 3회 비교로 자동 전환합니다.'
+                        : usesAbilityProgression(config)
+                          ? '같은 잠금 상태에서 3회분을 모두 사용하고, 목표 달성 또는 보조 줄을 더 많이 확보한 결과를 채택합니다.'
+                          : '3개를 모두 뽑고 비용도 3회분을 사용합니다.'
                       : usesAbilityProgression(config)
-                        ? '같은 잠금 상태에서 3회분을 모두 사용하고, 목표 달성 또는 보조 줄을 더 많이 확보한 결과를 채택합니다.'
-                        : '3개를 모두 뽑고 비용도 3회분을 사용합니다.'
-                    : usesAbilityProgression(config)
-                      ? '목표 보조 줄을 확보하면 채택·잠금합니다. 나머지 결과는 기존 옵션을 유지합니다.'
-                      : '목표 미달 시 기존 옵션을 유지하며, 등급 상승은 적용합니다.'}
-                </p>
-              </div>
-              {errors.length > 0 && (
-                <div className="notice error" role="alert">
-                  {errors.map((error, i) => (
-                    <p key={i}>{error}</p>
-                  ))}
-                </div>
-              )}
-              {message && (
-                <div className="notice" role="status">
-                  {message}
-                  <button
-                    className="icon-button"
-                    aria-label="안내 닫기"
-                    onClick={() => setMessage('')}
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              )}
-            </section>
-            {state && (
-              <>
-                <section className="stats-row" aria-label="도전 통계">
-                  <div className="stat-card">
-                    <span>누적 시도</span>
-                    <strong>
-                      {formatAmount(state.attempts)}
-                      <small>회</small>
-                    </strong>
-                    <div>
-                      {config.batchSize === 3
-                        ? effectiveBatchSize(config, state.grade) === 3
-                          ? '3회 비교 모드'
-                          : '승급까지 1회 · 이후 3회 비교'
-                        : '한 번 한 번 쌓이는 가능성'}
-                    </div>
-                  </div>
-                  <div className="stat-card spent-stat">
-                    <span>{itemBased ? '사용한 큐브' : '사용한 메소'}</span>
-                    <strong
-                      title={formatAmount(itemBased ? state.spent.cubes : state.spent.meso, false)}
-                    >
-                      {formatAmount(itemBased ? state.spent.cubes : state.spent.meso)}
-                      <small>{itemBased ? '개' : '메소'}</small>
-                    </strong>
-                    <div>
-                      {config.mode === 'ability'
-                        ? `명성치 ${formatAmount(state.spent.honor)} 소모`
-                        : state.spent.credits > 0n
-                          ? `${formatAmount(state.spent.credits)} 크레딧`
-                          : config.mode === 'soulAmplification'
-                            ? `에테르 총 ${formatAmount(state.spent.ethers.reduce((a, b) => a + b, 0n))}개`
-                            : '이번 세계에서 사용한 비용'}
-                    </div>
-                  </div>
-                  <div className="stat-card expected-stat">
-                    <span>
-                      목표까지 기댓값 {benchmarkBusy && <LoaderCircle size={12} className="spin" />}
-                    </span>
-                    <strong>
-                      {benchmark ? formatAmount(benchmark.expectedCost) : '계산 중'}
-                      <small>{benchmark?.unit === 'cubes' ? '개' : benchmark ? '메소' : ''}</small>
-                    </strong>
-                    <div>
-                      {benchmark?.status === 'partial'
-                        ? '목표에 도달하지 못할 가능성 있음'
-                        : benchmark?.status === 'impossible'
-                          ? '현재 설정으로 달성할 수 없음'
-                          : benchmark?.status === 'already'
-                            ? '시작 상태가 이미 목표를 만족'
-                            : benchmark
-                              ? '같은 조건의 평균 소비'
-                              : '같은 목표의 다른 세계를 살피는 중'}
-                    </div>
-                  </div>
-                </section>
-                {(state.spent.credits > 0n ||
-                  config.mode === 'soulAmplification' ||
-                  marketValue > 0n) && (
-                  <div className="resource-ledger">
-                    {config.mode === 'soulAmplification' &&
-                      state.spent.ethers.map((x, i) => (
-                        <span key={i}>
-                          {i + 1}단계 에테르 <b>{formatAmount(x)}개</b>
-                        </span>
-                      ))}
-                    {state.spent.credits > 0n && (
-                      <span>
-                        소모 크레딧 <b>{formatAmount(state.spent.credits)}</b>
-                      </span>
-                    )}
-                    {marketValue > 0n && (
-                      <span>
-                        입력 시세 환산 <b>{formatAmount(marketValue)} 메소</b>
-                      </span>
-                    )}
-                  </div>
-                )}
-                <ReactionStage
-                  character={character}
-                  state={state}
-                  benchmark={benchmark}
-                  reaction={reaction}
-                  actualCost={actualCost}
-                />
-                {benchmark &&
-                  benchmark.status === 'ready' &&
-                  Number.isFinite(benchmark.expectedCost) && (
-                    <DistributionChart
-                      benchmark={benchmark}
-                      actualCost={actualCost}
-                      done={state.status === 'success' && state.attempts > 0n}
-                    />
-                  )}
-                {benchmark?.note && (
-                  <p className="benchmark-note">
-                    <CircleHelp size={13} />
-                    {benchmark.note}
+                        ? '목표 보조 줄을 확보하면 채택·잠금합니다. 나머지 결과는 기존 옵션을 유지합니다.'
+                        : '목표 미달 시 기존 옵션을 유지하며, 등급 상승은 적용합니다.'}
                   </p>
+                </div>
+                {errors.length > 0 && (
+                  <div className="notice error" role="alert">
+                    {errors.map((error, i) => (
+                      <p key={i}>{error}</p>
+                    ))}
+                  </div>
                 )}
-                <details className="panel history-panel">
-                  <summary>
-                    <span>
-                      <BookOpen size={15} /> 이 세계의 기록 <b>{state.history.length}</b>
-                    </span>
-                    <span>
-                      최근 100회 <ChevronDown size={14} />
-                    </span>
-                  </summary>
-                  {state.history.length ? (
-                    <div className="history-list">
-                      {[...state.history]
-                        .sort((a, b) => (a.sequence > b.sequence ? -1 : 1))
-                        .map((entry, i) => (
-                          <div
-                            className={`history-row ${entry.hit ? 'hit' : ''}`}
-                            key={`${entry.sequence}-${i}`}
-                          >
-                            <span className="history-number">#{formatAmount(entry.sequence)}</span>
-                            <div>
-                              {config.mode === 'soulAmplification' ? (
-                                <strong>
-                                  {entry.amplified ? `${entry.stage}단계 증폭 성공` : '증폭 실패'}
-                                </strong>
-                              ) : (
-                                <>
-                                  <GradeBadge grade={entry.grade} />
-                                  <span>{entry.lines.map((x) => x.text).join(' / ')}</span>
-                                </>
-                              )}
-                            </div>
-                            <small>
-                              {formatAmount(itemBased ? entry.cost.cubes : entry.cost.meso)}{' '}
-                              {itemBased ? '개' : '메소'}
-                            </small>
-                          </div>
-                        ))}
+                {message && (
+                  <div className="notice" role="status">
+                    {message}
+                    <button
+                      className="icon-button"
+                      aria-label="안내 닫기"
+                      onClick={() => setMessage('')}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+              </section>
+              {state && (
+                <>
+                  <section className="stats-row" aria-label="도전 통계">
+                    <div className="stat-card">
+                      <span>누적 시도</span>
+                      <strong>
+                        {formatAmount(state.attempts)}
+                        <small>회</small>
+                      </strong>
+                      <div>
+                        {config.batchSize === 3
+                          ? effectiveBatchSize(config, state.grade) === 3
+                            ? '3회 비교 모드'
+                            : '승급까지 1회 · 이후 3회 비교'
+                          : '한 번 한 번 쌓이는 가능성'}
+                      </div>
                     </div>
-                  ) : (
-                    <p className="empty-history">첫 번째 도전이 기록될 자리예요.</p>
+                    <div className="stat-card spent-stat">
+                      <span>{itemBased ? '사용한 큐브' : '사용한 메소'}</span>
+                      <strong
+                        title={formatAmount(
+                          itemBased ? state.spent.cubes : state.spent.meso,
+                          false,
+                        )}
+                      >
+                        {formatAmount(itemBased ? state.spent.cubes : state.spent.meso)}
+                        <small>{itemBased ? '개' : '메소'}</small>
+                      </strong>
+                      <div>
+                        {config.mode === 'ability'
+                          ? `명성치 ${formatAmount(state.spent.honor)} 소모`
+                          : state.spent.credits > 0n
+                            ? `${formatAmount(state.spent.credits)} 크레딧`
+                            : config.mode === 'soulAmplification'
+                              ? `에테르 총 ${formatAmount(state.spent.ethers.reduce((a, b) => a + b, 0n))}개`
+                              : '이번 세계에서 사용한 비용'}
+                      </div>
+                    </div>
+                    <div className="stat-card expected-stat">
+                      <span>
+                        목표까지 기댓값{' '}
+                        {benchmarkBusy && <LoaderCircle size={12} className="spin" />}
+                      </span>
+                      <strong>
+                        {benchmark ? formatAmount(benchmark.expectedCost) : '계산 중'}
+                        <small>
+                          {benchmark?.unit === 'cubes' ? '개' : benchmark ? '메소' : ''}
+                        </small>
+                      </strong>
+                      <div>
+                        {benchmark?.status === 'partial'
+                          ? '목표에 도달하지 못할 가능성 있음'
+                          : benchmark?.status === 'impossible'
+                            ? '현재 설정으로 달성할 수 없음'
+                            : benchmark?.status === 'already'
+                              ? '시작 상태가 이미 목표를 만족'
+                              : benchmark
+                                ? '같은 조건의 평균 소비'
+                                : '같은 목표의 다른 세계를 살피는 중'}
+                      </div>
+                    </div>
+                  </section>
+                  {(state.spent.credits > 0n ||
+                    config.mode === 'soulAmplification' ||
+                    marketValue > 0n) && (
+                    <div className="resource-ledger">
+                      {config.mode === 'soulAmplification' &&
+                        state.spent.ethers.map((x, i) => (
+                          <span key={i}>
+                            {i + 1}단계 에테르 <b>{formatAmount(x)}개</b>
+                          </span>
+                        ))}
+                      {state.spent.credits > 0n && (
+                        <span>
+                          소모 크레딧 <b>{formatAmount(state.spent.credits)}</b>
+                        </span>
+                      )}
+                      {marketValue > 0n && (
+                        <span>
+                          입력 시세 환산 <b>{formatAmount(marketValue)} 메소</b>
+                        </span>
+                      )}
+                    </div>
                   )}
-                </details>
-              </>
-            )}
-            {!state && (
-              <div className="notice error">
-                시작 상태를 만들 수 없습니다. 장비 부위·등급·시작 옵션을 확인해 주세요.
-              </div>
-            )}
+                  <ReactionStage
+                    character={character}
+                    state={state}
+                    benchmark={benchmark}
+                    reaction={reaction}
+                    actualCost={actualCost}
+                  />
+                  {benchmark &&
+                    benchmark.status === 'ready' &&
+                    Number.isFinite(benchmark.expectedCost) && (
+                      <DistributionChart
+                        benchmark={benchmark}
+                        actualCost={actualCost}
+                        done={state.status === 'success' && state.attempts > 0n}
+                      />
+                    )}
+                  {benchmark?.note && (
+                    <p className="benchmark-note">
+                      <CircleHelp size={13} />
+                      {benchmark.note}
+                    </p>
+                  )}
+                  <details className="panel history-panel">
+                    <summary>
+                      <span>
+                        <BookOpen size={15} /> 이 세계의 기록 <b>{state.history.length}</b>
+                      </span>
+                      <span>
+                        최근 100회 <ChevronDown size={14} />
+                      </span>
+                    </summary>
+                    {state.history.length ? (
+                      <div className="history-list">
+                        {[...state.history]
+                          .sort((a, b) => (a.sequence > b.sequence ? -1 : 1))
+                          .map((entry, i) => (
+                            <div
+                              className={`history-row ${entry.hit ? 'hit' : ''}`}
+                              key={`${entry.sequence}-${i}`}
+                            >
+                              <span className="history-number">
+                                #{formatAmount(entry.sequence)}
+                              </span>
+                              <div>
+                                {config.mode === 'soulAmplification' ? (
+                                  <strong>
+                                    {entry.amplified ? `${entry.stage}단계 증폭 성공` : '증폭 실패'}
+                                  </strong>
+                                ) : (
+                                  <>
+                                    <GradeBadge grade={entry.grade} />
+                                    <span>{entry.lines.map((x) => x.text).join(' / ')}</span>
+                                  </>
+                                )}
+                              </div>
+                              <small>
+                                {formatAmount(itemBased ? entry.cost.cubes : entry.cost.meso)}{' '}
+                                {itemBased ? '개' : '메소'}
+                              </small>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <p className="empty-history">첫 번째 도전이 기록될 자리예요.</p>
+                    )}
+                  </details>
+                </>
+              )}
+              {!state && (
+                <div className="notice error">
+                  시작 상태를 만들 수 없습니다. 장비 부위·등급·시작 옵션을 확인해 주세요.
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         <Sources fetchedAt={character.fetchedAt} />
       </main>
       <footer className="site-footer">

@@ -1,0 +1,3961 @@
+{
+  "ruleId": "kms-abyss-circulator-2026-09-17",
+  "version": "official-v1",
+  "checkedAt": "2026-09-18",
+  "scope": "Advanced-reset-reachable option types and grades for the legendary three-target optimizer; discontinued legacy-only options and Rare lines are not included.",
+  "sourceUrl": "https://maplestory.nexon.com/Guide/OtherProbability/ability/reputevalue",
+  "sources": {
+    "probability": {
+      "url": "https://maplestory.nexon.com/Guide/OtherProbability/ability/reputevalue",
+      "sha256": "10108b465d60f77e3ba40d7fbba396ba97c74ed083efd36340a9932d195492aa",
+      "snapshot": "snapshots/abyss-circulator/ability-probability.html.gz"
+    },
+    "guide": {
+      "url": "https://maplestory.nexon.com/Guide/N23GameInformation/Articles/392",
+      "sha256": "9b7ca1bebc0e5f6565552282d107b8eb1b713edefcfda8eb461dccea35155e10",
+      "snapshot": "snapshots/abyss-circulator/ability-guide.html.gz"
+    },
+    "update": {
+      "url": "https://maplestory.nexon.com/News/Update/813",
+      "sha256": "ea3c444676899fe5aedc8e693d8890360c8412786adc088ccb441870d5340dc6",
+      "snapshot": "snapshots/abyss-circulator/update-813.html.gz"
+    },
+    "tooltip": {
+      "url": "https://dszw1qtcnsa5e.cloudfront.net/quickboard/20260914/0b995060a68c40b785458dc6ac3239db/%EC%8B%AC%EC%97%B0%EC%9D%98%20%EC%84%9C%ED%81%98%EB%A0%88%EC%9D%B4%ED%84%B0.png",
+      "sha256": "6cfafaf192e4b4fdb75985a9a53113f03cb902d26d3c8c187ce8965b871a1a28",
+      "snapshot": "snapshots/abyss-circulator/tooltip.png"
+    }
+  },
+  "requiredGrade": "legendary",
+  "abilityValueRuleId": "kms-ability-advanced-2026-09-17",
+  "mechanics": {
+    "preservesGrade": true,
+    "preservesOptionTypes": true,
+    "rerollsAllLineValues": true,
+    "supportsSelectiveValueLocks": false,
+    "canKeepPreviousWholeResult": true,
+    "individualValuesMayRemainUnchanged": true,
+    "excludesIdenticalCompleteResult": true,
+    "cannotUseWhenAllValuesAreFixed": true
+  },
+  "modelingBasis": {
+    "valueDistribution": "The shared official ability value probability table explicitly covers Abyss Circulator. Same displayed values are combined by summing their six published row probabilities.",
+    "independence": "Each option uses its own published value distribution. Independence is the calculator model derived from the per-option probability table; no separate joint distribution is published.",
+    "identicalResult": "The shared ability probability notice excludes a completely identical reset result. This is interpreted as the ordered full three-line visible result, not exclusion of each individual old value.",
+    "selectiveLocks": "Official Circulator descriptions fix grades/types and reroll values together; no selective value-lock facility is specified. The optimizer does not apply advanced-reset line locks to Circulator value rerolls.",
+    "honorMedal": "The 5,000-honor conversion unit is explicitly user-requested; no claim is made that every named honor medal grants 5,000 honor."
+  },
+  "costPerUse": {
+    "items": 1,
+    "honor": 0,
+    "meso": "0",
+    "cashShopPrice": 4900,
+    "creditShopPrice": 4900
+  },
+  "honorPerMedal": 5000,
+  "grades": {
+    "epic": {
+      "options": [
+        {
+          "id": "ability-6235b11ab717752c",
+          "type": "strFlat",
+          "label": "STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "label": "STR 15 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "label": "STR 16 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "label": "STR 17 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "label": "STR 18 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "label": "STR 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "label": "STR 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a1f1cd6af439611f",
+          "type": "dexFlat",
+          "label": "DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "label": "DEX 15 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "label": "DEX 16 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "label": "DEX 17 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "label": "DEX 18 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "label": "DEX 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "label": "DEX 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-5fce3079844e5e46",
+          "type": "intFlat",
+          "label": "INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "label": "INT 15 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "label": "INT 16 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "label": "INT 17 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "label": "INT 18 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "label": "INT 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "label": "INT 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-ca4dde9b6a32d54e",
+          "type": "lukFlat",
+          "label": "LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "label": "LUK 15 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "label": "LUK 16 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "label": "LUK 17 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "label": "LUK 18 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "label": "LUK 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "label": "LUK 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a478547a3ce02f5c",
+          "type": "hpFlat",
+          "label": "최대 HP 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 225,
+              "label": "최대 HP 225 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 240,
+              "label": "최대 HP 240 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 255,
+              "label": "최대 HP 255 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 270,
+              "label": "최대 HP 270 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 285,
+              "label": "최대 HP 285 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 300,
+              "label": "최대 HP 300 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 300,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-afb1ca1cfd6b59d0",
+          "type": "mpFlat",
+          "label": "최대 MP 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 225,
+              "label": "최대 MP 225 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 240,
+              "label": "최대 MP 240 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 255,
+              "label": "최대 MP 255 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 270,
+              "label": "최대 MP 270 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 285,
+              "label": "최대 MP 285 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 300,
+              "label": "최대 MP 300 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 300,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-3f60c6e50475745a",
+          "type": "attackFlat",
+          "label": "공격력 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 6,
+              "label": "공격력 6 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 9,
+              "label": "공격력 9 증가",
+              "weight": 0.5
+            },
+            {
+              "value": 12,
+              "label": "공격력 12 증가",
+              "weight": 0.1
+            }
+          ],
+          "bestValue": 12,
+          "bestValueProbability": 0.1
+        },
+        {
+          "id": "ability-1b179bb33c6d5f23",
+          "type": "magicAttackFlat",
+          "label": "마력 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 6,
+              "label": "마력 6 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 9,
+              "label": "마력 9 증가",
+              "weight": 0.5
+            },
+            {
+              "value": 12,
+              "label": "마력 12 증가",
+              "weight": 0.1
+            }
+          ],
+          "bestValue": 12,
+          "bestValueProbability": 0.1
+        },
+        {
+          "id": "ability-0ef2806df995a499",
+          "type": "criticalRatePercent",
+          "label": "크리티컬 확률 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 5,
+              "label": "크리티컬 확률 5% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 6,
+              "label": "크리티컬 확률 6% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 7,
+              "label": "크리티컬 확률 7% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 8,
+              "label": "크리티컬 확률 8% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 9,
+              "label": "크리티컬 확률 9% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 10,
+              "label": "크리티컬 확률 10% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-2ee38a3a227caff3",
+          "type": "allStatFlat",
+          "label": "모든 능력치 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "label": "모든 능력치 15 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "label": "모든 능력치 16 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "label": "모든 능력치 17 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "label": "모든 능력치 18 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "label": "모든 능력치 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "label": "모든 능력치 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-2164e13ebd120f0c",
+          "type": "apStrToDexPercent",
+          "label": "AP를 직접 투자한 STR의 % 만큼 DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 4,
+              "label": "AP를 직접 투자한 STR의 4% 만큼 DEX 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 5,
+              "label": "AP를 직접 투자한 STR의 5% 만큼 DEX 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 5,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-03acbd6a8e60f705",
+          "type": "apDexToStrPercent",
+          "label": "AP를 직접 투자한 DEX의 % 만큼 STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 4,
+              "label": "AP를 직접 투자한 DEX의 4% 만큼 STR 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 5,
+              "label": "AP를 직접 투자한 DEX의 5% 만큼 STR 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 5,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-2f0eefe169f23ae2",
+          "type": "apIntToLukPercent",
+          "label": "AP를 직접 투자한 INT의 % 만큼 LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 4,
+              "label": "AP를 직접 투자한 INT의 4% 만큼 LUK 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 5,
+              "label": "AP를 직접 투자한 INT의 5% 만큼 LUK 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 5,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-4b1ed757368fa26b",
+          "type": "apLukToDexPercent",
+          "label": "AP를 직접 투자한 LUK의 % 만큼 DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 4,
+              "label": "AP를 직접 투자한 LUK의 4% 만큼 DEX 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 5,
+              "label": "AP를 직접 투자한 LUK의 5% 만큼 DEX 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 5,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-bb7a4631fd7afbaf",
+          "type": "normalMonsterDamagePercent",
+          "label": "일반 몬스터 공격 시 데미지 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 4,
+              "label": "일반 몬스터 공격 시 데미지 4% 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 5,
+              "label": "일반 몬스터 공격 시 데미지 5% 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 5,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-6228a98718891a65",
+          "type": "statusAilmentDamagePercent",
+          "label": "상태 이상에 걸린 대상 공격 시 데미지 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 4,
+              "label": "상태 이상에 걸린 대상 공격 시 데미지 4% 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 5,
+              "label": "상태 이상에 걸린 대상 공격 시 데미지 5% 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 5,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-a0b2a1cf3c0b6bc8",
+          "type": "buffDurationPercent",
+          "label": "버프 스킬의 지속 시간 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 19,
+              "label": "버프 스킬의 지속 시간 19% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 20,
+              "label": "버프 스킬의 지속 시간 20% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 22,
+              "label": "버프 스킬의 지속 시간 22% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 23,
+              "label": "버프 스킬의 지속 시간 23% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 24,
+              "label": "버프 스킬의 지속 시간 24% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 25,
+              "label": "버프 스킬의 지속 시간 25% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 25,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-c2e0c3b2b8d7dd0f",
+          "type": "dropRatePercent",
+          "label": "아이템 드롭률 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 8,
+              "label": "아이템 드롭률 8% 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 9,
+              "label": "아이템 드롭률 9% 증가",
+              "weight": 0.35
+            },
+            {
+              "value": 10,
+              "label": "아이템 드롭률 10% 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-59df9b06e6e397b7",
+          "type": "mesoRatePercent",
+          "label": "메소 획득량 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 8,
+              "label": "메소 획득량 8% 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 9,
+              "label": "메소 획득량 9% 증가",
+              "weight": 0.35
+            },
+            {
+              "value": 10,
+              "label": "메소 획득량 10% 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-9c403c76162cca83",
+          "type": "strDexFlat",
+          "label": "STR, DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "STR 15 증가, DEX 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "STR 16 증가, DEX 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "STR 17 증가, DEX 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "STR 18 증가, DEX 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "STR 19 증가, DEX 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "STR 20 증가, DEX 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-1d91d36adf5f21c2",
+          "type": "strIntFlat",
+          "label": "STR, INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "STR 15 증가, INT 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "STR 16 증가, INT 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "STR 17 증가, INT 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "STR 18 증가, INT 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "STR 19 증가, INT 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "STR 20 증가, INT 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-ab94e899f8251822",
+          "type": "strLukFlat",
+          "label": "STR, LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "STR 15 증가, LUK 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "STR 16 증가, LUK 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "STR 17 증가, LUK 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "STR 18 증가, LUK 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "STR 19 증가, LUK 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "STR 20 증가, LUK 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-875e2956c13560d4",
+          "type": "dexIntFlat",
+          "label": "DEX, INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "DEX 15 증가, INT 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "DEX 16 증가, INT 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "DEX 17 증가, INT 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "DEX 18 증가, INT 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "DEX 19 증가, INT 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "DEX 20 증가, INT 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-ed8e4004ee571ea3",
+          "type": "dexLukFlat",
+          "label": "DEX, LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "DEX 15 증가, LUK 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "DEX 16 증가, LUK 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "DEX 17 증가, LUK 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "DEX 18 증가, LUK 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "DEX 19 증가, LUK 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "DEX 20 증가, LUK 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-9a86e30cd3761aaf",
+          "type": "intLukFlat",
+          "label": "INT, LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "INT 15 증가, LUK 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "INT 16 증가, LUK 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "INT 17 증가, LUK 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "INT 18 증가, LUK 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "INT 19 증가, LUK 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "INT 20 증가, LUK 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-f39ba625b2704e72",
+          "type": "dexStrFlat",
+          "label": "DEX, STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "DEX 15 증가, STR 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "DEX 16 증가, STR 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "DEX 17 증가, STR 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "DEX 18 증가, STR 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "DEX 19 증가, STR 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "DEX 20 증가, STR 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-dcf422141f62d75f",
+          "type": "intStrFlat",
+          "label": "INT, STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "INT 15 증가, STR 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "INT 16 증가, STR 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "INT 17 증가, STR 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "INT 18 증가, STR 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "INT 19 증가, STR 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "INT 20 증가, STR 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-003982ac3bca5207",
+          "type": "lukStrFlat",
+          "label": "LUK, STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "LUK 15 증가, STR 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "LUK 16 증가, STR 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "LUK 17 증가, STR 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "LUK 18 증가, STR 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "LUK 19 증가, STR 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "LUK 20 증가, STR 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a87261b432ff8ab9",
+          "type": "intDexFlat",
+          "label": "INT, DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "INT 15 증가, DEX 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "INT 16 증가, DEX 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "INT 17 증가, DEX 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "INT 18 증가, DEX 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "INT 19 증가, DEX 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "INT 20 증가, DEX 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-e0ee36ca17bb5169",
+          "type": "lukDexFlat",
+          "label": "LUK, DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "LUK 15 증가, DEX 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "LUK 16 증가, DEX 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "LUK 17 증가, DEX 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "LUK 18 증가, DEX 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "LUK 19 증가, DEX 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "LUK 20 증가, DEX 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-0f5ce3e05f0f93b6",
+          "type": "lukIntFlat",
+          "label": "LUK, INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "secondaryValue": 8,
+              "label": "LUK 15 증가, INT 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "secondaryValue": 8,
+              "label": "LUK 16 증가, INT 8 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "secondaryValue": 9,
+              "label": "LUK 17 증가, INT 9 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "secondaryValue": 9,
+              "label": "LUK 18 증가, INT 9 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "secondaryValue": 10,
+              "label": "LUK 19 증가, INT 10 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "secondaryValue": 10,
+              "label": "LUK 20 증가, INT 10 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        }
+      ]
+    },
+    "unique": {
+      "options": [
+        {
+          "id": "ability-6235b11ab717752c",
+          "type": "strFlat",
+          "label": "STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "label": "STR 25 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "label": "STR 26 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "label": "STR 27 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "label": "STR 28 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "label": "STR 29 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "label": "STR 30 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a1f1cd6af439611f",
+          "type": "dexFlat",
+          "label": "DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "label": "DEX 25 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "label": "DEX 26 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "label": "DEX 27 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "label": "DEX 28 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "label": "DEX 29 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "label": "DEX 30 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-5fce3079844e5e46",
+          "type": "intFlat",
+          "label": "INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "label": "INT 25 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "label": "INT 26 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "label": "INT 27 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "label": "INT 28 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "label": "INT 29 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "label": "INT 30 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-ca4dde9b6a32d54e",
+          "type": "lukFlat",
+          "label": "LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "label": "LUK 25 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "label": "LUK 26 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "label": "LUK 27 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "label": "LUK 28 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "label": "LUK 29 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "label": "LUK 30 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a478547a3ce02f5c",
+          "type": "hpFlat",
+          "label": "최대 HP 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 375,
+              "label": "최대 HP 375 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 390,
+              "label": "최대 HP 390 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 405,
+              "label": "최대 HP 405 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 420,
+              "label": "최대 HP 420 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 435,
+              "label": "최대 HP 435 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 450,
+              "label": "최대 HP 450 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 450,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-afb1ca1cfd6b59d0",
+          "type": "mpFlat",
+          "label": "최대 MP 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 375,
+              "label": "최대 MP 375 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 390,
+              "label": "최대 MP 390 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 405,
+              "label": "최대 MP 405 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 420,
+              "label": "최대 MP 420 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 435,
+              "label": "최대 MP 435 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 450,
+              "label": "최대 MP 450 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 450,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-3f60c6e50475745a",
+          "type": "attackFlat",
+          "label": "공격력 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "label": "공격력 15 증가",
+              "weight": 0.2
+            },
+            {
+              "value": 18,
+              "label": "공격력 18 증가",
+              "weight": 0.55
+            },
+            {
+              "value": 21,
+              "label": "공격력 21 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 21,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-1b179bb33c6d5f23",
+          "type": "magicAttackFlat",
+          "label": "마력 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "label": "마력 15 증가",
+              "weight": 0.2
+            },
+            {
+              "value": 18,
+              "label": "마력 18 증가",
+              "weight": 0.55
+            },
+            {
+              "value": 21,
+              "label": "마력 21 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 21,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-0ef2806df995a499",
+          "type": "criticalRatePercent",
+          "label": "크리티컬 확률 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "label": "크리티컬 확률 15% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "label": "크리티컬 확률 16% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "label": "크리티컬 확률 17% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "label": "크리티컬 확률 18% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "label": "크리티컬 확률 19% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "label": "크리티컬 확률 20% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-2ee38a3a227caff3",
+          "type": "allStatFlat",
+          "label": "모든 능력치 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "label": "모든 능력치 25 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "label": "모든 능력치 26 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "label": "모든 능력치 27 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "label": "모든 능력치 28 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "label": "모든 능력치 29 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "label": "모든 능력치 30 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-2164e13ebd120f0c",
+          "type": "apStrToDexPercent",
+          "label": "AP를 직접 투자한 STR의 % 만큼 DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 7,
+              "label": "AP를 직접 투자한 STR의 7% 만큼 DEX 증가",
+              "weight": 0.7500000000000001
+            },
+            {
+              "value": 8,
+              "label": "AP를 직접 투자한 STR의 8% 만큼 DEX 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 8,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-03acbd6a8e60f705",
+          "type": "apDexToStrPercent",
+          "label": "AP를 직접 투자한 DEX의 % 만큼 STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 7,
+              "label": "AP를 직접 투자한 DEX의 7% 만큼 STR 증가",
+              "weight": 0.7500000000000001
+            },
+            {
+              "value": 8,
+              "label": "AP를 직접 투자한 DEX의 8% 만큼 STR 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 8,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-2f0eefe169f23ae2",
+          "type": "apIntToLukPercent",
+          "label": "AP를 직접 투자한 INT의 % 만큼 LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 7,
+              "label": "AP를 직접 투자한 INT의 7% 만큼 LUK 증가",
+              "weight": 0.7500000000000001
+            },
+            {
+              "value": 8,
+              "label": "AP를 직접 투자한 INT의 8% 만큼 LUK 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 8,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-4b1ed757368fa26b",
+          "type": "apLukToDexPercent",
+          "label": "AP를 직접 투자한 LUK의 % 만큼 DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 7,
+              "label": "AP를 직접 투자한 LUK의 7% 만큼 DEX 증가",
+              "weight": 0.7500000000000001
+            },
+            {
+              "value": 8,
+              "label": "AP를 직접 투자한 LUK의 8% 만큼 DEX 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 8,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-dec0f6391f707deb",
+          "type": "hpPercent",
+          "label": "최대 HP % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 375,
+              "label": "최대 HP 375% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 390,
+              "label": "최대 HP 390% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 405,
+              "label": "최대 HP 405% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 420,
+              "label": "최대 HP 420% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 435,
+              "label": "최대 HP 435% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 450,
+              "label": "최대 HP 450% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 450,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-325fd445dab39a6e",
+          "type": "mpPercent",
+          "label": "최대 MP % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 375,
+              "label": "최대 MP 375% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 390,
+              "label": "최대 MP 390% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 405,
+              "label": "최대 MP 405% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 420,
+              "label": "최대 MP 420% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 435,
+              "label": "최대 MP 435% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 450,
+              "label": "최대 MP 450% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 450,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-19c4ad9ce012f1a2",
+          "type": "bossDamagePercent",
+          "label": "보스 몬스터 공격 시 데미지 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 5,
+              "label": "보스 몬스터 공격 시 데미지 5% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 6,
+              "label": "보스 몬스터 공격 시 데미지 6% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 7,
+              "label": "보스 몬스터 공격 시 데미지 7% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 8,
+              "label": "보스 몬스터 공격 시 데미지 8% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 9,
+              "label": "보스 몬스터 공격 시 데미지 9% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 10,
+              "label": "보스 몬스터 공격 시 데미지 10% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-bb7a4631fd7afbaf",
+          "type": "normalMonsterDamagePercent",
+          "label": "일반 몬스터 공격 시 데미지 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 7,
+              "label": "일반 몬스터 공격 시 데미지 7% 증가",
+              "weight": 0.7500000000000001
+            },
+            {
+              "value": 8,
+              "label": "일반 몬스터 공격 시 데미지 8% 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 8,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-6228a98718891a65",
+          "type": "statusAilmentDamagePercent",
+          "label": "상태 이상에 걸린 대상 공격 시 데미지 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 7,
+              "label": "상태 이상에 걸린 대상 공격 시 데미지 7% 증가",
+              "weight": 0.7500000000000001
+            },
+            {
+              "value": 8,
+              "label": "상태 이상에 걸린 대상 공격 시 데미지 8% 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 8,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-f46bd09b7352f305",
+          "type": "defenseToFlatDamagePercent",
+          "label": "방어력의 % 만큼 데미지 고정값 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 13,
+              "label": "방어력의 13% 만큼 데미지 고정값 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 15,
+              "label": "방어력의 15% 만큼 데미지 고정값 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "label": "방어력의 18% 만큼 데미지 고정값 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 20,
+              "label": "방어력의 20% 만큼 데미지 고정값 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 23,
+              "label": "방어력의 23% 만큼 데미지 고정값 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 25,
+              "label": "방어력의 25% 만큼 데미지 고정값 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 25,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-3b4351e88cd39f0c",
+          "type": "cooldownSkipPercent",
+          "label": "스킬 사용 시 % 확률로 재사용 대기시간이 미적용",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 5,
+              "label": "스킬 사용 시 5% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 6,
+              "label": "스킬 사용 시 6% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 7,
+              "label": "스킬 사용 시 7% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 8,
+              "label": "스킬 사용 시 8% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 9,
+              "label": "스킬 사용 시 9% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 10,
+              "label": "스킬 사용 시 10% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a0b2a1cf3c0b6bc8",
+          "type": "buffDurationPercent",
+          "label": "버프 스킬의 지속 시간 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 32,
+              "label": "버프 스킬의 지속 시간 32% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 33,
+              "label": "버프 스킬의 지속 시간 33% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 34,
+              "label": "버프 스킬의 지속 시간 34% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 35,
+              "label": "버프 스킬의 지속 시간 35% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 37,
+              "label": "버프 스킬의 지속 시간 37% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 38,
+              "label": "버프 스킬의 지속 시간 38% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 38,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-c2e0c3b2b8d7dd0f",
+          "type": "dropRatePercent",
+          "label": "아이템 드롭률 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 13,
+              "label": "아이템 드롭률 13% 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 14,
+              "label": "아이템 드롭률 14% 증가",
+              "weight": 0.35
+            },
+            {
+              "value": 15,
+              "label": "아이템 드롭률 15% 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 15,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-59df9b06e6e397b7",
+          "type": "mesoRatePercent",
+          "label": "메소 획득량 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 13,
+              "label": "메소 획득량 13% 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 14,
+              "label": "메소 획득량 14% 증가",
+              "weight": 0.35
+            },
+            {
+              "value": 15,
+              "label": "메소 획득량 15% 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 15,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-9c403c76162cca83",
+          "type": "strDexFlat",
+          "label": "STR, DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "STR 25 증가, DEX 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "STR 26 증가, DEX 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "STR 27 증가, DEX 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "STR 28 증가, DEX 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "STR 29 증가, DEX 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "STR 30 증가, DEX 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-1d91d36adf5f21c2",
+          "type": "strIntFlat",
+          "label": "STR, INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "STR 25 증가, INT 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "STR 26 증가, INT 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "STR 27 증가, INT 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "STR 28 증가, INT 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "STR 29 증가, INT 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "STR 30 증가, INT 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-ab94e899f8251822",
+          "type": "strLukFlat",
+          "label": "STR, LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "STR 25 증가, LUK 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "STR 26 증가, LUK 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "STR 27 증가, LUK 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "STR 28 증가, LUK 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "STR 29 증가, LUK 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "STR 30 증가, LUK 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-875e2956c13560d4",
+          "type": "dexIntFlat",
+          "label": "DEX, INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "DEX 25 증가, INT 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "DEX 26 증가, INT 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "DEX 27 증가, INT 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "DEX 28 증가, INT 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "DEX 29 증가, INT 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "DEX 30 증가, INT 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-ed8e4004ee571ea3",
+          "type": "dexLukFlat",
+          "label": "DEX, LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "DEX 25 증가, LUK 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "DEX 26 증가, LUK 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "DEX 27 증가, LUK 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "DEX 28 증가, LUK 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "DEX 29 증가, LUK 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "DEX 30 증가, LUK 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-9a86e30cd3761aaf",
+          "type": "intLukFlat",
+          "label": "INT, LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "INT 25 증가, LUK 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "INT 26 증가, LUK 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "INT 27 증가, LUK 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "INT 28 증가, LUK 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "INT 29 증가, LUK 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "INT 30 증가, LUK 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-f39ba625b2704e72",
+          "type": "dexStrFlat",
+          "label": "DEX, STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "DEX 25 증가, STR 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "DEX 26 증가, STR 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "DEX 27 증가, STR 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "DEX 28 증가, STR 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "DEX 29 증가, STR 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "DEX 30 증가, STR 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-dcf422141f62d75f",
+          "type": "intStrFlat",
+          "label": "INT, STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "INT 25 증가, STR 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "INT 26 증가, STR 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "INT 27 증가, STR 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "INT 28 증가, STR 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "INT 29 증가, STR 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "INT 30 증가, STR 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-003982ac3bca5207",
+          "type": "lukStrFlat",
+          "label": "LUK, STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "LUK 25 증가, STR 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "LUK 26 증가, STR 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "LUK 27 증가, STR 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "LUK 28 증가, STR 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "LUK 29 증가, STR 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "LUK 30 증가, STR 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a87261b432ff8ab9",
+          "type": "intDexFlat",
+          "label": "INT, DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "INT 25 증가, DEX 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "INT 26 증가, DEX 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "INT 27 증가, DEX 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "INT 28 증가, DEX 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "INT 29 증가, DEX 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "INT 30 증가, DEX 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-e0ee36ca17bb5169",
+          "type": "lukDexFlat",
+          "label": "LUK, DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "LUK 25 증가, DEX 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "LUK 26 증가, DEX 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "LUK 27 증가, DEX 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "LUK 28 증가, DEX 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "LUK 29 증가, DEX 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "LUK 30 증가, DEX 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-0f5ce3e05f0f93b6",
+          "type": "lukIntFlat",
+          "label": "LUK, INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "secondaryValue": 13,
+              "label": "LUK 25 증가, INT 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "secondaryValue": 13,
+              "label": "LUK 26 증가, INT 13 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "secondaryValue": 14,
+              "label": "LUK 27 증가, INT 14 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "secondaryValue": 14,
+              "label": "LUK 28 증가, INT 14 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "secondaryValue": 15,
+              "label": "LUK 29 증가, INT 15 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "secondaryValue": 15,
+              "label": "LUK 30 증가, INT 15 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        }
+      ]
+    },
+    "legendary": {
+      "options": [
+        {
+          "id": "ability-6235b11ab717752c",
+          "type": "strFlat",
+          "label": "STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "label": "STR 35 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "label": "STR 36 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "label": "STR 37 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "label": "STR 38 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "label": "STR 39 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "label": "STR 40 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a1f1cd6af439611f",
+          "type": "dexFlat",
+          "label": "DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "label": "DEX 35 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "label": "DEX 36 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "label": "DEX 37 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "label": "DEX 38 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "label": "DEX 39 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "label": "DEX 40 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-5fce3079844e5e46",
+          "type": "intFlat",
+          "label": "INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "label": "INT 35 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "label": "INT 36 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "label": "INT 37 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "label": "INT 38 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "label": "INT 39 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "label": "INT 40 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-ca4dde9b6a32d54e",
+          "type": "lukFlat",
+          "label": "LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "label": "LUK 35 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "label": "LUK 36 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "label": "LUK 37 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "label": "LUK 38 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "label": "LUK 39 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "label": "LUK 40 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a478547a3ce02f5c",
+          "type": "hpFlat",
+          "label": "최대 HP 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 525,
+              "label": "최대 HP 525 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 540,
+              "label": "최대 HP 540 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 555,
+              "label": "최대 HP 555 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 570,
+              "label": "최대 HP 570 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 585,
+              "label": "최대 HP 585 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 600,
+              "label": "최대 HP 600 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 600,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-afb1ca1cfd6b59d0",
+          "type": "mpFlat",
+          "label": "최대 MP 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 525,
+              "label": "최대 MP 525 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 540,
+              "label": "최대 MP 540 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 555,
+              "label": "최대 MP 555 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 570,
+              "label": "최대 MP 570 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 585,
+              "label": "최대 MP 585 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 600,
+              "label": "최대 MP 600 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 600,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-3f60c6e50475745a",
+          "type": "attackFlat",
+          "label": "공격력 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 27,
+              "label": "공격력 27 증가",
+              "weight": 0.6000000000000001
+            },
+            {
+              "value": 30,
+              "label": "공격력 30 증가",
+              "weight": 0.4
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.4
+        },
+        {
+          "id": "ability-1b179bb33c6d5f23",
+          "type": "magicAttackFlat",
+          "label": "마력 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 27,
+              "label": "마력 27 증가",
+              "weight": 0.6000000000000001
+            },
+            {
+              "value": 30,
+              "label": "마력 30 증가",
+              "weight": 0.4
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.4
+        },
+        {
+          "id": "ability-0ef2806df995a499",
+          "type": "criticalRatePercent",
+          "label": "크리티컬 확률 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 25,
+              "label": "크리티컬 확률 25% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 26,
+              "label": "크리티컬 확률 26% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 27,
+              "label": "크리티컬 확률 27% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 28,
+              "label": "크리티컬 확률 28% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 29,
+              "label": "크리티컬 확률 29% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 30,
+              "label": "크리티컬 확률 30% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 30,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-2ee38a3a227caff3",
+          "type": "allStatFlat",
+          "label": "모든 능력치 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "label": "모든 능력치 35 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "label": "모든 능력치 36 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "label": "모든 능력치 37 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "label": "모든 능력치 38 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "label": "모든 능력치 39 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "label": "모든 능력치 40 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-e719016ecd259f43",
+          "type": "attackSpeedStep",
+          "label": "공격 속도 단계 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 1,
+              "label": "공격 속도 1단계 증가",
+              "weight": 1
+            }
+          ],
+          "bestValue": 1,
+          "bestValueProbability": 1
+        },
+        {
+          "id": "ability-2164e13ebd120f0c",
+          "type": "apStrToDexPercent",
+          "label": "AP를 직접 투자한 STR의 % 만큼 DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 9,
+              "label": "AP를 직접 투자한 STR의 9% 만큼 DEX 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 10,
+              "label": "AP를 직접 투자한 STR의 10% 만큼 DEX 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-03acbd6a8e60f705",
+          "type": "apDexToStrPercent",
+          "label": "AP를 직접 투자한 DEX의 % 만큼 STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 9,
+              "label": "AP를 직접 투자한 DEX의 9% 만큼 STR 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 10,
+              "label": "AP를 직접 투자한 DEX의 10% 만큼 STR 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-2f0eefe169f23ae2",
+          "type": "apIntToLukPercent",
+          "label": "AP를 직접 투자한 INT의 % 만큼 LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 9,
+              "label": "AP를 직접 투자한 INT의 9% 만큼 LUK 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 10,
+              "label": "AP를 직접 투자한 INT의 10% 만큼 LUK 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-4b1ed757368fa26b",
+          "type": "apLukToDexPercent",
+          "label": "AP를 직접 투자한 LUK의 % 만큼 DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 9,
+              "label": "AP를 직접 투자한 LUK의 9% 만큼 DEX 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 10,
+              "label": "AP를 직접 투자한 LUK의 10% 만큼 DEX 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-7dc1b5f41b7891f2",
+          "type": "attackPerLevels",
+          "label": "일정 레벨마다 공격력 1 증가",
+          "valueDirection": "lower",
+          "values": [
+            {
+              "value": 16,
+              "label": "16레벨마다 공격력 1 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 14,
+              "label": "14레벨마다 공격력 1 증가",
+              "weight": 0.3999999999999999
+            },
+            {
+              "value": 12,
+              "label": "12레벨마다 공격력 1 증가",
+              "weight": 0.29999999999999993
+            },
+            {
+              "value": 10,
+              "label": "10레벨마다 공격력 1 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a25eb717baea2b8e",
+          "type": "magicAttackPerLevels",
+          "label": "일정 레벨마다 마력 1 증가",
+          "valueDirection": "lower",
+          "values": [
+            {
+              "value": 16,
+              "label": "16레벨마다 마력 1 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 14,
+              "label": "14레벨마다 마력 1 증가",
+              "weight": 0.3999999999999999
+            },
+            {
+              "value": 12,
+              "label": "12레벨마다 마력 1 증가",
+              "weight": 0.29999999999999993
+            },
+            {
+              "value": 10,
+              "label": "10레벨마다 마력 1 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-dec0f6391f707deb",
+          "type": "hpPercent",
+          "label": "최대 HP % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 525,
+              "label": "최대 HP 525% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 540,
+              "label": "최대 HP 540% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 555,
+              "label": "최대 HP 555% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 570,
+              "label": "최대 HP 570% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 585,
+              "label": "최대 HP 585% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 600,
+              "label": "최대 HP 600% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 600,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-325fd445dab39a6e",
+          "type": "mpPercent",
+          "label": "최대 MP % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 525,
+              "label": "최대 MP 525% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 540,
+              "label": "최대 MP 540% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 555,
+              "label": "최대 MP 555% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 570,
+              "label": "최대 MP 570% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 585,
+              "label": "최대 MP 585% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 600,
+              "label": "최대 MP 600% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 600,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-19c4ad9ce012f1a2",
+          "type": "bossDamagePercent",
+          "label": "보스 몬스터 공격 시 데미지 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "label": "보스 몬스터 공격 시 데미지 15% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "label": "보스 몬스터 공격 시 데미지 16% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "label": "보스 몬스터 공격 시 데미지 17% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "label": "보스 몬스터 공격 시 데미지 18% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "label": "보스 몬스터 공격 시 데미지 19% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "label": "보스 몬스터 공격 시 데미지 20% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-bb7a4631fd7afbaf",
+          "type": "normalMonsterDamagePercent",
+          "label": "일반 몬스터 공격 시 데미지 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 9,
+              "label": "일반 몬스터 공격 시 데미지 9% 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 10,
+              "label": "일반 몬스터 공격 시 데미지 10% 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-6228a98718891a65",
+          "type": "statusAilmentDamagePercent",
+          "label": "상태 이상에 걸린 대상 공격 시 데미지 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 9,
+              "label": "상태 이상에 걸린 대상 공격 시 데미지 9% 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 10,
+              "label": "상태 이상에 걸린 대상 공격 시 데미지 10% 증가",
+              "weight": 0.6
+            }
+          ],
+          "bestValue": 10,
+          "bestValueProbability": 0.6
+        },
+        {
+          "id": "ability-f46bd09b7352f305",
+          "type": "defenseToFlatDamagePercent",
+          "label": "방어력의 % 만큼 데미지 고정값 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 38,
+              "label": "방어력의 38% 만큼 데미지 고정값 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 40,
+              "label": "방어력의 40% 만큼 데미지 고정값 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 43,
+              "label": "방어력의 43% 만큼 데미지 고정값 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 45,
+              "label": "방어력의 45% 만큼 데미지 고정값 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 48,
+              "label": "방어력의 48% 만큼 데미지 고정값 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 50,
+              "label": "방어력의 50% 만큼 데미지 고정값 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 50,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-3b4351e88cd39f0c",
+          "type": "cooldownSkipPercent",
+          "label": "스킬 사용 시 % 확률로 재사용 대기시간이 미적용",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 15,
+              "label": "스킬 사용 시 15% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 16,
+              "label": "스킬 사용 시 16% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 17,
+              "label": "스킬 사용 시 17% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 18,
+              "label": "스킬 사용 시 18% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 19,
+              "label": "스킬 사용 시 19% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 20,
+              "label": "스킬 사용 시 20% 확률로 재사용 대기시간이 미적용",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-6f39e43f30c7f3c2",
+          "type": "passiveSkillLevel",
+          "label": "패시브 스킬 레벨 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 1,
+              "label": "패시브 스킬 레벨 1 증가",
+              "weight": 1
+            }
+          ],
+          "bestValue": 1,
+          "bestValueProbability": 1
+        },
+        {
+          "id": "ability-f239f2533d22fbf9",
+          "type": "extraAttackTargets",
+          "label": "다수 공격 스킬의 공격 대상 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 1,
+              "label": "다수 공격 스킬의 공격 대상 1 증가",
+              "weight": 1
+            }
+          ],
+          "bestValue": 1,
+          "bestValueProbability": 1
+        },
+        {
+          "id": "ability-a0b2a1cf3c0b6bc8",
+          "type": "buffDurationPercent",
+          "label": "버프 스킬의 지속 시간 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 44,
+              "label": "버프 스킬의 지속 시간 44% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 45,
+              "label": "버프 스킬의 지속 시간 45% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 47,
+              "label": "버프 스킬의 지속 시간 47% 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 48,
+              "label": "버프 스킬의 지속 시간 48% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 49,
+              "label": "버프 스킬의 지속 시간 49% 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 50,
+              "label": "버프 스킬의 지속 시간 50% 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 50,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-c2e0c3b2b8d7dd0f",
+          "type": "dropRatePercent",
+          "label": "아이템 드롭률 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 18,
+              "label": "아이템 드롭률 18% 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 19,
+              "label": "아이템 드롭률 19% 증가",
+              "weight": 0.35
+            },
+            {
+              "value": 20,
+              "label": "아이템 드롭률 20% 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-59df9b06e6e397b7",
+          "type": "mesoRatePercent",
+          "label": "메소 획득량 % 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 18,
+              "label": "메소 획득량 18% 증가",
+              "weight": 0.4
+            },
+            {
+              "value": 19,
+              "label": "메소 획득량 19% 증가",
+              "weight": 0.35
+            },
+            {
+              "value": 20,
+              "label": "메소 획득량 20% 증가",
+              "weight": 0.25
+            }
+          ],
+          "bestValue": 20,
+          "bestValueProbability": 0.25
+        },
+        {
+          "id": "ability-9c403c76162cca83",
+          "type": "strDexFlat",
+          "label": "STR, DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "STR 35 증가, DEX 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "STR 36 증가, DEX 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "STR 37 증가, DEX 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "STR 38 증가, DEX 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "STR 39 증가, DEX 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "STR 40 증가, DEX 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-1d91d36adf5f21c2",
+          "type": "strIntFlat",
+          "label": "STR, INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "STR 35 증가, INT 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "STR 36 증가, INT 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "STR 37 증가, INT 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "STR 38 증가, INT 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "STR 39 증가, INT 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "STR 40 증가, INT 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-ab94e899f8251822",
+          "type": "strLukFlat",
+          "label": "STR, LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "STR 35 증가, LUK 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "STR 36 증가, LUK 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "STR 37 증가, LUK 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "STR 38 증가, LUK 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "STR 39 증가, LUK 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "STR 40 증가, LUK 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-875e2956c13560d4",
+          "type": "dexIntFlat",
+          "label": "DEX, INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "DEX 35 증가, INT 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "DEX 36 증가, INT 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "DEX 37 증가, INT 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "DEX 38 증가, INT 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "DEX 39 증가, INT 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "DEX 40 증가, INT 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-ed8e4004ee571ea3",
+          "type": "dexLukFlat",
+          "label": "DEX, LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "DEX 35 증가, LUK 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "DEX 36 증가, LUK 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "DEX 37 증가, LUK 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "DEX 38 증가, LUK 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "DEX 39 증가, LUK 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "DEX 40 증가, LUK 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-9a86e30cd3761aaf",
+          "type": "intLukFlat",
+          "label": "INT, LUK 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "INT 35 증가, LUK 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "INT 36 증가, LUK 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "INT 37 증가, LUK 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "INT 38 증가, LUK 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "INT 39 증가, LUK 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "INT 40 증가, LUK 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-f39ba625b2704e72",
+          "type": "dexStrFlat",
+          "label": "DEX, STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "DEX 35 증가, STR 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "DEX 36 증가, STR 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "DEX 37 증가, STR 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "DEX 38 증가, STR 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "DEX 39 증가, STR 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "DEX 40 증가, STR 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-dcf422141f62d75f",
+          "type": "intStrFlat",
+          "label": "INT, STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "INT 35 증가, STR 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "INT 36 증가, STR 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "INT 37 증가, STR 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "INT 38 증가, STR 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "INT 39 증가, STR 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "INT 40 증가, STR 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-003982ac3bca5207",
+          "type": "lukStrFlat",
+          "label": "LUK, STR 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "LUK 35 증가, STR 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "LUK 36 증가, STR 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "LUK 37 증가, STR 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "LUK 38 증가, STR 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "LUK 39 증가, STR 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "LUK 40 증가, STR 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-a87261b432ff8ab9",
+          "type": "intDexFlat",
+          "label": "INT, DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "INT 35 증가, DEX 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "INT 36 증가, DEX 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "INT 37 증가, DEX 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "INT 38 증가, DEX 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "INT 39 증가, DEX 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "INT 40 증가, DEX 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-e0ee36ca17bb5169",
+          "type": "lukDexFlat",
+          "label": "LUK, DEX 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "LUK 35 증가, DEX 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "LUK 36 증가, DEX 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "LUK 37 증가, DEX 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "LUK 38 증가, DEX 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "LUK 39 증가, DEX 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "LUK 40 증가, DEX 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        },
+        {
+          "id": "ability-0f5ce3e05f0f93b6",
+          "type": "lukIntFlat",
+          "label": "LUK, INT 증가",
+          "valueDirection": "higher",
+          "values": [
+            {
+              "value": 35,
+              "secondaryValue": 18,
+              "label": "LUK 35 증가, INT 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 36,
+              "secondaryValue": 18,
+              "label": "LUK 36 증가, INT 18 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 37,
+              "secondaryValue": 19,
+              "label": "LUK 37 증가, INT 19 증가",
+              "weight": 0.19999999999999996
+            },
+            {
+              "value": 38,
+              "secondaryValue": 19,
+              "label": "LUK 38 증가, INT 19 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 39,
+              "secondaryValue": 20,
+              "label": "LUK 39 증가, INT 20 증가",
+              "weight": 0.14999999999999997
+            },
+            {
+              "value": 40,
+              "secondaryValue": 20,
+              "label": "LUK 40 증가, INT 20 증가",
+              "weight": 0.09999999999999998
+            }
+          ],
+          "bestValue": 40,
+          "bestValueProbability": 0.09999999999999998
+        }
+      ]
+    }
+  }
+}

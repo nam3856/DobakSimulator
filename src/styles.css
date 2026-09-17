@@ -376,7 +376,7 @@ small {
 }
 .sim-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 13px;
@@ -2213,10 +2213,14 @@ progress::-moz-progress-bar {
     font-size: 11px;
   }
   .sim-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     margin-bottom: 17px;
     padding: 4px;
     gap: 1px;
     border-radius: 10px;
+  }
+  .sim-tabs button:last-child {
+    grid-column: 1 / -1;
   }
   .sim-tabs button {
     flex-direction: column;
