@@ -87,6 +87,7 @@ import { lowerFirstGoal, makeConfig, reconcileLines } from './ui/setup';
 import { clampConditionValue } from './ui/ability-bounds';
 import { getPotentialConditionBounds } from './ui/potential-bounds';
 import { FakeAdBanner } from './ui/FakeAdBanner';
+import { getLinkedCharacter, replaceCharacterLink } from './ui/character-link';
 
 const baseUrl = new URL(import.meta.env.BASE_URL, document.baseURI).href;
 const forMode = (items: EquipmentSnapshot[], mode: SimulatorMode) =>
@@ -117,25 +118,6 @@ export default function App() {
   const [searchReady, setSearchReady] = useState(false);
   const [personalSearch, setPersonalSearch] = useState(false);
   const sharedSearch = !!sharedApiBase && !personalSearch;
-  useEffect(() => {
-    const controller = new AbortController();
-    resolveSharedApiBase({
-      pageBase: baseUrl,
-      configuredUrl: import.meta.env.VITE_CHARACTER_API_URL,
-      development: import.meta.env.DEV,
-      signal: controller.signal,
-    })
-      .then((url) => {
-        if (!controller.signal.aborted) setSharedApiBase(url);
-      })
-      .catch(() => {
-        /* Personal search remains available when setup is unavailable. */
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setSearchReady(true);
-      });
-    return () => controller.abort();
-  }, []);
   const [searchBusy, setSearchBusy] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [theme, setTheme] = useState(() => {
@@ -332,19 +314,53 @@ export default function App() {
 
   useEffect(() => {
     let disposed = false;
+    const controller = new AbortController();
+    const apiBasePromise = resolveSharedApiBase({
+      pageBase: baseUrl,
+      configuredUrl: import.meta.env.VITE_CHARACTER_API_URL,
+      development: import.meta.env.DEV,
+      signal: controller.signal,
+    }).catch(() => undefined);
+    void apiBasePromise.then((url) => {
+      if (disposed) return;
+      setSharedApiBase(url);
+      setSearchReady(true);
+    });
     Promise.all([loadRuleData(baseUrl), loadDefaultCharacter(import.meta.env.BASE_URL)])
-      .then(([rules, defaultCharacter]) => {
+      .then(async ([rules, defaultCharacter]) => {
         if (disposed) return;
         setData(rules);
-        const stored = readSession();
-        if (stored && stored.config.ruleVersion === RULE_VERSION) {
+        const savedSession = readSession();
+        const stored = savedSession?.config.ruleVersion === RULE_VERSION ? savedSession : null;
+        const linkedName = getLinkedCharacter();
+        let linkError = '';
+        if (linkedName && stored?.character.name !== linkedName) {
+          setName(linkedName);
+          try {
+            const apiBase = await apiBasePromise;
+            if (disposed) return;
+            if (!apiBase)
+              throw new Error('주소의 캐릭터를 불러오려면 개인 API 키를 입력해 주세요.');
+            const next = await getSharedCharacter(linkedName, apiBase, controller.signal);
+            if (disposed) return;
+            if (stored) archiveSession(stored.config, stored.state);
+            adoptCharacter(next, rules, getModeFromHash(), 'black', false);
+            setMessage(`${next.name}의 최신 장비와 어빌리티를 불러왔어요.`);
+            return;
+          } catch (error) {
+            if (disposed) return;
+            linkError = error instanceof Error ? error.message : '캐릭터를 불러오지 못했습니다.';
+          }
+        }
+        if (stored) {
           setCharacter(stored.character);
           setEquipmentPreset(stored.equipmentPreset);
           setAbilityPreset(stored.abilityPreset);
           setEquipmentId(stored.equipmentId);
           if (stored.playMode === 'recreate') archiveSession(stored.config, stored.state);
-          const requested = getModeFromHash();
+          const requested = linkError ? stored.config.mode : getModeFromHash();
           if (location.hash && requested !== stored.config.mode) {
+            if (stored.playMode !== 'recreate') archiveSession(stored.config, stored.state);
             const items = stored.character.equipmentPresets[stored.equipmentPreset] ?? [];
             const selected =
               requested === 'soulAmplification' || requested === 'soulPotential'
@@ -451,12 +467,18 @@ export default function App() {
             false,
           );
         }
+        if (linkError) {
+          setName(linkedName);
+          setSearchError(linkError);
+          setSearchOpen(true);
+        }
       })
       .catch((e) => {
         if (!disposed) setBootError(e.message);
       });
     return () => {
       disposed = true;
+      controller.abort();
     };
   }, []);
 
@@ -681,6 +703,26 @@ export default function App() {
     backdropPress.current = false;
     setSearchOpen(false);
   }
+  function adoptCharacter(
+    next: CharacterSnapshot,
+    rules: RuleData,
+    mode: SimulatorMode,
+    cubeType: CubeType,
+    preserve = true,
+  ) {
+    setCharacter(next);
+    setEquipmentPreset(next.activeEquipmentPreset);
+    setAbilityPreset(next.activeAbilityPreset);
+    const nextItems = forMode(next.equipmentPresets[next.activeEquipmentPreset], mode);
+    const selected = nextItems.find((x) => x.category === 'weapon') ?? nextItems[0];
+    setEquipmentId(selected?.id ?? '');
+    begin(
+      makeConfig(rules, next, selected, mode, cubeType, next.activeAbilityPreset),
+      rules,
+      preserve,
+    );
+    replaceCharacterLink(next.name, mode);
+  }
   async function searchCharacter(event: React.FormEvent) {
     event.preventDefault();
     if (!searchReady || !name.trim() || (!sharedSearch && !apiKey.trim())) return;
@@ -694,15 +736,7 @@ export default function App() {
         ? await getSharedCharacter(name.trim(), sharedApiBase!, controller.signal)
         : await getCharacter(name.trim(), apiKey.trim(), controller.signal);
       if (controller.signal.aborted) return;
-      setCharacter(next);
-      setEquipmentPreset(next.activeEquipmentPreset);
-      setAbilityPreset(next.activeAbilityPreset);
-      const nextItems = forMode(next.equipmentPresets[next.activeEquipmentPreset], config!.mode);
-      const selected = nextItems.find((x) => x.category === 'weapon') ?? nextItems[0];
-      setEquipmentId(selected?.id ?? '');
-      begin(
-        makeConfig(data!, next, selected, config!.mode, config!.cubeType, next.activeAbilityPreset),
-      );
+      adoptCharacter(next, data!, config!.mode, config!.cubeType);
       setSearchOpen(false);
       setMessage(`${next.name}의 최신 장비와 어빌리티를 불러왔어요.`);
     } catch (e) {
@@ -795,7 +829,9 @@ export default function App() {
         </div>
         <LoaderCircle className="spin" />
         <h1>또 다른 세계를 준비하고 있어요.</h1>
-        <p>공식 확률과 깽미니의 장비를 불러옵니다.</p>
+        <p>
+          {name ? `${name}의 캐릭터 정보를 불러옵니다.` : '공식 확률과 깽미니의 장비를 불러옵니다.'}
+        </p>
       </div>
     );
   const modeIcon = tabIcons[config.mode];

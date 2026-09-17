@@ -66,10 +66,14 @@ test('runtime configuration enables nickname-only lookup through the shared serv
   await page.getByLabel('캐릭터 닉네임').fill('공용테스트');
   const submit = page.getByRole('button', { name: '캐릭터 불러오기', exact: true });
   await expect(submit).toBeEnabled();
+  const historyLength = await page.evaluate(() => history.length);
   await submit.click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toContainText('공용테스트');
   await expect(page.locator('.reaction-stage')).toContainText('공용테스트');
+  expect(new URL(page.url()).searchParams.get('character')).toBe('공용테스트');
+  expect(new URL(page.url()).hash).toBe('#cube');
+  expect(await page.evaluate(() => history.length)).toBe(historyLength);
   expect(requests).toHaveLength(1);
   await expectPublicRequest(requests[0], '공용테스트');
   expect(directApiRequests).toEqual([]);
@@ -229,6 +233,7 @@ for (const scenario of [
       }),
     );
     const directApiRequests = await openSharedSearch(page);
+    const urlBeforeSearch = page.url();
     await page.getByLabel('캐릭터 닉네임').fill('조회테스트');
     await page.getByRole('button', { name: '캐릭터 불러오기', exact: true }).click();
     await expect(page.getByRole('alert')).toContainText(scenario.message);
@@ -238,6 +243,7 @@ for (const scenario of [
     await expect(page.getByRole('button', { name: '캐릭터 불러오기', exact: true })).toBeEnabled();
     await page.getByRole('button', { name: '캐릭터 검색 닫기' }).click();
     await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toContainText('깽미니');
+    expect(page.url()).toBe(urlBeforeSearch);
     expect(directApiRequests).toEqual([]);
   });
 }
@@ -259,6 +265,7 @@ test('closing an in-flight shared search cancels it and retains the previous cha
       .catch(() => {});
   });
   const directApiRequests = await openSharedSearch(page);
+  const urlBeforeSearch = page.url();
   await page.getByLabel('캐릭터 닉네임').fill('취소된캐릭터');
   const sent = page.waitForRequest((request) =>
     request.url().startsWith(`${SHARED_API}/character?`),
@@ -273,6 +280,7 @@ test('closing an in-flight shared search cancels it and retains the previous cha
     await cancelled;
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toContainText('깽미니');
+    expect(page.url()).toBe(urlBeforeSearch);
     expect(directApiRequests).toEqual([]);
   } finally {
     releaseResponse();

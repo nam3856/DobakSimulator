@@ -267,6 +267,7 @@ test('API error and cancellation retain the previous character and never store t
   page,
 }) => {
   await boot(page);
+  const urlBeforeSearch = page.url();
   await page.route('https://open.api.nexon.com/maplestory/v1/**', (route) =>
     route.fulfill({ status: 400, json: { error: { name: 'OPENAPI00005' } } }),
   );
@@ -287,13 +288,14 @@ test('API error and cancellation retain the previous character and never store t
   await page.getByRole('button', { name: '캐릭터 불러오기', exact: true }).click();
   await page.getByRole('button', { name: '캐릭터 검색 닫기' }).click();
   await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toContainText('깽미니');
+  expect(page.url()).toBe(urlBeforeSearch);
 });
 
 test('nickname replacement accepts missing presets and falls back when pose images fail', async ({
   page,
 }) => {
   const png = readFileSync(new URL('../../public/character/neutral.png', import.meta.url));
-  await boot(page);
+  await boot(page, '?v=nickname-preview#cube');
   await page.route('https://open.api.nexon.com/maplestory/v1/**', (route) => {
     const url = route.request().url();
     const json = url.includes('/id?')
@@ -318,11 +320,18 @@ test('nickname replacement accepts missing presets and falls back when pose imag
         : route.fulfill({ contentType: 'image/png', body: png }),
   );
   await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
-  await page.getByLabel('캐릭터 닉네임').fill('새캐릭터');
+  await page.getByLabel('캐릭터 닉네임').fill('입력캐릭터');
   await page.getByLabel('개인 Nexon Open API 키').fill('test-key');
   await page.getByRole('button', { name: '캐릭터 불러오기', exact: true }).click();
   await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toContainText('새캐릭터');
   await expect(page.locator('.stage-sprite')).toHaveAttribute('src', /test-avatar$/);
   await expect(page.locator('.stage-sprite')).toHaveJSProperty('naturalWidth', 300);
   await expect(page.locator('.reaction-stage')).toContainText('새캐릭터');
+  const url = new URL(page.url());
+  expect([...url.searchParams]).toEqual([
+    ['v', 'nickname-preview'],
+    ['character', '새캐릭터'],
+  ]);
+  expect(url.hash).toBe('#cube');
+  expect(url.href).not.toContain('test-key');
 });
