@@ -238,6 +238,8 @@ export default function App() {
       state.status !== 'success' &&
       !errors.length &&
       !!automaticAbilityTarget);
+  const canRestartAuto =
+    !!data && !!config && !errors.length && state?.status === 'success' && state.attempts > 0n;
   const itemBased = config?.mode === 'cube' && isItemCube(config.cubeType);
   const actualCost = state ? Number(itemBased ? state.spent.cubes : state.spent.meso) : 0;
   const reaction =
@@ -784,28 +786,35 @@ export default function App() {
     }
   }
   function startAuto() {
-    if (!canAutoRun || !config || !state) return;
+    if ((!canAutoRun && !canRestartAuto) || !config || !state) return;
     setMessage('');
     let runConfig = config;
     let runState = state;
-    if (automaticAbilityTarget) {
+    if (canRestartAuto || automaticAbilityTarget) {
       const prepared = begin({
         ...config,
-        start: {
-          grade: state.grade,
-          lines: state.lines,
-          stage: state.stage,
-          failures: state.failures,
-        },
-        target: automaticAbilityTarget,
-        abilityStrategy: 'lowerFirst',
-        lockedSlots: [],
+        start: canRestartAuto
+          ? config.start
+          : {
+              grade: state.grade,
+              lines: state.lines,
+              stage: state.stage,
+              failures: state.failures,
+            },
+        ...(automaticAbilityTarget
+          ? {
+              target: automaticAbilityTarget,
+              abilityStrategy: 'lowerFirst' as const,
+              lockedSlots: [],
+            }
+          : {}),
       });
       if (!prepared) return;
       runConfig = prepared.config;
       runState = prepared.state;
       if (runState.status === 'success' || runState.status === 'impossible') return;
-      setMessage('목표에 맞게 잠금을 다시 설정했어요. 현재 옵션에서 자동 도전을 시작합니다.');
+      if (automaticAbilityTarget && !canRestartAuto)
+        setMessage('목표에 맞게 잠금을 다시 설정했어요. 현재 옵션에서 자동 도전을 시작합니다.');
     }
     setAuto(true);
     runWorker.current?.terminate();
@@ -1724,13 +1733,18 @@ export default function App() {
                   </button>
                   <button
                     className={`button auto-button ${auto ? 'stop' : ''}`}
-                    disabled={!auto && !canAutoRun}
+                    disabled={!auto && !canAutoRun && !canRestartAuto}
                     onClick={auto ? stop : startAuto}
                   >
                     {auto ? (
                       <>
                         <Pause size={16} />
                         중지
+                      </>
+                    ) : canRestartAuto ? (
+                      <>
+                        <RotateCcw size={16} />
+                        다시 자동재설정
                       </>
                     ) : (
                       <>
