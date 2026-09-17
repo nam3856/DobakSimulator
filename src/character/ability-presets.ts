@@ -2,7 +2,7 @@ import type { Goal, OptionLine } from '../types';
 import type { RuleData } from '../engine/rules';
 import { resolveCharacterProfile } from './profiles';
 
-/** User-supplied endgame table, 2026-09-17. All three lines use advanced legendary maxima. */
+/** User-supplied endgame combinations, 2026-09-17. All three lines use advanced legendary. */
 export const ABILITY_JOB_PRESETS = [
   ['나이트로드', '패보상'],
   ['나이트워커', '보상공'],
@@ -67,7 +67,11 @@ export function resolveAbilityPreset(job: string) {
   return ABILITY_JOB_PRESETS.find((preset) => normalizedJob(preset.job) === name);
 }
 
-export function makeAbilityPresetGoal(data: RuleData, job: string): Goal {
+export function makeAbilityPresetGoal(
+  data: RuleData,
+  job: string,
+  valueMode: 'minimum' | 'maximum' = 'maximum',
+): Goal {
   const preset = resolveAbilityPreset(job);
   if (!preset) throw new Error('선택한 직업의 종결 어빌리티 프리셋이 없습니다.');
   const types: Record<string, string> = {
@@ -81,7 +85,9 @@ export function makeAbilityPresetGoal(data: RuleData, job: string): Goal {
   const lines: OptionLine[] = [...preset.code].map((code) => {
     const option = data.ability.grades.legendary?.options.find((row) => row.type === types[code]);
     if (!option?.values.length) throw new Error(`종결 어빌리티 '${code}'의 공식 수치가 없습니다.`);
-    const value = option.values.reduce((best, next) => (next.value > best.value ? next : best));
+    const value = option.values.reduce((best, next) =>
+      (valueMode === 'minimum' ? next.value < best.value : next.value > best.value) ? next : best,
+    );
     return {
       id: `${option.id}:legendary:${value.value}:${value.secondaryValue ?? ''}`,
       abilityTypeId: option.id,

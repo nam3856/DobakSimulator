@@ -142,10 +142,10 @@ test('two ability locks survive a roll and consume the corresponding honor and m
     const unlock = page.getByRole('button', { name: `${slot}번째 옵션 잠금 해제`, exact: true });
     if (await unlock.count()) await unlock.click();
   }
-  await page.getByLabel('목표 조건 2 수치').fill('8');
   await page.getByLabel('목표 조건 2 등급').selectOption('unique');
+  await page.getByLabel('목표 조건 2 수치').fill('8');
   await page.getByLabel('목표 조건 3 옵션').selectOption('buffDurationPercent');
-  await page.getByLabel('목표 조건 3 수치').fill('40');
+  await page.getByLabel('목표 조건 3 수치').fill('44');
   await page.getByRole('button', { name: '1번째 옵션 잠금', exact: true }).click();
   await page.getByRole('button', { name: '2번째 옵션 잠금', exact: true }).click();
   const before = await page.locator('.current-result .option-row').allTextContents();
@@ -197,7 +197,7 @@ test('360px layout, keyboard dialog and reduced motion remain usable', async ({ 
   await page.screenshot({ path: 'test-results/mobile.png', fullPage: true });
 });
 
-test('changing a goal after guaranteed promotion starts from the actual promoted state', async ({
+test('clamping an edited aggregate goal after promotion keeps the actual promoted state', async ({
   page,
 }) => {
   await boot(page);
@@ -206,11 +206,50 @@ test('changing a goal after guaranteed promotion starts from the actual promoted
   await page.getByRole('button', { name: '1회 재설정하기', exact: true }).click();
   await expect(page.locator('.current-result .grade-badge')).toHaveText('레전드리');
   const promoted = await page.locator('.current-result .option-row').allTextContents();
-  await page.getByLabel('목표 조건 1 수치').fill('99');
+  const goalValue = page.getByLabel('목표 조건 1 수치');
+  const maximum = await goalValue.getAttribute('max');
+  expect(Number(maximum)).toBeGreaterThan(0);
+  await goalValue.fill('99');
+  await goalValue.press('Enter');
+  await expect(goalValue).toHaveValue(maximum!);
   await expect(page.getByLabel('시작 등급')).toHaveValue('legendary');
   expect(await page.locator('.current-result .option-row').allTextContents()).toEqual(promoted);
   await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('0회');
-  await expect(page.locator('.expected-stat strong')).toContainText('∞');
+});
+
+test('cube and soul numeric limits preserve aggregate targets and clamp out-of-range input', async ({
+  page,
+}) => {
+  await boot(page);
+  const value = page.getByLabel('목표 조건 1 수치');
+  await page.getByLabel('장비 부위').selectOption('weapon');
+  await page.getByLabel('목표 조건 1 옵션').selectOption('attackPercent');
+  const maximum = Number(await value.getAttribute('max'));
+  expect(maximum).toBeGreaterThanOrEqual(24);
+  await value.fill('24');
+  await value.press('Tab');
+  await expect(value).toHaveValue('24');
+  await value.fill('999');
+  await value.press('Enter');
+  await expect(value).toHaveValue(String(maximum));
+  await value.fill('0');
+  await value.press('Tab');
+  await expect(value).toHaveValue((await value.getAttribute('min'))!);
+  await value.fill('');
+  await value.press('Tab');
+  await expect(value).toHaveValue((await value.getAttribute('min'))!);
+
+  await nav(page, '소울 잠재').click();
+  await expect(value).toHaveValue('5');
+  await expect(value).toHaveAttribute('max', '6');
+  await value.fill('999');
+  await value.press('Enter');
+  await expect(value).toHaveValue('6');
+  await page.reload();
+  await expect(value).toHaveValue('6');
+  await value.fill('-5');
+  await value.press('Tab');
+  await expect(value).toHaveValue((await value.getAttribute('min'))!);
 });
 
 test('API error and cancellation retain the previous character and never store the key', async ({

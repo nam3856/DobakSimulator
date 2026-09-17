@@ -84,6 +84,8 @@ import {
 import { formatAmount, formatPercent, safePrice } from './ui/format';
 import { archiveSession, readSession, saveSession } from './ui/storage';
 import { lowerFirstGoal, makeConfig, reconcileLines } from './ui/setup';
+import { clampConditionValue } from './ui/ability-bounds';
+import { getPotentialConditionBounds } from './ui/potential-bounds';
 
 const baseUrl = new URL(import.meta.env.BASE_URL, document.baseURI).href;
 const forMode = (items: EquipmentSnapshot[], mode: SimulatorMode) =>
@@ -221,6 +223,15 @@ export default function App() {
       }
     return [...map.values()];
   }, [data, config?.mode, config?.cubeType, config?.category, config?.level, config?.start.stage]);
+  const conditionBounds = useMemo(
+    () =>
+      data && config
+        ? config.target.conditions.map((condition) =>
+            getPotentialConditionBounds(data, config, condition),
+          )
+        : [],
+    [data, config],
+  );
   const canRun =
     !!data &&
     !!config &&
@@ -230,6 +241,21 @@ export default function App() {
     state.status !== 'impossible' &&
     benchmark?.status !== 'impossible' &&
     benchmark?.status !== 'already';
+  const automaticAbilityTarget =
+    config?.mode === 'ability' &&
+    !usesLowerFirstAbility(config) &&
+    usesLowerFirstAbility({ ...config, abilityStrategy: 'lowerFirst' }) &&
+    !abilityStrategyErrors({ ...config, abilityStrategy: 'lowerFirst', lockedSlots: [] }).length
+      ? config.target
+      : undefined;
+  const canAutoRun =
+    canRun ||
+    (!!data &&
+      !!config &&
+      !!state &&
+      state.status !== 'success' &&
+      !errors.length &&
+      !!automaticAbilityTarget);
   const itemBased = config?.mode === 'cube' && isItemCube(config.cubeType);
   const actualCost = state ? Number(itemBased ? state.spent.cubes : state.spent.meso) : 0;
   const reaction =
@@ -294,6 +320,7 @@ export default function App() {
         setConfig(frozen);
         setState(next);
         setBenchmark(undefined);
+        return { config: frozen, state: next };
       } catch (e) {
         setConfig(draft);
         setState(undefined);
@@ -555,6 +582,19 @@ export default function App() {
         '변경한 목표는 수동 잠금 방식으로 진행합니다. 아랫줄 우선 방식은 첫 줄 목표 하나와 보조 줄 목표 두 개가 필요합니다.';
     }
     if (resetLines) draft.start = { ...draft.start, lines: [], failures: 0 };
+    if ((draft.mode === 'cube' || draft.mode === 'soulPotential') && draft.target.mode === 'sum') {
+      draft.target = {
+        ...draft.target,
+        conditions: draft.target.conditions.map((condition) => {
+          const bounds = getPotentialConditionBounds(data, draft, condition);
+          if (!bounds) return condition;
+          const value = clampConditionValue(condition.maxValue ?? condition.minValue, bounds);
+          return condition.maxValue === undefined
+            ? { ...condition, minValue: value }
+            : { ...condition, maxValue: value };
+        }),
+      };
+    }
     begin(draft);
     if (strategyNotice) setMessage(strategyNotice);
   }
@@ -563,11 +603,25 @@ export default function App() {
     const preset = resolveAbilityPreset(job);
     if (!preset) return;
     patchConfig({
-      target: makeAbilityPresetGoal(data, preset.job),
+      target: makeAbilityPresetGoal(data, preset.job, 'minimum'),
       abilityPresetJob: preset.job,
       abilityStrategy: 'lowerFirst',
       lockedSlots: [],
     });
+  }
+  function toggleAbilityLock(slot: number) {
+    if (!config || !state || config.mode !== 'ability' || auto) return;
+    const currentLocks = usesLowerFirstAbility(config)
+      ? (state.lockedSlots ?? abilityProgress(config, state.lines).lockedSlots)
+      : config.lockedSlots;
+    const locks = currentLocks.includes(slot)
+      ? currentLocks.filter((value) => value !== slot)
+      : [...currentLocks, slot].sort((a, b) => a - b);
+    if (locks.length > 2) {
+      setMessage('어빌리티는 최대 두 줄까지 고정할 수 있어요.');
+      return;
+    }
+    patchConfig({ abilityStrategy: 'fixed', lockedSlots: locks });
   }
   function switchMode(mode: SimulatorMode) {
     if (!data || !character || !config) return;
@@ -678,8 +732,29 @@ export default function App() {
     }
   }
   function startAuto() {
-    if (!canRun || !config || !state) return;
+    if (!canAutoRun || !config || !state) return;
     setMessage('');
+    let runConfig = config;
+    let runState = state;
+    if (automaticAbilityTarget) {
+      const prepared = begin({
+        ...config,
+        start: {
+          grade: state.grade,
+          lines: state.lines,
+          stage: state.stage,
+          failures: state.failures,
+        },
+        target: automaticAbilityTarget,
+        abilityStrategy: 'lowerFirst',
+        lockedSlots: [],
+      });
+      if (!prepared) return;
+      runConfig = prepared.config;
+      runState = prepared.state;
+      if (runState.status === 'success' || runState.status === 'impossible') return;
+      setMessage('목표에 맞게 잠금을 다시 설정했어요. 현재 옵션에서 자동 도전을 시작합니다.');
+    }
     setAuto(true);
     runWorker.current?.terminate();
     const worker = workerFactory();
@@ -705,8 +780,8 @@ export default function App() {
       setAuto(false);
       setMessage('자동 실행 중 오류가 발생했습니다. 현재 기록은 보관되어 있어요.');
     };
-    setState({ ...state, status: 'running' });
-    worker.postMessage({ type: 'run', id, config, state, baseUrl });
+    setState({ ...runState, status: 'running' });
+    worker.postMessage({ type: 'run', id, config: runConfig, state: runState, baseUrl });
   }
 
   if (bootError)
@@ -1167,16 +1242,7 @@ export default function App() {
                       onChange={(lines) => patchConfig({ start: { ...config.start, lines } })}
                       canLock={config.mode === 'ability' && !usesLowerFirstAbility(config)}
                       locks={config.lockedSlots}
-                      onLock={(slot) => {
-                        const locks = config.lockedSlots.includes(slot)
-                          ? config.lockedSlots.filter((x) => x !== slot)
-                          : [...config.lockedSlots, slot];
-                        if (locks.length > 2) {
-                          setMessage('어빌리티는 최대 두 줄까지 고정할 수 있어요.');
-                          return;
-                        }
-                        patchConfig({ lockedSlots: locks });
-                      }}
+                      onLock={toggleAbilityLock}
                     />
                     {config.mode === 'cube' && isPrime(config.cubeType) && (
                       <small className="inline-note">
@@ -1271,16 +1337,16 @@ export default function App() {
                     </button>
                   )}
                   <p className="inline-note">
-                    종결은 세 줄 모두 레전드리 최대치입니다. 첫 글자는 1번째 줄, 나머지 두 옵션은
-                    2·3번째 줄 순서 무관입니다.
+                    세 줄 모두 레전드리 조합입니다. 목표 수치는 옵션의 최저치로 시작하며 직접 높일
+                    수 있습니다. 첫 글자는 1번째 줄, 나머지 두 옵션은 2·3번째 줄 순서 무관입니다.
                   </p>
                   <details className="ability-legend">
                     <summary>
                       패·재·상·보·크·공 뜻 <ChevronDown size={13} />
                     </summary>
                     <p>
-                      패: 패시브 스킬 +1레벨 · 재: 재사용 대기시간 미적용 20% · 상: 상태 이상 대상
-                      데미지 10% · 보: 보스 데미지 20% · 크: 크리티컬 확률 30% · 공: 공격력/마력 30
+                      패: 패시브 스킬 레벨 · 재: 재사용 대기시간 미적용 · 상: 상태 이상 대상 데미지
+                      · 보: 보스 데미지 · 크: 크리티컬 확률 · 공: 공격력/마력
                     </p>
                   </details>
                   <Field label="어빌리티 진행 방식">
@@ -1309,7 +1375,9 @@ export default function App() {
                   <p className="inline-note">
                     {usesLowerFirstAbility(config)
                       ? '보조 목표 중 하나 확보 → 해당 줄 잠금 → 남은 보조 줄 확보·잠금 → 첫 줄 완성. 기댓값도 이 순서로 계산합니다.'
-                      : '선택한 줄의 잠금을 유지하며 목표 전체가 완성될 때까지 재설정합니다.'}
+                      : automaticAbilityTarget
+                        ? '직접 재설정은 선택한 잠금을 유지합니다. 자동 실행은 목표에 맞게 잠금을 다시 판단하고 아랫줄부터 완성합니다.'
+                        : '선택한 줄의 잠금을 유지하며 목표 전체가 완성될 때까지 재설정합니다.'}
                   </p>
                 </div>
               )}
@@ -1317,6 +1385,7 @@ export default function App() {
                 goal={config.target}
                 mode={config.mode}
                 options={targetOptions}
+                conditionBounds={conditionBounds}
                 onChange={(target) => patchConfig({ target })}
               />
               <details className="imported-details">
@@ -1328,7 +1397,10 @@ export default function App() {
             </section>
           </aside>
           <div className="result-column">
-            <section className="panel simulation-panel">
+            <section
+              className={`panel simulation-panel mode-${config.mode}`}
+              data-batch-size={effectiveBatchSize(config, state?.grade ?? config.start.grade)}
+            >
               <div className="simulation-heading">
                 <div>
                   <div className="eyebrow">YOUR PARALLEL UNIVERSE</div>
@@ -1394,86 +1466,121 @@ export default function App() {
                   </div>
                   <OptionLines
                     lines={state?.lines ?? config.start.lines}
-                    locks={usesLowerFirstAbility(config) ? state?.lockedSlots : undefined}
+                    locks={
+                      config.mode === 'ability'
+                        ? usesLowerFirstAbility(config)
+                          ? state?.lockedSlots
+                          : config.lockedSlots
+                        : undefined
+                    }
+                    onToggleLock={config.mode === 'ability' ? toggleAbilityLock : undefined}
+                    locksDisabled={auto || !state}
+                    automaticLocks={usesLowerFirstAbility(config)}
                   />
+                  {config.mode === 'ability' && (
+                    <p className="inline-note">
+                      최대 두 줄까지 직접 잠글 수 있습니다.
+                      {(usesLowerFirstAbility(config) || automaticAbilityTarget) &&
+                        ' 자동 실행은 목표에 맞게 잠금을 다시 설정합니다.'}
+                    </p>
+                  )}
                   {config.mode === 'cube' && isPrime(config.cubeType) && (
                     <span className="kept-label">첫 번째 옵션 고정</span>
                   )}
                 </div>
               )}
-              {usesLowerFirstAbility(config) && state && (
-                <div className="ability-progress" aria-label="어빌리티 자동 잠금 진행">
-                  <strong>
-                    {state.status === 'success'
-                      ? '세 줄 완성'
-                      : (state.lockedSlots?.length ?? 0) === 2
-                        ? '첫 번째 줄 도전 중'
-                        : (state.lockedSlots?.length ?? 0) === 1
-                          ? '남은 보조 줄 도전 중'
-                          : '첫 보조 줄 도전 중'}
-                  </strong>
-                  <div className="ability-progress-steps">
-                    {['보조 줄 하나', '보조 줄 두 개', '첫 줄 완성'].map((label, index) => (
-                      <span
-                        key={label}
-                        className={
-                          index < (state.lockedSlots?.length ?? 0) || state.status === 'success'
-                            ? 'complete'
-                            : ''
-                        }
-                      >
-                        {index < (state.lockedSlots?.length ?? 0) || state.status === 'success' ? (
-                          <Check size={13} />
-                        ) : (
-                          index + 1
-                        )}{' '}
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                  {state.status !== 'success' && (
-                    <small>
-                      자동 잠금 {state.lockedSlots?.length ?? 0}/2줄 · 다음 1회{' '}
-                      {formatAmount(
-                        Number(
-                          data.ability.costs.find(
-                            (cost) => cost.locked === (state.lockedSlots?.length ?? 0),
-                          )!.meso,
-                        ),
-                      )}{' '}
-                      메소 · 명성치{' '}
-                      {formatAmount(
-                        data.ability.costs.find(
-                          (cost) => cost.locked === (state.lockedSlots?.length ?? 0),
-                        )!.honor,
+              {config.mode === 'ability' && (
+                <div className="ability-progress-slot">
+                  {usesLowerFirstAbility(config) && state ? (
+                    <div className="ability-progress" aria-label="어빌리티 자동 잠금 진행">
+                      <strong>
+                        {state.status === 'success'
+                          ? '세 줄 완성'
+                          : (state.lockedSlots?.length ?? 0) === 2
+                            ? '첫 번째 줄 도전 중'
+                            : (state.lockedSlots?.length ?? 0) === 1
+                              ? '남은 보조 줄 도전 중'
+                              : '첫 보조 줄 도전 중'}
+                      </strong>
+                      <div className="ability-progress-steps">
+                        {['보조 줄 하나', '보조 줄 두 개', '첫 줄 완성'].map((label, index) => (
+                          <span
+                            key={label}
+                            className={
+                              index < (state.lockedSlots?.length ?? 0) || state.status === 'success'
+                                ? 'complete'
+                                : ''
+                            }
+                          >
+                            {index < (state.lockedSlots?.length ?? 0) ||
+                            state.status === 'success' ? (
+                              <Check size={13} />
+                            ) : (
+                              index + 1
+                            )}{' '}
+                            {label}
+                          </span>
+                        ))}
+                      </div>
+                      {state.status !== 'success' && (
+                        <small>
+                          자동 잠금 {state.lockedSlots?.length ?? 0}/2줄 · 다음 1회{' '}
+                          {formatAmount(
+                            Number(
+                              data.ability.costs.find(
+                                (cost) => cost.locked === (state.lockedSlots?.length ?? 0),
+                              )!.meso,
+                            ),
+                          )}{' '}
+                          메소 · 명성치{' '}
+                          {formatAmount(
+                            data.ability.costs.find(
+                              (cost) => cost.locked === (state.lockedSlots?.length ?? 0),
+                            )!.honor,
+                          )}
+                        </small>
                       )}
-                    </small>
+                    </div>
+                  ) : (
+                    <div className="ability-progress">
+                      <strong>직접 잠금 설정</strong>
+                      <p className="inline-note">
+                        보관 옵션 오른쪽에서 잠금을 선택하세요. 직접 재설정은 선택한 잠금을
+                        유지합니다.
+                      </p>
+                      <small>
+                        {automaticAbilityTarget
+                          ? '자동 실행은 목표에 맞춰 잠금을 다시 판단합니다.'
+                          : '현재 목표와 선택한 잠금으로 도전합니다.'}
+                      </small>
+                    </div>
                   )}
                 </div>
               )}
               {state && <ProgressDisplay data={data} config={config} state={state} />}
-              {state?.candidates.length
-                ? config.mode !== 'soulAmplification' && (
-                    <div className={`candidate-grid count-${state.candidates.length}`}>
-                      {state.candidates.map((candidate, i) => (
-                        <article
-                          className={`candidate-card ${candidate.hit ? 'is-hit' : ''}`}
-                          key={`${candidate.sequence}-${i}`}
-                        >
-                          <div className="card-title">
-                            <span>
-                              {candidate.hit ? (
-                                <>
-                                  <Check size={13} />
-                                  목표 달성
-                                </>
-                              ) : (
-                                `재설정 ${state.candidates.length === 1 ? formatAmount(candidate.sequence) : i + 1}`
-                              )}
-                            </span>
-                            <GradeBadge grade={candidate.grade} />
-                          </div>
-                          <OptionLines lines={candidate.lines} />
+              {state?.candidates.length ? (
+                config.mode !== 'soulAmplification' && (
+                  <div className={`candidate-grid count-${state.candidates.length}`}>
+                    {state.candidates.map((candidate, i) => (
+                      <article
+                        className={`candidate-card ${candidate.hit ? 'is-hit' : ''}`}
+                        key={`${candidate.sequence}-${i}`}
+                      >
+                        <div className="card-title">
+                          <span>
+                            {candidate.hit ? (
+                              <>
+                                <Check size={13} />
+                                목표 달성
+                              </>
+                            ) : (
+                              `재설정 ${state.candidates.length === 1 ? formatAmount(candidate.sequence) : i + 1}`
+                            )}
+                          </span>
+                          <GradeBadge grade={candidate.grade} />
+                        </div>
+                        <OptionLines lines={candidate.lines} />
+                        <div className="candidate-footer">
                           {candidate.adopted && candidate.progressed && (
                             <span className="kept-label">보조 목표 확보 · 자동 잠금</span>
                           )}
@@ -1496,37 +1603,43 @@ export default function App() {
                               이 옵션에서 새 도전 <ArrowUpRight size={12} />
                             </button>
                           )}
-                        </article>
-                      ))}
-                    </div>
-                  )
-                : config.mode !== 'soulAmplification' && (
-                    <div className="empty-result">
-                      <span className="empty-cube">
-                        <Boxes size={24} />
-                      </span>
-                      <p>아직 열어보지 않은 가능성</p>
-                      <span>아래 버튼을 눌러 첫 번째 결과를 만나보세요.</span>
-                    </div>
-                  )}
-              {errors.length > 0 && (
-                <div className="notice error" role="alert">
-                  {errors.map((error, i) => (
-                    <p key={i}>{error}</p>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )
+              ) : config.mode === 'ability' ? (
+                <div className={`candidate-grid count-${config.batchSize}`}>
+                  {Array.from({ length: config.batchSize }, (_, index) => (
+                    <article className="candidate-placeholder" key={index}>
+                      <div className="card-title">
+                        <span>재설정 {index + 1}</span>
+                        <GradeBadge grade="legendary" />
+                      </div>
+                      <div className="option-lines" aria-hidden="true">
+                        {[0, 1, 2].map((slot) => (
+                          <div className="option-row" key={slot}>
+                            <i className="grade-dot grade-legendary" />
+                            <span>—</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="candidate-footer">
+                        <span>재설정 결과가 표시됩니다.</span>
+                      </div>
+                    </article>
                   ))}
                 </div>
-              )}
-              {message && (
-                <div className="notice" role="status">
-                  {message}
-                  <button
-                    className="icon-button"
-                    aria-label="안내 닫기"
-                    onClick={() => setMessage('')}
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
+              ) : (
+                config.mode !== 'soulAmplification' && (
+                  <div className="empty-result">
+                    <span className="empty-cube">
+                      <Boxes size={24} />
+                    </span>
+                    <p>아직 열어보지 않은 가능성</p>
+                    <span>아래 버튼을 눌러 첫 번째 결과를 만나보세요.</span>
+                  </div>
+                )
               )}
               <div className="roll-controls">
                 <div className="roll-options">
@@ -1565,7 +1678,7 @@ export default function App() {
                   </button>
                   <button
                     className={`button auto-button ${auto ? 'stop' : ''}`}
-                    disabled={!auto && !canRun}
+                    disabled={!auto && !canAutoRun}
                     onClick={auto ? stop : startAuto}
                   >
                     {auto ? (
@@ -1593,6 +1706,25 @@ export default function App() {
                       : '목표 미달 시 기존 옵션을 유지하며, 등급 상승은 적용합니다.'}
                 </p>
               </div>
+              {errors.length > 0 && (
+                <div className="notice error" role="alert">
+                  {errors.map((error, i) => (
+                    <p key={i}>{error}</p>
+                  ))}
+                </div>
+              )}
+              {message && (
+                <div className="notice" role="status">
+                  {message}
+                  <button
+                    className="icon-button"
+                    aria-label="안내 닫기"
+                    onClick={() => setMessage('')}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
             </section>
             {state && (
               <>

@@ -709,6 +709,13 @@ small {
   color: var(--muted);
   white-space: nowrap;
 }
+.condition-range {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
 .condition-main .icon-button {
   padding: 3px;
 }
@@ -937,6 +944,30 @@ small {
   min-width: 0;
   word-break: keep-all;
   overflow-wrap: anywhere;
+}
+.option-row > span {
+  flex: 1;
+  min-width: 0;
+}
+.option-row.has-lock-control {
+  align-items: center;
+  min-height: 40px;
+}
+.option-row.has-lock-control .grade-dot {
+  margin-top: 0;
+}
+.option-lock-button {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--input);
+}
+.option-lock-button.locked {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-wash);
 }
 .grade-dot {
   height: 4px;
@@ -2465,4 +2496,95 @@ progress::-moz-progress-bar {
   flex-shrink: 0;
   color: var(--accent);
   margin-left: auto;
+}
+
+/* Reserve the same draw area before and after an ability reset. */
+.simulation-panel.mode-ability {
+  --ability-current-row-height: 52px;
+  --ability-candidate-row-height: 46px;
+  --ability-candidate-footer-height: 64px;
+  --ability-progress-height: 128px;
+}
+.mode-ability .current-result .option-row {
+  min-height: var(--ability-current-row-height);
+}
+.mode-ability .current-result > .inline-note {
+  min-height: 3.6em;
+}
+.mode-ability .candidate-card,
+.mode-ability .candidate-placeholder {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--input);
+}
+.mode-ability .candidate-card.is-hit {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+.mode-ability .candidate-card .card-title,
+.mode-ability .candidate-placeholder .card-title {
+  min-height: 26px;
+  margin-bottom: 12px;
+}
+.mode-ability .candidate-card .option-lines,
+.mode-ability .candidate-placeholder .option-lines {
+  gap: 8px;
+}
+.mode-ability .candidate-card .option-row,
+.mode-ability .candidate-placeholder .option-row {
+  min-height: var(--ability-candidate-row-height);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.mode-ability .candidate-footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: var(--ability-candidate-footer-height);
+  margin-top: 10px;
+}
+.mode-ability .candidate-footer .kept-label {
+  margin: 0 0 8px;
+}
+.mode-ability .candidate-footer .accept-option {
+  margin-top: 0;
+  min-height: 36px;
+}
+.mode-ability .candidate-placeholder {
+  border-style: dashed;
+  color: var(--faint);
+  background: var(--accent-wash);
+}
+.mode-ability .candidate-placeholder .option-row {
+  align-items: center;
+}
+.mode-ability .ability-progress-slot {
+  display: flow-root;
+  min-height: calc(var(--ability-progress-height) + 28px);
+}
+.mode-ability .ability-progress-slot .ability-progress {
+  min-height: var(--ability-progress-height);
+}
+.mode-ability .ability-progress-slot .inline-note {
+  margin: 0;
+}
+@media (min-width: 1101px) and (max-width: 1250px) {
+  .simulation-panel.mode-ability {
+    --ability-candidate-footer-height: 84px;
+  }
+}
+@media (max-width: 1100px) {
+  .mode-ability .candidate-card,
+  .mode-ability .candidate-placeholder {
+    padding: 10px;
+  }
+}
+@media (max-width: 420px) {
+  .simulation-panel.mode-ability {
+    --ability-progress-height: 190px;
+  }
 }

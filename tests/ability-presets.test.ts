@@ -96,7 +96,7 @@ describe('user-supplied advanced ability endgame presets', () => {
             abilityPreset,
           );
           expect(cfg.abilityPresetJob).toBe(resolveAbilityPreset(job)?.job);
-          expect(cfg.target).toEqual(makeAbilityPresetGoal(data, job));
+          expect(cfg.target).toEqual(makeAbilityPresetGoal(data, job, 'minimum'));
           expect(cfg.start.lines.map((line) => [line.text, line.grade])).toEqual(
             character.abilityPresets[abilityPreset].lines.map((line) => [line.text, line.grade]),
           );
@@ -108,7 +108,7 @@ describe('user-supplied advanced ability endgame presets', () => {
     },
   );
   it.each(['recreate', 'upgrade'] as const)(
-    'uses current ability targets for an unknown job in %s mode',
+    'uses the imported option types at their minimum values for an unknown job in %s mode',
     (playMode) => {
       const cfg = makeConfig(
         data,
@@ -122,9 +122,7 @@ describe('user-supplied advanced ability endgame presets', () => {
       expect(cfg.abilityPresetJob).toBeUndefined();
       expect(cfg.start.lines).toHaveLength(3);
       expect(cfg.target.lines).toEqual(cfg.start.lines);
-      expect(cfg.target.conditions.map((condition) => condition.minValue)).toEqual(
-        cfg.start.lines.map((line) => line.value),
-      );
+      expect(cfg.target.conditions.map((condition) => condition.minValue)).toEqual([15, 7, 32]);
       expect(cfg.abilityStrategy).toBe('lowerFirst');
     },
   );
@@ -139,7 +137,7 @@ describe('user-supplied advanced ability endgame presets', () => {
       '1',
     );
     expect(cfg.start.lines).toEqual([]);
-    expect(cfg.target).toEqual(makeAbilityPresetGoal(data, character.job));
+    expect(cfg.target).toEqual(makeAbilityPresetGoal(data, character.job, 'minimum'));
     expect(cfg.abilityStrategy).toBe('lowerFirst');
     expect(abilityStrategyErrors(cfg)).toEqual([]);
   });

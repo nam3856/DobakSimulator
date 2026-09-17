@@ -12,6 +12,7 @@ import { makeAbilityPresetGoal, resolveAbilityPreset } from '../character/abilit
 import { getLineOptions } from '../engine';
 import type { RuleData } from '../engine/rules';
 import { isPrime, RULE_VERSION } from './constants';
+import { boundAbilityCondition } from './ability-bounds';
 const norm = (x: string) =>
   x
     .normalize('NFKC')
@@ -122,7 +123,7 @@ export function makeConfig(
     const preset = resolveAbilityPreset(character.job);
     if (preset) {
       config.abilityPresetJob = preset.job;
-      config.target = makeAbilityPresetGoal(data, preset.job);
+      config.target = makeAbilityPresetGoal(data, preset.job, 'minimum');
       return config;
     }
     config.target.lines = lines;
@@ -139,6 +140,10 @@ export function makeConfig(
         ...(slot === 0 ? { slot: 0 } : { slots: [1, 2] }),
       };
     });
+    const availableOptions = [0, 1, 2].flatMap((slot) => getLineOptions(data, config, slot));
+    config.target.conditions = config.target.conditions.map((condition) =>
+      boundAbilityCondition(availableOptions, condition, true),
+    );
     if (lines.length !== 3 || new Set(config.target.conditions.map((c) => c.type)).size !== 3)
       config.abilityStrategy = 'fixed';
   } else {

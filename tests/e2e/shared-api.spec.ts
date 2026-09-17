@@ -147,9 +147,9 @@ test('searching a different job selects its endgame ability goal from the import
     await expect(page.locator('.mode-fixed')).toContainText('지금부터 업그레이드');
     await expect(page.getByRole('button', { name: '현재 옵션 재현', exact: true })).toHaveCount(0);
     for (const [index, type, value] of [
-      [1, 'bossDamagePercent', '20'],
-      [2, 'statusAilmentDamagePercent', '10'],
-      [3, 'magicAttackFlat', '30'],
+      [1, 'bossDamagePercent', '15'],
+      [2, 'statusAilmentDamagePercent', '9'],
+      [3, 'magicAttackFlat', '27'],
     ] as const) {
       await expect(page.getByLabel(`목표 조건 ${index} 옵션`)).toHaveValue(type);
       await expect(page.getByLabel(`목표 조건 ${index} 수치`)).toHaveValue(value);

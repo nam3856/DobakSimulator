@@ -59,7 +59,7 @@ async function benchmarkReady(page: Page) {
 }
 
 /** Force legal paid outcomes while leaving every benchmark probability and RNG intact. */
-async function forceOneRoll(page: Page, types: string[]) {
+async function forceOneRoll(page: Page, types: string[], batchSize: 1 | 3 = 1) {
   const session = await stored(page);
   const prepared = prepareDraw(
     data,
@@ -87,25 +87,28 @@ async function forceOneRoll(page: Page, types: string[]) {
     );
     prefix.push(rows[index]);
   }
-  await page.evaluate((samples) => {
-    const original = crypto.getRandomValues.bind(crypto);
-    const queued = [...samples];
-    crypto.getRandomValues = <T extends ArrayBufferView | null>(array: T): T => {
-      if (array instanceof Uint32Array && array.length === 2 && queued.length) {
-        array.fill(Math.floor(queued.shift()! * 4294967296));
-        if (!queued.length) crypto.getRandomValues = original;
-        return array;
-      }
-      return original(array as ArrayBufferView) as T;
-    };
-  }, samples);
-  await page.getByRole('button', { name: '1회 재설정하기', exact: true }).click();
+  await page.evaluate(
+    (samples) => {
+      const original = crypto.getRandomValues.bind(crypto);
+      const queued = [...samples];
+      crypto.getRandomValues = <T extends ArrayBufferView | null>(array: T): T => {
+        if (array instanceof Uint32Array && array.length === 2 && queued.length) {
+          array.fill(Math.floor(queued.shift()! * 4294967296));
+          if (!queued.length) crypto.getRandomValues = original;
+          return array;
+        }
+        return original(array as ArrayBufferView) as T;
+      };
+    },
+    Array.from({ length: batchSize }, () => samples).flat(),
+  );
+  await page.getByRole('button', { name: `${batchSize}회 재설정하기`, exact: true }).click();
   await expect(page.locator('.stat-card').first().locator('strong')).toHaveText(
-    `${session.state.attempts + 1n}회`,
+    `${session.state.attempts + BigInt(batchSize)}회`,
   );
 }
 
-test('job presets set three legendary maxima and interchangeable secondary slots', async ({
+test('job presets start at three legendary minimum values and interchangeable secondary slots', async ({
   page,
 }) => {
   await boot(page);
@@ -126,8 +129,8 @@ test('job presets set three legendary maxima and interchangeable secondary slots
   await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
   for (const [index, type, value] of [
     [1, 'passiveSkillLevel', '1'],
-    [2, 'bossDamagePercent', '20'],
-    [3, 'statusAilmentDamagePercent', '10'],
+    [2, 'bossDamagePercent', '15'],
+    [3, 'statusAilmentDamagePercent', '9'],
   ] as const) {
     await expect(page.getByLabel(`목표 조건 ${index} 옵션`)).toHaveValue(type);
     await expect(page.getByLabel(`목표 조건 ${index} 수치`)).toHaveValue(value);
@@ -137,16 +140,58 @@ test('job presets set three legendary maxima and interchangeable secondary slots
   await expect(page.getByRole('button', { name: '1번째 옵션 잠금', exact: true })).toHaveCount(0);
   await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트워커');
   await expect(page.getByLabel('목표 조건 3 옵션')).toHaveValue('attackFlat');
-  await expect(page.getByLabel('목표 조건 3 수치')).toHaveValue('30');
+  await expect(page.getByLabel('목표 조건 3 수치')).toHaveValue('27');
   await page.getByLabel('직업별 종결 어빌리티').selectOption('비숍');
   await expect(page.getByLabel('목표 조건 3 옵션')).toHaveValue('magicAttackFlat');
-  await expect(page.getByLabel('목표 조건 3 수치')).toHaveValue('30');
+  await expect(page.getByLabel('목표 조건 3 수치')).toHaveValue('27');
   await page.getByLabel('직업별 종결 어빌리티').selectOption('메르세데스');
   await expect(page.getByLabel('목표 조건 3 옵션')).toHaveValue('criticalRatePercent');
-  await expect(page.getByLabel('목표 조건 3 수치')).toHaveValue('30');
+  await expect(page.getByLabel('목표 조건 3 수치')).toHaveValue('25');
   await benchmarkReady(page);
   expect((await stored(page)).config.abilityPresetJob).toBe('메르세데스');
   expect((await stored(page)).config.batchSize).toBe(3);
+});
+
+test('ability values clamp on commit and adjust their range when the selected option or grade changes', async ({
+  page,
+}) => {
+  await boot(page);
+  const value = page.getByLabel('목표 조건 1 수치');
+  await expect(value).toHaveValue('15');
+  await expect(value).toHaveAttribute('min', '15');
+  await expect(value).toHaveAttribute('max', '20');
+  await value.fill('19');
+  expect((await stored(page)).config.target.conditions[0].minValue).toBe(19);
+  await value.fill('999');
+  await expect(value).toHaveValue('999');
+  expect((await stored(page)).config.target.conditions[0].minValue).toBe(19);
+  await value.press('Enter');
+  await expect(value).toHaveValue('20');
+  await value.fill('-1');
+  await value.press('Tab');
+  await expect(value).toHaveValue('15');
+  await value.fill('');
+  await value.press('Tab');
+  await expect(value).toHaveValue('15');
+  await page.getByLabel('목표 조건 1 옵션').selectOption('criticalRatePercent');
+  await expect(value).toHaveValue('25');
+  await expect(value).toHaveAttribute('min', '25');
+  await expect(value).toHaveAttribute('max', '30');
+  await page.getByLabel('목표 조건 1 옵션').selectOption('passiveSkillLevel');
+  await expect(value).toHaveValue('1');
+  await expect(value).toHaveAttribute('min', '1');
+  await expect(value).toHaveAttribute('max', '1');
+
+  const secondary = page.getByLabel('목표 조건 2 수치');
+  await expect(secondary).toHaveValue('9');
+  await page.getByLabel('목표 조건 2 등급').selectOption('unique');
+  await expect(secondary).toHaveAttribute('min', '7');
+  await secondary.fill('7');
+  await page.getByLabel('목표 조건 2 등급').selectOption('legendary');
+  await expect(secondary).toHaveValue('9');
+  await page.reload();
+  await expect(page.getByLabel('목표 조건 1 수치')).toHaveValue('1');
+  await expect(page.getByLabel('목표 조건 2 수치')).toHaveValue('9');
 });
 
 test('matching secondary starts lock for free in reversed order and persist paid misses', async ({
@@ -174,6 +219,120 @@ test('matching secondary starts lock for free in reversed order and persist paid
   await expect(page.locator('.spent-stat')).toContainText('명성치 4만');
   expect((await stored(page)).state.spent.meso).toBe(15000000n);
   expect((await stored(page)).playMode).toBe('upgrade');
+});
+
+test('kept ability options can be locked directly, charge manual batches and preserve the new challenge on reload', async ({
+  page,
+}) => {
+  await boot(page);
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+  await selectStart(page, ['passiveSkillLevel', 'bossDamagePercent', 'dexFlat']);
+  await benchmarkReady(page);
+  const before = await stored(page);
+  await expect(
+    page.getByRole('button', { name: '2번째 보관 옵션 잠금 해제', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: '1번째 보관 옵션 잠금', exact: true }).click();
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('fixed');
+  await expect(
+    page.getByRole('button', { name: '3번째 보관 옵션 잠금', exact: true }),
+  ).toBeDisabled();
+  expect((await stored(page)).config.lockedSlots.slice().sort()).toEqual([0, 1]);
+  expect((await stored(page)).state.lines).toEqual(before.state.lines);
+  await benchmarkReady(page);
+  await forceOneRoll(page, ['passiveSkillLevel', 'bossDamagePercent', 'magicAttackFlat'], 3);
+  await expect(page.locator('.candidate-card')).toHaveCount(3);
+  const paid = await stored(page);
+  for (const candidate of paid.state.candidates)
+    expect(candidate.lines.slice(0, 2)).toEqual(before.state.lines.slice(0, 2));
+  expect(paid.state.spent.meso).toBe(45000000n);
+  expect(paid.state.spent.honor).toBe(120000n);
+  expect(paid.config.abilityStrategy).toBe('fixed');
+  expect(paid.state.lines).toEqual(before.state.lines);
+
+  await page.getByRole('button', { name: '1번째 보관 옵션 잠금 해제', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: '3번째 보관 옵션 잠금', exact: true }),
+  ).toBeEnabled();
+  const reset = await stored(page);
+  expect(reset.config.lockedSlots).toEqual([1]);
+  expect(reset.config.start.lines).toEqual(paid.state.lines);
+  expect(reset.state.attempts).toBe(0n);
+  expect(reset.state.spent.meso).toBe(0n);
+  const archive = deserialize<{ config: SimulationConfig; state: SimulationState }[]>(
+    await page.evaluate(() => localStorage.getItem('isekai-jikjak:archive:v1')!),
+  );
+  expect(archive[0].state.spent.meso).toBe(45000000n);
+  await page.getByRole('button', { name: '1회', exact: true }).click();
+  await benchmarkReady(page);
+  await forceOneRoll(page, ['attackFlat', 'bossDamagePercent', 'magicAttackFlat']);
+  const one = await stored(page);
+  expect(one.state.candidates[0].lines[1]).toEqual(before.state.lines[1]);
+  expect(one.state.spent.meso).toBe(6000000n);
+  await page.reload();
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('fixed');
+  await expect(
+    page.getByRole('button', { name: '2번째 보관 옵션 잠금 해제', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: '1번째 보관 옵션 잠금', exact: true }),
+  ).toBeEnabled();
+  await expect(page.locator('.spent-stat strong')).toHaveAttribute('title', '6,000,000');
+  expect((await stored(page)).state.lines).toEqual(before.state.lines);
+});
+
+test('automatic ability execution releases a wrong manual first lock and recomputes lower locks from the current options', async ({
+  page,
+}) => {
+  // Deterministic misses keep the real auto Worker running until the user stops it.
+  await page.route('**/assets/simulator.worker-*.js', async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      body: `self.crypto.getRandomValues = array => { array.fill(0); return array; };\n${await response.text()}`,
+    });
+  });
+  await boot(page);
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+  await selectStart(page, ['attackFlat', 'bossDamagePercent', 'dexFlat']);
+  await benchmarkReady(page);
+  const original = await stored(page);
+  const expectedMean = (await page.locator('.expected-stat strong').textContent())!;
+  await page.getByRole('button', { name: '1번째 보관 옵션 잠금', exact: true }).click();
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('fixed');
+  await expect(page.locator('.expected-stat')).toContainText('달성할 수 없음');
+  await expect(page.getByRole('button', { name: '3회 재설정하기', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '목표까지 자동', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: '목표까지 자동', exact: true }).click();
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('lowerFirst');
+  await expect(page.locator('.current-result').getByLabel('2번째 줄 자동 잠금')).toBeVisible();
+  await expect(page.locator('.current-result').getByLabel('1번째 줄 자동 잠금')).toHaveCount(0);
+  for (const slot of [1, 2, 3])
+    await expect(
+      page.getByRole('button', { name: new RegExp(`^${slot}번째 보관 옵션 잠금`) }),
+    ).toBeDisabled();
+  await expect.poll(async () => (await stored(page)).state.attempts).toBeGreaterThan(0n);
+  await page.getByRole('button', { name: '중지', exact: true }).click();
+  await benchmarkReady(page);
+  const paused = await stored(page);
+  expect(paused.config.abilityStrategy).toBe('lowerFirst');
+  expect(paused.config.lockedSlots).toEqual([]);
+  expect(paused.config.start).toEqual(original.config.start);
+  expect(paused.state.lockedSlots).toEqual([1]);
+  expect(paused.state.lines).toEqual(original.state.lines);
+  expect(paused.state.spent.meso).toBe(paused.state.attempts * 6000000n);
+  await expect(page.locator('.expected-stat strong')).toHaveText(expectedMean);
+  await expect(page.locator('.luck-badge')).toHaveCount(0);
+
+  await page.getByRole('button', { name: '목표까지 자동', exact: true }).click();
+  await expect
+    .poll(async () => (await stored(page)).state.attempts)
+    .toBeGreaterThan(paused.state.attempts);
+  await page.getByRole('button', { name: '중지', exact: true }).click();
+  const resumed = await stored(page);
+  expect(resumed.config.start).toEqual(paused.config.start);
+  expect(resumed.state.spent.meso).toBeGreaterThan(paused.state.spent.meso);
+  await expect(page.locator('.expected-stat strong')).toHaveText(expectedMean);
 });
 
 test('legacy recreate ability sessions archive paid progress and migrate to the loaded character upgrade target', async ({

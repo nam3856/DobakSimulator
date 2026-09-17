@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
   ArrowUpRight,
   Check,
@@ -22,6 +22,12 @@ import type {
 import { GRADE_NAMES, GRADES, METRIC_LABELS } from './constants';
 import { formatAmount, formatPercent } from './format';
 import { buildAvatarUrl } from '../character/avatar';
+import {
+  abilityConditionBounds,
+  boundAbilityCondition,
+  clampConditionValue,
+  type ConditionValueBounds,
+} from './ability-bounds';
 
 export function Field({
   label,
@@ -46,28 +52,53 @@ export function GradeBadge({ grade }: { grade: keyof typeof GRADE_NAMES }) {
 export function OptionLines({
   lines,
   locks,
+  onToggleLock,
+  locksDisabled = false,
+  automaticLocks = false,
   empty = '아직 다른 세계의 결과가 없어요.',
 }: {
   lines: OptionLine[];
   locks?: number[];
+  onToggleLock?: (slot: number) => void;
+  locksDisabled?: boolean;
+  automaticLocks?: boolean;
   empty?: string;
 }) {
   return (
     <div className="option-lines">
       {lines.length ? (
-        lines.map((line, i) => (
-          <div className="option-row" key={i}>
-            <i className={`grade-dot grade-${line.grade}`} aria-label={GRADE_NAMES[line.grade]} />
-            <span>{line.text}</span>
-            {locks?.includes(i) && (
-              <LockKeyhole
-                size={14}
-                className="option-lock"
-                aria-label={`${i + 1}번째 줄 자동 잠금`}
-              />
-            )}
-          </div>
-        ))
+        lines.map((line, i) => {
+          const locked = locks?.includes(i) ?? false;
+          const lockLabel = `${i + 1}번째 줄 ${automaticLocks ? '자동 ' : ''}잠금`;
+          return (
+            <div className={`option-row${onToggleLock ? ' has-lock-control' : ''}`} key={i}>
+              <i className={`grade-dot grade-${line.grade}`} aria-label={GRADE_NAMES[line.grade]} />
+              <span>{line.text}</span>
+              {onToggleLock ? (
+                <button
+                  type="button"
+                  className={`icon-button option-lock-button${locked ? ' locked' : ''}`}
+                  aria-label={`${i + 1}번째 보관 옵션 ${locked ? '잠금 해제' : '잠금'}`}
+                  aria-pressed={locked}
+                  disabled={locksDisabled || (!locked && (locks?.length ?? 0) >= 2)}
+                  onClick={() => onToggleLock(i)}
+                >
+                  {locked ? (
+                    <LockKeyhole
+                      size={17}
+                      aria-label={automaticLocks ? lockLabel : undefined}
+                      aria-hidden={automaticLocks ? undefined : true}
+                    />
+                  ) : (
+                    <UnlockKeyhole size={17} aria-hidden="true" />
+                  )}
+                </button>
+              ) : locked ? (
+                <LockKeyhole size={14} className="option-lock" aria-label={lockLabel} />
+              ) : null}
+            </div>
+          );
+        })
       ) : (
         <p className="empty-copy">{empty}</p>
       )}
@@ -133,17 +164,79 @@ export function LineEditor({
     </div>
   );
 }
+function ConditionValueInput({
+  condition,
+  index,
+  bounds,
+  descriptionId,
+  onChange,
+}: {
+  condition: TargetCondition;
+  index: number;
+  bounds?: ConditionValueBounds;
+  descriptionId?: string;
+  onChange: (patch: Partial<TargetCondition>) => void;
+}) {
+  const value = condition.maxValue ?? condition.minValue;
+  const [draft, setDraft] = useState(String(value));
+  const identity = `${condition.type}:${condition.minGrade}:${condition.slot}:${condition.slots?.join(',')}`;
+  useEffect(() => {
+    setDraft(String(value));
+  }, [value, identity, bounds?.min, bounds?.max]);
+  const update = (next: number) => {
+    if (next !== value)
+      onChange(condition.maxValue !== undefined ? { maxValue: next } : { minValue: next });
+  };
+  const commit = () => {
+    const next = clampConditionValue(draft, bounds, value);
+    setDraft(String(next));
+    update(next);
+  };
+  return (
+    <input
+      aria-label={`목표 조건 ${index + 1} 수치`}
+      aria-describedby={descriptionId}
+      type="number"
+      min={bounds?.min ?? 0}
+      max={bounds?.max}
+      step="0.5"
+      value={draft}
+      onChange={(e) => {
+        const raw = e.target.value;
+        setDraft(raw);
+        const parsed = Number(raw);
+        if (
+          raw.trim() &&
+          Number.isFinite(parsed) &&
+          (!bounds || (parsed >= bounds.min && parsed <= bounds.max))
+        )
+          update(parsed);
+      }}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}
+
 export function GoalEditor({
   goal,
   onChange,
   options,
   mode,
+  conditionBounds,
 }: {
   goal: Goal;
   onChange: (x: Goal) => void;
   options: OptionLine[];
   mode: SimulationConfig['mode'];
+  conditionBounds?: Array<ConditionValueBounds | undefined>;
 }) {
+  const rangeId = useId();
   const lowerTypes = new Set([
     'ability-7dc1b5f41b7891f2',
     'ability-a25eb717baea2b8e',
@@ -159,10 +252,16 @@ export function GoalEditor({
       );
   for (const x of goal.conditions)
     if (!metrics.has(x.type)) metrics.set(x.type, METRIC_LABELS[x.type] ?? x.type);
-  const changeCondition = (i: number, patch: Partial<TargetCondition>) =>
+  const changeCondition = (i: number, patch: Partial<TargetCondition>, useMinimum = false) =>
     onChange({
       ...goal,
-      conditions: goal.conditions.map((x, j) => (j === i ? { ...x, ...patch } : x)),
+      conditions: goal.conditions.map((x, j) =>
+        j !== i
+          ? x
+          : mode === 'ability'
+            ? boundAbilityCondition(options, { ...x, ...patch }, useMinimum)
+            : { ...x, ...patch },
+      ),
     });
   return (
     <div className="goal-editor">
@@ -251,110 +350,151 @@ export function GoalEditor({
       ) : goal.mode !== 'grade' ? (
         <>
           <div className="goal-conditions">
-            {goal.conditions.map((condition, i) => (
-              <div className="goal-condition" key={i}>
-                <div className="condition-main">
-                  <select
-                    aria-label={`목표 조건 ${i + 1} 옵션`}
-                    value={condition.type}
-                    onChange={(e) =>
-                      changeCondition(i, {
-                        type: e.target.value,
-                        minValue: lowerTypes.has(e.target.value) ? 0 : 1,
-                        maxValue: lowerTypes.has(e.target.value) ? 10 : undefined,
-                      })
-                    }
-                  >
-                    {[...metrics].map(([key, label]) => (
-                      <option key={key} value={key}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    aria-label={`목표 조건 ${i + 1} 수치`}
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    value={condition.maxValue ?? condition.minValue}
-                    onChange={(e) =>
-                      changeCondition(
-                        i,
-                        condition.maxValue !== undefined
-                          ? { maxValue: Number(e.target.value) }
-                          : { minValue: Number(e.target.value) },
-                      )
-                    }
-                  />
-                  <span className="condition-comparator">
-                    {condition.maxValue !== undefined ? '이하' : '이상'}
-                  </span>
-                  <button
-                    className="icon-button"
-                    aria-label={`목표 조건 ${i + 1} 삭제`}
-                    onClick={() =>
-                      onChange({ ...goal, conditions: goal.conditions.filter((_, j) => j !== i) })
-                    }
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-                {mode === 'ability' && (
-                  <div className="ability-condition-meta">
+            {goal.conditions.map((condition, i) => {
+              const bounds =
+                conditionBounds?.[i] ??
+                (mode === 'ability' ? abilityConditionBounds(options, condition) : undefined);
+              const descriptionId = bounds ? `${rangeId}-condition-${i}` : undefined;
+              return (
+                <div className="goal-condition" key={i}>
+                  <div className="condition-main">
                     <select
-                      aria-label={`목표 조건 ${i + 1} 줄`}
-                      value={
-                        condition.slots?.length === 2 &&
-                        condition.slots.includes(1) &&
-                        condition.slots.includes(2)
-                          ? 'lower'
-                          : (condition.slot ?? -1)
-                      }
+                      aria-label={`목표 조건 ${i + 1} 옵션`}
+                      value={condition.type}
                       onChange={(e) =>
-                        changeCondition(i, {
-                          slot:
-                            e.target.value === 'lower' || Number(e.target.value) < 0
-                              ? undefined
-                              : Number(e.target.value),
-                          slots: e.target.value === 'lower' ? [1, 2] : undefined,
-                        })
+                        changeCondition(
+                          i,
+                          {
+                            type: e.target.value,
+                            minValue: lowerTypes.has(e.target.value) ? 0 : 1,
+                            maxValue: lowerTypes.has(e.target.value) ? 10 : undefined,
+                          },
+                          true,
+                        )
                       }
                     >
-                      <option value={-1}>아무 줄</option>
-                      <option value="lower">2·3번째 줄 중 하나</option>
-                      {[0, 1, 2].map((x) => (
-                        <option key={x} value={x}>
-                          {x + 1}번째 줄
+                      {[...metrics].map(([key, label]) => (
+                        <option key={key} value={key}>
+                          {label}
                         </option>
                       ))}
                     </select>
-                    <select
-                      aria-label={`목표 조건 ${i + 1} 등급`}
-                      value={condition.minGrade ?? 'epic'}
-                      onChange={(e) =>
-                        changeCondition(i, {
-                          minGrade: e.target.value as TargetCondition['minGrade'],
-                        })
+                    {mode === 'ability' || bounds ? (
+                      <ConditionValueInput
+                        condition={condition}
+                        index={i}
+                        bounds={bounds}
+                        descriptionId={descriptionId}
+                        onChange={(patch) => changeCondition(i, patch)}
+                      />
+                    ) : (
+                      <input
+                        aria-label={`목표 조건 ${i + 1} 수치`}
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        value={condition.maxValue ?? condition.minValue}
+                        onChange={(e) =>
+                          changeCondition(
+                            i,
+                            condition.maxValue !== undefined
+                              ? { maxValue: Number(e.target.value) }
+                              : { minValue: Number(e.target.value) },
+                          )
+                        }
+                      />
+                    )}
+                    <span className="condition-comparator">
+                      {condition.maxValue !== undefined ? '이하' : '이상'}
+                    </span>
+                    <button
+                      className="icon-button"
+                      aria-label={`목표 조건 ${i + 1} 삭제`}
+                      onClick={() =>
+                        onChange({ ...goal, conditions: goal.conditions.filter((_, j) => j !== i) })
                       }
                     >
-                      {GRADES.filter((x) => x !== 'rare').map((x) => (
-                        <option key={x} value={x}>
-                          {GRADE_NAMES[x]} 이상
-                        </option>
-                      ))}
-                    </select>
+                      <Trash2 size={14} />
+                    </button>
                   </div>
-                )}
-              </div>
-            ))}
+                  {bounds && (
+                    <small className="condition-range" id={descriptionId}>
+                      입력 범위{' '}
+                      {bounds.min === bounds.max
+                        ? `${bounds.min} 고정`
+                        : `${bounds.min} ~ ${bounds.max}`}
+                    </small>
+                  )}
+                  {mode === 'ability' && (
+                    <div className="ability-condition-meta">
+                      <select
+                        aria-label={`목표 조건 ${i + 1} 줄`}
+                        value={
+                          condition.slots?.length === 2 &&
+                          condition.slots.includes(1) &&
+                          condition.slots.includes(2)
+                            ? 'lower'
+                            : (condition.slot ?? -1)
+                        }
+                        onChange={(e) =>
+                          changeCondition(i, {
+                            slot:
+                              e.target.value === 'lower' || Number(e.target.value) < 0
+                                ? undefined
+                                : Number(e.target.value),
+                            slots: e.target.value === 'lower' ? [1, 2] : undefined,
+                          })
+                        }
+                      >
+                        <option value={-1}>아무 줄</option>
+                        <option value="lower">2·3번째 줄 중 하나</option>
+                        {[0, 1, 2].map((x) => (
+                          <option key={x} value={x}>
+                            {x + 1}번째 줄
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        aria-label={`목표 조건 ${i + 1} 등급`}
+                        value={condition.minGrade ?? 'epic'}
+                        onChange={(e) =>
+                          changeCondition(i, {
+                            minGrade: e.target.value as TargetCondition['minGrade'],
+                          })
+                        }
+                      >
+                        {GRADES.filter((x) => x !== 'rare').map((x) => (
+                          <option key={x} value={x}>
+                            {GRADE_NAMES[x]} 이상
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div className="goal-actions">
             <button
               className="text-button"
               onClick={() => {
                 const type = [...metrics.keys()][0];
-                if (type)
-                  onChange({ ...goal, conditions: [...goal.conditions, { type, minValue: 1 }] });
+                if (type) {
+                  const condition: TargetCondition =
+                    mode === 'ability' && lowerTypes.has(type)
+                      ? { type, minValue: 0, maxValue: 10 }
+                      : { type, minValue: 1 };
+                  onChange({
+                    ...goal,
+                    conditions: [
+                      ...goal.conditions,
+                      mode === 'ability'
+                        ? boundAbilityCondition(options, condition, true)
+                        : condition,
+                    ],
+                  });
+                }
               }}
             >
               <Plus size={14} /> 조건 추가
