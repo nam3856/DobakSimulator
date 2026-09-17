@@ -1184,6 +1184,10 @@ small {
   margin-left: 4px;
 }
 .reaction-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 240px auto;
+  isolation: isolate;
   border: 1px solid var(--border);
   border-radius: 12px;
   background:
@@ -1194,6 +1198,10 @@ small {
   min-height: 293px;
 }
 .reaction-stage-head {
+  grid-column: 1;
+  grid-row: 1;
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1220,45 +1228,53 @@ small {
   padding: 4px 8px;
 }
 .reaction-scene {
-  height: 166px;
+  grid-column: 1;
+  grid-row: 2;
+  height: 240px;
   position: relative;
-  max-width: 420px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 520px;
+  justify-self: center;
+  pointer-events: none;
 }
 .stage-sprite {
   position: absolute;
-  left: calc(50% - 120px);
-  top: -4px;
-  width: 240px;
-  height: 200px;
+  left: calc(50% - 300px);
+  top: -100px;
+  width: 600px;
+  height: 500px;
   z-index: 2;
+}
+.stage-sprite.reaction-cry {
+  margin-left: 24px;
+  top: -140px;
 }
 .character-ground {
   position: absolute;
-  width: 126px;
-  height: 14px;
+  width: 190px;
+  height: 20px;
   border-radius: 50%;
   background: var(--accent);
   opacity: 0.09;
-  left: calc(50% - 63px);
-  top: 146px;
+  left: calc(50% - 95px);
+  top: 222px;
 }
 .world-orbit {
   position: absolute;
   border: 1px solid var(--border);
   border-radius: 50%;
   left: 50%;
-  top: 91px;
+  top: 137px;
   transform: translate(-50%, -50%);
   opacity: 0.55;
 }
 .orbit-one {
-  width: 136px;
-  height: 136px;
+  width: 210px;
+  height: 210px;
 }
 .orbit-two {
-  width: 194px;
-  height: 194px;
+  width: 285px;
+  height: 285px;
   opacity: 0.22;
 }
 .star {
@@ -1276,9 +1292,23 @@ small {
   font-size: 14px;
 }
 .reaction-copy {
+  grid-column: 1;
+  grid-row: 3;
+  align-self: start;
+  justify-self: center;
+  z-index: 3;
+  width: min(100%, 480px);
   text-align: center;
   position: relative;
-  margin-top: 11px;
+  margin-top: -45px;
+  padding: 17px 18px;
+  border: 1px solid #ffffff1c;
+  border-radius: 14px;
+  color: #f2f5ee;
+  background: linear-gradient(180deg, #10170f9e, #10170fe6);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  box-shadow: 0 8px 28px #00000018;
 }
 .reaction-copy h3 {
   font-size: 16px;
@@ -1286,7 +1316,7 @@ small {
   font-weight: 550;
 }
 .reaction-copy p {
-  color: var(--muted);
+  color: #d1d9cc;
   font-size: 12px;
   margin-top: 7px;
   line-height: 1.8;
@@ -1294,26 +1324,27 @@ small {
 .ratio-copy {
   display: inline-block;
   font-size: 12px;
-  color: var(--muted);
+  color: #e1e7dc;
   margin-top: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid #ffffff26;
+  background: #050a06a6;
   border-radius: 20px;
   padding: 4px 10px;
 }
 .ratio-copy b {
-  color: var(--accent);
+  color: #d0ef9e;
   font-weight: 600;
 }
 .reaction-stage.is-jackpot {
   border-color: var(--accent);
 }
 .reaction-stage.is-cry .ratio-copy b {
-  color: var(--danger);
+  color: #ffb3a5;
 }
 .reaction-symbol {
   position: absolute;
-  top: 100px;
-  left: calc(50% + 55px);
+  top: 98px;
+  left: calc(50% + 86px);
   font-size: 22px;
   color: var(--muted);
 }
@@ -1333,6 +1364,14 @@ small {
   font-size: 24px;
   background: var(--panel-raised);
   border-radius: 50%;
+}
+.avatar-fallback.stage-sprite {
+  width: 160px;
+  height: 160px;
+  left: calc(50% - 80px);
+  margin-left: 0;
+  top: 46px;
+  font-size: 60px;
 }
 .distribution {
   position: relative;
@@ -2400,9 +2439,6 @@ progress::-moz-progress-bar {
   }
   .history-panel > summary {
     padding: 16px;
-  }
-  .reaction-scene {
-    height: 160px;
   }
   .history-row > div > span:last-child {
     font-size: 13px;
