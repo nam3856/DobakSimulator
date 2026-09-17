@@ -46,23 +46,23 @@ async function simulationSnapshot(page: Page) {
   };
 }
 
-test('each equal random quartile loads its original banner under the Pages subpath', async ({
+test('each equal random third loads an enabled banner under the Pages subpath', async ({
   page,
 }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  for (let index = 0; index < 4; index++) {
-    await openBanner(page, (index + 0.5) / 4);
+  for (let index = 0; index < 3; index++) {
+    await openBanner(page, (index + 0.5) / 3);
     const image = page.locator('.fake-ad-banner img');
     await expect(image).toHaveAttribute(
       'src',
-      new RegExp(`banners/ad-${index + 1}\\.png(?:\\?|$)`),
+      new RegExp(`banners/ad-${index + 2}\\.png(?:\\?|$)`),
     );
     await expect(image).toHaveJSProperty('naturalWidth', 1028);
     await expect(image).toHaveJSProperty('naturalHeight', 382);
     await expect(image).toHaveAttribute('alt', /\S/);
     const resource = await image.evaluate((element: HTMLImageElement) => element.currentSrc);
-    expect(new URL(resource).pathname).toBe(`/DobakSimulator/banners/ad-${index + 1}.png`);
+    expect(new URL(resource).pathname).toBe(`/DobakSimulator/banners/ad-${index + 2}.png`);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/이세계 직작/);
     await expect(page.getByRole('heading', { name: '같은 목표, 다른 세계의 나.' })).toHaveCount(0);
   }
@@ -75,6 +75,7 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
   await pauseClock(page);
   await openBanner(page, 0, '#soulAmplification', true);
   const image = page.locator('.fake-ad-banner img');
+  await expect(image).not.toHaveAttribute('src', /ad-1\.png/);
   const first = await image.getAttribute('src');
   await page.clock.fastForward(29700);
   await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
@@ -94,6 +95,7 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
   for (let index = 0; index < 3; index++) {
     await page.clock.fastForward(60000);
     await expect(image).not.toHaveAttribute('src', previous!);
+    await expect(image).not.toHaveAttribute('src', /ad-1\.png/);
     previous = await image.getAttribute('src');
   }
   expect(await simulationSnapshot(page)).toEqual(state);

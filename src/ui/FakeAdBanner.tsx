@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
 const BANNERS = [
-  { file: 'ad-1.png', name: '메이플스토리 불족발' },
   { file: 'ad-2.png', name: '스타포스 지금 누르러 가기' },
   { file: 'ad-3.png', name: '메이플스토리 헬스장' },
   { file: 'ad-4.png?v=2', name: '메이플스토리 연애 시뮬레이터' },
