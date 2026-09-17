@@ -86,6 +86,7 @@ import { archiveSession, readSession, saveSession } from './ui/storage';
 import { lowerFirstGoal, makeConfig, reconcileLines } from './ui/setup';
 import { clampConditionValue } from './ui/ability-bounds';
 import { getPotentialConditionBounds } from './ui/potential-bounds';
+import { FakeAdBanner } from './ui/FakeAdBanner';
 
 const baseUrl = new URL(import.meta.env.BASE_URL, document.baseURI).href;
 const forMode = (items: EquipmentSnapshot[], mode: SimulatorMode) =>
@@ -857,20 +858,9 @@ export default function App() {
         </div>
       </header>
       <main>
+        <h1 className="sr-only">이세계 직작 시뮬레이터</h1>
         <section className="hero">
-          <div className="hero-copy">
-            <div className="eyebrow">
-              <span className="tiny-line" /> SAME GOAL. ANOTHER CHANCE.
-            </div>
-            <h1>
-              같은 목표,
-              <br className="mobile-break" /> <span>다른 세계의 나.</span>
-            </h1>
-            <p>
-              이세계에서 내가 직접 돌렸다면 얼마나 썼을까?
-              <br className="mobile-break" /> 목표를 정하고, 또 다른 나의 운을 확인해 보세요.
-            </p>
-          </div>
+          <FakeAdBanner />
           <button className="character-card" onClick={openSearch} aria-label="캐릭터 검색 열기">
             <div className="portrait-frame">
               <Avatar character={character} />

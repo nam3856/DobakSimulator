@@ -29,7 +29,7 @@ async function openSharedSearch(page: Page) {
     route.fulfill({ json: { characterApiBaseUrl: SHARED_API } }),
   );
   await page.goto('./#cube');
-  await expect(page.getByRole('heading', { name: '같은 목표, 다른 세계의 나.' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toBeVisible();
   await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toContainText('깽미니');
   await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
   await expect(page.getByRole('button', { name: '개인 키로 전환', exact: true })).toBeVisible();

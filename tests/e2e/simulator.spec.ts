@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
 
 async function boot(page: Page, hash = '#cube') {
   await page.goto(`./${hash}`);
-  await expect(page.getByRole('heading', { name: '같은 목표, 다른 세계의 나.' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toBeVisible();
   await expect(page.locator('.expected-stat')).not.toContainText('계산 중');
 }
 const nav = (page: Page, name: string) =>

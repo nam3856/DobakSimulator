@@ -69,6 +69,17 @@ body {
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
 button,
 input,
 select {
@@ -251,28 +262,53 @@ small {
   align-items: center;
   gap: 9px;
 }
-.tiny-line {
-  width: 18px;
-  height: 1px;
-  background: var(--accent);
+.hero-banner {
+  flex: 1;
+  min-width: 0;
 }
-.hero h1 {
-  font-size: 36px;
-  line-height: 1.5;
-  letter-spacing: -1.8px;
-  font-weight: 650;
-  margin: 9px 0;
+.fake-ad-banner {
+  display: block;
+  position: relative;
+  width: 100%;
+  max-width: 592px;
+  aspect-ratio: 1028 / 382;
+  padding: 0;
+  border: 0;
+  background: #fff;
+  overflow: hidden;
 }
-.hero h1 > span {
-  color: var(--accent);
+.fake-ad-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
-.hero p {
-  font-size: 14px;
-  line-height: 1.9;
+.fake-ad-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
   color: var(--muted);
+  background: var(--panel);
 }
-.mobile-break {
-  display: none;
+.fake-ad-toast {
+  position: fixed;
+  z-index: 40;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(540px, calc(100% - 32px));
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--panel-raised);
+  box-shadow: 0 6px 24px #00000030;
+  font-size: 13px;
+  text-align: center;
+  pointer-events: none;
 }
 .character-card {
   border: 1px solid var(--border);
@@ -284,6 +320,7 @@ small {
   text-align: left;
   gap: 10px;
   min-width: 285px;
+  flex-shrink: 0;
   box-shadow: var(--shadow);
 }
 .character-card:hover {
@@ -1918,9 +1955,6 @@ progress::-moz-progress-bar {
   .simulation-panel {
     padding: 20px;
   }
-  .hero h1 {
-    font-size: 30px;
-  }
   .character-card {
     min-width: 260px;
   }
@@ -1981,17 +2015,6 @@ progress::-moz-progress-bar {
   .hero {
     padding: 28px 0 24px;
     gap: 16px;
-  }
-  .hero h1 {
-    font-size: 27px;
-    letter-spacing: -1.4px;
-  }
-  .hero p {
-    font-size: 12px;
-  }
-  .hero .eyebrow {
-    font-size: 11px;
-    letter-spacing: 1.2px;
   }
   .character-card {
     min-width: 220px;
@@ -2162,18 +2185,6 @@ progress::-moz-progress-bar {
   .hero {
     display: block;
     padding: 26px 0 20px;
-  }
-  .hero h1 {
-    font-size: 31px;
-    line-height: 1.45;
-    margin: 12px 0 10px;
-  }
-  .hero p {
-    font-size: 13px;
-    line-height: 1.85;
-  }
-  .mobile-break {
-    display: block;
   }
   .character-card {
     margin-top: 20px;
