@@ -150,12 +150,39 @@
 .optimizer-steps {
   margin: 20px 0 0;
   border-top: 1px solid var(--border);
-  padding: 18px 0 0 22px;
+  padding: 20px 0 0;
+  list-style: none;
   font-size: 13px;
   line-height: 1.9;
 }
+.optimizer-steps li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.optimizer-step-number,
+.optimizer-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-raised);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.optimizer-step-number {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
 .optimizer-steps li + li {
-  margin-top: 9px;
+  margin-top: 14px;
 }
 .optimizer-comparison .panel-heading {
   flex-wrap: wrap;
@@ -180,15 +207,11 @@
 }
 .optimizer-strategy summary {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   cursor: pointer;
   padding: 17px;
-}
-.optimizer-rank {
-  color: var(--faint);
-  font-size: 13px;
 }
 .optimizer-strategy-name {
   font-weight: 650;
@@ -263,7 +286,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .optimizer-strategy summary {
-    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-columns: 28px minmax(0, 1fr);
     gap: 8px;
     padding: 14px;
   }

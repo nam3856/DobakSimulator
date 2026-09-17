@@ -436,11 +436,7 @@ export function AbilityOptimizer({
               <p>{best.description}</p>
               <strong className="optimizer-total">{money(best.totalCost)}</strong>
               <CostBreakdown strategy={best} medalPrice={medal!} circulatorPrice={circulator!} />
-              <ol className="optimizer-steps">
-                {best.steps.map((step, index) => (
-                  <li key={index}>{step}</li>
-                ))}
-              </ol>
+              <StrategySteps steps={best.steps} />
             </section>
           )}
           {!!result && (
@@ -487,11 +483,7 @@ export function AbilityOptimizer({
                         medalPrice={medal!}
                         circulatorPrice={circulator!}
                       />
-                      <ol className="optimizer-steps">
-                        {strategy.steps.map((step, position) => (
-                          <li key={position}>{step}</li>
-                        ))}
-                      </ol>
+                      <StrategySteps steps={strategy.steps} />
                     </div>
                   </details>
                 ))}
@@ -542,6 +534,24 @@ export function AbilityOptimizer({
         </div>
       </div>
     </section>
+  );
+}
+
+function StrategySteps({ steps }: { steps: string[] }) {
+  return (
+    <ol className="optimizer-steps" role="list" aria-label="진행 순서">
+      {steps.map((step, index) => (
+        <li key={index}>
+          <span className="optimizer-step-number" aria-hidden="true">
+            {index + 1}
+          </span>
+          <span>
+            <span className="sr-only">{index + 1}단계: </span>
+            {step}
+          </span>
+        </li>
+      ))}
+    </ol>
   );
 }
 
