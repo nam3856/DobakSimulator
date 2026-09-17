@@ -104,8 +104,6 @@ export default function App() {
   const [equipmentPreset, setEquipmentPreset] = useState('1');
   const [abilityPreset, setAbilityPreset] = useState('1');
   const [equipmentId, setEquipmentId] = useState('');
-  const [playMode, setPlayMode] = useState<'recreate' | 'upgrade'>('recreate');
-  const effectivePlayMode = config?.mode === 'ability' ? 'upgrade' : playMode;
   const [benchmark, setBenchmark] = useState<BenchmarkResult>();
   const [bootError, setBootError] = useState('');
   const [message, setMessage] = useState('');
@@ -165,7 +163,7 @@ export default function App() {
       equipmentPreset,
       abilityPreset,
       equipmentId,
-      playMode: effectivePlayMode,
+      playMode: 'upgrade',
     };
   useEffect(() => {
     const flush = () => {
@@ -343,7 +341,7 @@ export default function App() {
           setEquipmentPreset(stored.equipmentPreset);
           setAbilityPreset(stored.abilityPreset);
           setEquipmentId(stored.equipmentId);
-          setPlayMode(stored.playMode);
+          if (stored.playMode === 'recreate') archiveSession(stored.config, stored.state);
           const requested = getModeFromHash();
           if (location.hash && requested !== stored.config.mode) {
             const items = stored.character.equipmentPresets[stored.equipmentPreset] ?? [];
@@ -359,26 +357,33 @@ export default function App() {
                 selected,
                 requested,
                 stored.config.cubeType,
-                stored.playMode,
                 stored.abilityPreset,
               ),
               rules,
               false,
             );
-          } else if (stored.config.mode === 'ability' && stored.playMode === 'recreate') {
-            archiveSession(stored.config, stored.state);
+          } else if (stored.playMode === 'recreate') {
+            const items = forMode(
+              stored.character.equipmentPresets[stored.equipmentPreset] ?? [],
+              stored.config.mode,
+            );
+            const selected =
+              items.find((x) => x.id === stored.equipmentId) ??
+              items.find((x) => x.category === 'weapon') ??
+              items[0];
+            setEquipmentId(selected?.id ?? '');
             const draft = makeConfig(
               rules,
               stored.character,
-              undefined,
-              'ability',
+              selected,
+              stored.config.mode,
               stored.config.cubeType,
-              'upgrade',
               stored.abilityPreset,
             );
             begin(
               {
                 ...draft,
+                target: stored.config.mode === 'ability' ? draft.target : stored.config.target,
                 batchSize: stored.config.batchSize,
                 unitPrices: stored.config.unitPrices,
               },
@@ -386,7 +391,9 @@ export default function App() {
               false,
             );
             setMessage(
-              '어빌리티는 현재 옵션에서 업그레이드합니다. 불러온 어빌리티와 내 직업 목표로 새 도전을 시작했어요.',
+              stored.config.mode === 'ability'
+                ? '어빌리티는 현재 옵션에서 업그레이드합니다. 불러온 어빌리티와 내 직업 목표로 새 도전을 시작했어요.'
+                : '현재 장비에서 업그레이드하도록 변경되었습니다. 이전 기록을 보관하고 불러온 장비의 옵션과 단계에서 새 도전을 시작했어요.',
             );
           } else if (
             stored.config.mode === 'ability' &&
@@ -437,7 +444,6 @@ export default function App() {
               first,
               getModeFromHash(),
               'black',
-              'recreate',
               defaultCharacter.activeAbilityPreset,
             ),
             rules,
@@ -534,13 +540,13 @@ export default function App() {
             equipmentPreset,
             abilityPreset,
             equipmentId,
-            playMode: effectivePlayMode,
+            playMode: 'upgrade',
           }),
         ),
       300,
     );
     return () => clearTimeout(handle);
-  }, [character, config, state, equipmentPreset, abilityPreset, equipmentId, effectivePlayMode]);
+  }, [character, config, state, equipmentPreset, abilityPreset, equipmentId]);
   useEffect(
     () => () => {
       benchWorker.current?.terminate();
@@ -557,7 +563,7 @@ export default function App() {
     };
     addEventListener('hashchange', listener);
     return () => removeEventListener('hashchange', listener);
-  }, [data, character, config, equipmentId, equipmentPreset, playMode]);
+  }, [data, character, config, equipmentId, equipmentPreset]);
 
   function patchConfig(patch: Partial<SimulationConfig>, resetLines = false) {
     if (!config || !data) return;
@@ -631,7 +637,7 @@ export default function App() {
       setEquipmentId(nextItem?.id ?? '');
     }
     history.replaceState(null, '', `#${mode}`);
-    begin(makeConfig(data, character, nextItem, mode, config.cubeType, playMode, abilityPreset));
+    begin(makeConfig(data, character, nextItem, mode, config.cubeType, abilityPreset));
   }
   function chooseItem(id: string) {
     if (!data || !character || !config) return;
@@ -643,7 +649,6 @@ export default function App() {
         equipment.find((x) => x.id === id),
         config.mode,
         config.cubeType,
-        playMode,
         abilityPreset,
       ),
     );
@@ -657,18 +662,11 @@ export default function App() {
       next.find((x) => x.category === 'weapon') ??
       next[0];
     setEquipmentId(selected?.id ?? '');
-    begin(
-      makeConfig(data, character, selected, config.mode, config.cubeType, playMode, abilityPreset),
-    );
+    begin(makeConfig(data, character, selected, config.mode, config.cubeType, abilityPreset));
   }
   function chooseCube(cubeType: CubeType) {
     if (!data || !character || !config) return;
-    begin(makeConfig(data, character, item, 'cube', cubeType, playMode, abilityPreset));
-  }
-  function choosePlayMode(next: 'recreate' | 'upgrade') {
-    if (!data || !character || !config || config.mode === 'ability') return;
-    setPlayMode(next);
-    begin(makeConfig(data, character, item, config.mode, config.cubeType, next, abilityPreset));
+    begin(makeConfig(data, character, item, 'cube', cubeType, abilityPreset));
   }
   function openSearch() {
     setName('');
@@ -701,17 +699,8 @@ export default function App() {
       const nextItems = forMode(next.equipmentPresets[next.activeEquipmentPreset], config!.mode);
       const selected = nextItems.find((x) => x.category === 'weapon') ?? nextItems[0];
       setEquipmentId(selected?.id ?? '');
-      setPlayMode('recreate');
       begin(
-        makeConfig(
-          data!,
-          next,
-          selected,
-          config!.mode,
-          config!.cubeType,
-          'recreate',
-          next.activeAbilityPreset,
-        ),
+        makeConfig(data!, next, selected, config!.mode, config!.cubeType, next.activeAbilityPreset),
       );
       setSearchOpen(false);
       setMessage(`${next.name}의 최신 장비와 어빌리티를 불러왔어요.`);
@@ -924,29 +913,18 @@ export default function App() {
                 </h2>
                 <span className="panel-step">01</span>
               </div>
-              {config.mode === 'ability' ? (
-                <div className="mode-fixed">
-                  <span>
-                    <ArrowUpRight size={16} /> 지금부터 업그레이드
-                  </span>
-                  <small>불러온 현재 어빌리티에서 목표 옵션을 완성합니다.</small>
-                </div>
-              ) : (
-                <div className="segmented">
-                  <button
-                    className={playMode === 'recreate' ? 'selected' : ''}
-                    onClick={() => choosePlayMode('recreate')}
-                  >
-                    현재 옵션 재현
-                  </button>
-                  <button
-                    className={playMode === 'upgrade' ? 'selected' : ''}
-                    onClick={() => choosePlayMode('upgrade')}
-                  >
-                    지금부터 업그레이드
-                  </button>
-                </div>
-              )}
+              <div className="mode-fixed">
+                <span>
+                  <ArrowUpRight size={16} /> 지금부터 업그레이드
+                </span>
+                <small>
+                  {config.mode === 'ability'
+                    ? '불러온 현재 어빌리티에서 목표 옵션을 완성합니다.'
+                    : config.mode === 'soulAmplification'
+                      ? '불러온 현재 소울 증폭 단계에서 목표 단계에 도전합니다.'
+                      : '불러온 현재 장비 옵션에서 목표 옵션을 완성합니다.'}
+                </small>
+              </div>
               {config.mode !== 'ability' ? (
                 <>
                   <div className="field-row equipment-fields">
@@ -1010,7 +988,6 @@ export default function App() {
                           item,
                           config.mode,
                           config.cubeType,
-                          playMode,
                           e.target.value,
                         ),
                       );
@@ -1247,11 +1224,6 @@ export default function App() {
                     {config.mode === 'cube' && isPrime(config.cubeType) && (
                       <small className="inline-note">
                         첫 번째 옵션은 고정됩니다. 확보 과정은 비용에 포함되지 않습니다.
-                      </small>
-                    )}
-                    {effectivePlayMode === 'recreate' && (
-                      <small className="inline-note">
-                        재현 목표와 별개로 생성한 시작 옵션입니다. 생성 비용은 포함하지 않습니다.
                       </small>
                     )}
                   </details>

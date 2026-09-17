@@ -66,7 +66,6 @@ export function makeConfig(
   item: EquipmentSnapshot | undefined,
   mode: SimulatorMode,
   cubeType: CubeType,
-  playMode: 'recreate' | 'upgrade',
   abilityPreset: string,
 ): SimulationConfig {
   const side =
@@ -101,9 +100,7 @@ export function makeConfig(
       lines: [],
       stage:
         mode === 'soulAmplification'
-          ? playMode === 'upgrade'
-            ? (item?.soul?.stage ?? 0)
-            : 0
+          ? (item?.soul?.stage ?? 0)
           : Math.max(1, item?.soul?.stage ?? 1),
       failures: 0,
     },
@@ -166,8 +163,7 @@ export function makeConfig(
       ];
     if (!item && mode === 'cube')
       config.target.conditions = [{ type: `${character.profile.attackType}Percent`, minValue: 21 }];
-    if (playMode === 'upgrade') config.start.lines = lines;
-    else if (mode === 'cube' && isPrime(cubeType) && lines[0]) config.start.lines = [lines[0]];
+    config.start.lines = lines;
   }
   return config;
 }

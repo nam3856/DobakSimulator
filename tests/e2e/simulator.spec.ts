@@ -15,6 +15,16 @@ async function boot(page: Page, hash = '#cube') {
 const nav = (page: Page, name: string) =>
   page.getByRole('navigation').getByRole('button', { name, exact: true });
 
+async function setUnsuccessfulCubeStart(page: Page) {
+  const details = page.locator('.start-details');
+  if (!(await details.evaluate((element: HTMLDetailsElement) => element.open)))
+    await details.locator('summary').click();
+  // The imported weapon already meets its initial goal. Explicit STR lines let this test roll.
+  for (const slot of [1, 2, 3])
+    await page.getByLabel(`${slot}번째 시작 옵션`).selectOption({ index: 1 });
+  await expect(page.locator('.expected-stat')).toContainText('같은 조건의 평균 소비');
+}
+
 test('bundled character, Worker benchmark and hash reload work under the Pages subpath', async ({
   page,
 }) => {
@@ -22,6 +32,7 @@ test('bundled character, Worker benchmark and hash reload work under the Pages s
   page.on('pageerror', (error) => errors.push(error.message));
   await boot(page);
   await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toContainText('깽미니');
+  await setUnsuccessfulCubeStart(page);
   await expect(page.locator('.expected-stat')).toContainText('같은 조건의 평균 소비');
   await expect(page.locator('.portrait-frame img')).toHaveJSProperty('naturalWidth', 300);
   await nav(page, '소울 증폭').click();
@@ -33,6 +44,7 @@ test('bundled character, Worker benchmark and hash reload work under the Pages s
 
 test('three comparison rolls charge all three and persist BigInt costs', async ({ page }) => {
   await boot(page);
+  await setUnsuccessfulCubeStart(page);
   await expect(page.getByRole('button', { name: '3회 비교', exact: true })).toHaveClass(/selected/);
   await page.getByRole('button', { name: '3회 재설정하기', exact: true }).click();
   await expect(page.locator('.stat-card').first().locator('strong')).toContainText('3');
@@ -160,7 +172,6 @@ test('already satisfied starts get no final luck label; impossible exact goals d
   page,
 }) => {
   await boot(page);
-  await page.getByRole('button', { name: '지금부터 업그레이드', exact: true }).click();
   await expect(page.locator('.expected-stat')).toContainText('시작 상태가 이미 목표를 만족');
   await expect(page.locator('.luck-badge')).toHaveCount(0);
   await page.getByLabel('성공 기준').selectOption('exact');

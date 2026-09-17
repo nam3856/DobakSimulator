@@ -31,7 +31,7 @@ describe('user-supplied advanced ability endgame presets', () => {
     expect(resolveAbilityPreset('없는 직업')).toBeUndefined();
   });
   it('uses legendary maxima from the official draw pools for every job and slot', () => {
-    const cfg = makeConfig(data, character, undefined, 'ability', 'black', 'recreate', '1');
+    const cfg = makeConfig(data, character, undefined, 'ability', 'black', '1');
     for (const preset of ABILITY_JOB_PRESETS) {
       const goal = makeAbilityPresetGoal(data, preset.job);
       const config = { ...cfg, target: goal };
@@ -81,51 +81,43 @@ describe('user-supplied advanced ability endgame presets', () => {
     });
     expect(makeAbilityPresetGoal(data, '불독').lines[2].type).toBe('magicAttackFlat');
   });
-  it.each(['recreate', 'upgrade'] as const)(
-    'starts from the selected imported ability preset and selects the loaded job in %s mode',
-    (playMode) => {
-      for (const job of ['메카닉', '비숍', '아크메이지 (불, 독)']) {
-        for (const abilityPreset of ['1', '2']) {
-          const cfg = makeConfig(
-            data,
-            { ...character, job },
-            undefined,
-            'ability',
-            'black',
-            playMode,
-            abilityPreset,
-          );
-          expect(cfg.abilityPresetJob).toBe(resolveAbilityPreset(job)?.job);
-          expect(cfg.target).toEqual(makeAbilityPresetGoal(data, job, 'minimum'));
-          expect(cfg.start.lines.map((line) => [line.text, line.grade])).toEqual(
-            character.abilityPresets[abilityPreset].lines.map((line) => [line.text, line.grade]),
-          );
-          expect(cfg.abilityStrategy).toBe('lowerFirst');
-          expect(cfg.batchSize).toBe(3);
-          expect(abilityStrategyErrors(cfg)).toEqual([]);
-        }
+  it('starts from the selected imported ability preset and selects the loaded job', () => {
+    for (const job of ['메카닉', '비숍', '아크메이지 (불, 독)']) {
+      for (const abilityPreset of ['1', '2']) {
+        const cfg = makeConfig(
+          data,
+          { ...character, job },
+          undefined,
+          'ability',
+          'black',
+          abilityPreset,
+        );
+        expect(cfg.abilityPresetJob).toBe(resolveAbilityPreset(job)?.job);
+        expect(cfg.target).toEqual(makeAbilityPresetGoal(data, job, 'minimum'));
+        expect(cfg.start.lines.map((line) => [line.text, line.grade])).toEqual(
+          character.abilityPresets[abilityPreset].lines.map((line) => [line.text, line.grade]),
+        );
+        expect(cfg.abilityStrategy).toBe('lowerFirst');
+        expect(cfg.batchSize).toBe(3);
+        expect(abilityStrategyErrors(cfg)).toEqual([]);
       }
-    },
-  );
-  it.each(['recreate', 'upgrade'] as const)(
-    'uses the imported option types at their minimum values for an unknown job in %s mode',
-    (playMode) => {
-      const cfg = makeConfig(
-        data,
-        { ...character, job: '알 수 없는 직업' },
-        undefined,
-        'ability',
-        'black',
-        playMode,
-        '1',
-      );
-      expect(cfg.abilityPresetJob).toBeUndefined();
-      expect(cfg.start.lines).toHaveLength(3);
-      expect(cfg.target.lines).toEqual(cfg.start.lines);
-      expect(cfg.target.conditions.map((condition) => condition.minValue)).toEqual([15, 7, 32]);
-      expect(cfg.abilityStrategy).toBe('lowerFirst');
-    },
-  );
+    }
+  });
+  it('uses the imported option types at their minimum values for an unknown job', () => {
+    const cfg = makeConfig(
+      data,
+      { ...character, job: '알 수 없는 직업' },
+      undefined,
+      'ability',
+      'black',
+      '1',
+    );
+    expect(cfg.abilityPresetJob).toBeUndefined();
+    expect(cfg.start.lines).toHaveLength(3);
+    expect(cfg.target.lines).toEqual(cfg.start.lines);
+    expect(cfg.target.conditions.map((condition) => condition.minValue)).toEqual([15, 7, 32]);
+    expect(cfg.abilityStrategy).toBe('lowerFirst');
+  });
   it('keeps a known job target when the imported ability data is missing', () => {
     const cfg = makeConfig(
       data,
@@ -133,7 +125,6 @@ describe('user-supplied advanced ability endgame presets', () => {
       undefined,
       'ability',
       'black',
-      'upgrade',
       '1',
     );
     expect(cfg.start.lines).toEqual([]);
@@ -141,7 +132,31 @@ describe('user-supplied advanced ability endgame presets', () => {
     expect(cfg.abilityStrategy).toBe('lowerFirst');
     expect(abilityStrategyErrors(cfg)).toEqual([]);
   });
-  it('keeps recreate and upgrade behavior for cube and soul modes', () => {
+  it.each(['black', 'additional', 'gold', 'prime', 'primeAdditional'] as const)(
+    'starts %s from every imported line on its potential side',
+    (cubeType) => {
+      const item = character.equipmentPresets['1'].find(
+        (equipment) => equipment.potential.length === 3 && equipment.additional.length === 3,
+      )!;
+      const cfg = makeConfig(data, character, item, 'cube', cubeType, '1');
+      const side =
+        cubeType === 'additional' || cubeType === 'primeAdditional' ? 'additional' : 'potential';
+      expect(cfg.abilityPresetJob).toBeUndefined();
+      expect(cfg.start.lines.map((line) => [line.text, line.type, line.value])).toEqual(
+        item[side].map((line) => [line.text, line.type, line.value]),
+      );
+      expect(cfg.start.lines).toEqual(cfg.target.lines);
+      expect(cfg.start.grade).toBe(
+        cubeType === 'prime' || cubeType === 'primeAdditional'
+          ? 'legendary'
+          : side === 'additional'
+            ? item.additionalGrade
+            : item.potentialGrade,
+      );
+      expect(cfg.start.failures).toBe(0);
+    },
+  );
+  it('starts soul modes from the imported stage, grade and potential', () => {
     const item = {
       ...character.equipmentPresets['1'][0],
       soul: {
@@ -152,22 +167,32 @@ describe('user-supplied advanced ability endgame presets', () => {
         lines: makeAbilityPresetGoal(data, '메카닉').lines.slice(0, 1),
       },
     };
-    for (const mode of ['cube', 'soulPotential', 'soulAmplification'] as const) {
-      const recreate = makeConfig(data, character, item, mode, 'black', 'recreate', '1');
-      const upgrade = makeConfig(data, character, item, mode, 'black', 'upgrade', '1');
-      expect(recreate.abilityPresetJob).toBeUndefined();
-      expect(upgrade.abilityPresetJob).toBeUndefined();
+    for (const mode of ['soulPotential', 'soulAmplification'] as const) {
+      const cfg = makeConfig(data, character, item, mode, 'black', '1');
+      expect(cfg.abilityPresetJob).toBeUndefined();
+      expect(cfg.start.stage).toBe(2);
+      expect(cfg.start.failures).toBe(0);
       if (mode === 'soulAmplification') {
-        expect(recreate.start.stage).toBe(0);
-        expect(upgrade.start.stage).toBe(2);
+        expect(cfg.start.lines).toEqual([]);
       } else {
-        expect(recreate.start.lines).toEqual([]);
-        expect(upgrade.start.lines.length).toBeGreaterThan(0);
+        expect(cfg.start.grade).toBe('legendary');
+        expect(cfg.start.lines.map((line) => [line.text, line.grade])).toEqual(
+          item.soul.lines.map((line) => [line.text, line.grade]),
+        );
       }
     }
   });
+  it('keeps an empty current state when cube or soul options were not imported', () => {
+    for (const mode of ['cube', 'soulPotential', 'soulAmplification'] as const) {
+      const cfg = makeConfig(data, character, undefined, mode, 'black', '1');
+      expect(cfg.start.lines).toEqual([]);
+      expect(cfg.start.failures).toBe(0);
+      if (mode === 'soulAmplification') expect(cfg.start.stage).toBe(0);
+      if (mode === 'soulPotential') expect(cfg.start.stage).toBe(1);
+    }
+  });
   it('keeps lower slots interchangeable and rejects unsupported strategy goals', () => {
-    const cfg = makeConfig(data, character, undefined, 'ability', 'black', 'upgrade', '1');
+    const cfg = makeConfig(data, character, undefined, 'ability', 'black', '1');
     expect(cfg.abilityStrategy).toBe('lowerFirst');
     expect(cfg.target.conditions[0].slot).toBe(0);
     expect(cfg.target.conditions.slice(1).map((c) => c.slots)).toEqual([
