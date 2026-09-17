@@ -1,0 +1,72 @@
+{
+  "ruleSetId": "kms-2026-09-17",
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-17",
+  "sources": [
+    {
+      "kind": "potential",
+      "file": "potential.json",
+      "sha256": "6303f3b1e0b1c532fd0436c745beae20dc9c0bee2744b2489c72c673e035ed81",
+      "optionPoolCount": 1810,
+      "queryCount": 2000,
+      "availableQueries": 1448,
+      "unavailableQueries": 552,
+      "sourceUrl": "https://maplestory.nexon.com/Guide/OtherProbability/cube/black",
+      "checkedAt": "2026-09-17"
+    },
+    {
+      "kind": "additionalPotential",
+      "file": "additional-potential.json",
+      "sha256": "6733e2916830c0b8647412dbe90c67b5c26d1d5e1616c050a50f178e86f78169",
+      "optionPoolCount": 1810,
+      "queryCount": 2000,
+      "availableQueries": 1448,
+      "unavailableQueries": 552,
+      "sourceUrl": "https://maplestory.nexon.com/Guide/OtherProbability/cube/addi",
+      "checkedAt": "2026-09-17"
+    },
+    {
+      "kind": "gold",
+      "file": "gold.json",
+      "sha256": "2fec51e4e163ee91cbe8380e1574f1af7cf978037e516f00b4cf90c4352548b7",
+      "optionPoolCount": 1810,
+      "queryCount": 2000,
+      "availableQueries": 1448,
+      "unavailableQueries": 552,
+      "sourceUrl": "https://maplestory.nexon.com/Guide/OtherProbability/cube/artisan",
+      "checkedAt": "2026-09-17"
+    }
+  ],
+  "scope": {
+    "minimumEquipmentLevel": 1,
+    "maximumEquipmentLevel": 250,
+    "equipmentParts": 20,
+    "levelBands": 25,
+    "grades": [
+      "rare",
+      "epic",
+      "unique",
+      "legendary"
+    ]
+  },
+  "importedSnapshotSha256": "6a78451f5aee96b64fa6c488acdf467ece1ec3efb83a7d025de263e59f58fbd5",
+  "cacheSha256": "d498d5cc36c81d04f2e06646f84ba3143ad6cc908d0e0f5dfe170e380d77086a",
+  "normalization": {
+    "pureGrades": "Official first-line distributions; Normal algebraically derived and independently cross-checked from Rare suffix tables.",
+    "roundedMass": "Displayed rows with the same text are combined and normalized to one.",
+    "normalRoundingNoise": "Residual magnitude <= 0.00002 is treated as rounding noise; cross-table maximum absolute discrepancy <= 0.00005.",
+    "sequentialLimits": "Choose line grade first; normalize eligible options within that grade. Never renormalize a mixed-grade table after exclusions."
+  },
+  "unavailablePolicy": "Officially unavailable equipment combinations are explicitly recorded, never extrapolated.",
+  "credits": {
+    "sourceUrl": "https://maplestory.nexon.com/news/update/813",
+    "primeCube": 10000,
+    "primeAdditionalCube": 20000
+  },
+  "costsSources": [
+    "https://maplestory.nexon.com/news/update/737",
+    "https://maplestory.nexon.com/news/update/746"
+  ],
+  "pitySource": "https://maplestory.nexon.com/News/Notice/Notice/144849",
+  "goldSource": "https://maplestory.nexon.com/news/update/799"
+}

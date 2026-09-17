@@ -1,0 +1,4031 @@
+{
+  "name": "깽미니",
+  "world": "오로라",
+  "job": "메카닉",
+  "level": 292,
+  "imageUrl": "https://open.api.nexon.com/static/maplestory/character/look/OGMCIKEDFFODJCJAENLNOGINIMAPCDHKPACMCJFIAGMCCKODNDFPGIFIAGJEAJEJDOOGKPACDNBFBIKGIMGMGJNLAMOJELCCEPBLDHPLOAJPJNKMFNBJGKEMAKNNJGEJFHHMKDEDBOHCNHCKGFLGBHLDKNDOBIMKKFPFACHPADKHBAKIDDMBOCPKJDJPEKKPFMKIACDIJHCPOKLBMEHFELBHGILHNKJMCLPCDLALOKLBEHOKHKPFOCGJDCLFNDDOAHDBMLLBFICLHFEOMHCNJLDELCPMIBEPDHAODGKKOBBAMNHPPLHKNGGBBEBBKEDNPIPIHFFILPBOPNCLHNPNJEDNPKMLHGHENEOKEOAMMMHACGHJDKGOHEAPPMMPJCLILPGOMIALCECANIMEJMDHNHCIHKOOFMNHLCCDDDFABDCHIGIMEOEOFKIDGCADPNJMAPGCKJOKIEJNJEJNADJIOGAHJNAANPLLIMBPCJLFCCHMMFICIFOKNOHAFIHPOIJDPKMCGJKEDEMFKNJBNIILCOPMPJCNGLKFDKNAKAMMCEAPCOLMJMPNOEPMDHBNMINDIOPPODCGMENDMEKKJPHCIPMEBHPNPGGGAAMIKLCHHAFJBHJGOAAINBNKJCFBHDHHIPBIJIJBAOJKKCICHGEMDGLBLGOCCMBIIJNNLICLFFADAKBHJKNLBIHOKNENHHJAODPLCMOMPFFLGBBOHKFGEKFHMMCPLOCLABJOPFOCPJJECONNDCCEMKOCEBMLGMIKFHAGFFOAAJDCHPGPJKFOCHACNHHJLIPGBNHJKGMOLFGHPMFKGCPFKEDOCABHOIDEMKGONLPFHCLKLIHAHNMOBKNLBCIKPDBMCHALPELDMDPNENKFMDJGJAHODBMCELDFHHHGBBLCDHIEIBGFKNFOCIBEKJCBOCBCFGDHGLNGJCBCNLHKLLJCDNGODNDBLMBPBIKNFOKFEFPBFLALDLNLKFMAJJLONGPJLEECEEBGHGGFIMOKKEIPJCLIGHNLFOMF?wmotion=W01",
+  "fetchedAt": "2026-09-17T08:51:31.073Z",
+  "sourceUrl": "https://openapi.nexon.com/game/maplestory/?id=14",
+  "equipmentPresets": {
+    "1": [
+      {
+        "id": "1:모자:0:에테르넬 파이렛햇",
+        "name": "에테르넬 파이렛햇",
+        "category": "hat",
+        "slot": "모자",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPCOOGF",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:스킬 재사용 대기시간 -2초",
+            "type": "cooldownReductionSecond",
+            "value": 2,
+            "unit": "second",
+            "text": "스킬 재사용 대기시간 -2초",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:스킬 재사용 대기시간 -1초",
+            "type": "cooldownReductionSecond",
+            "value": 1,
+            "unit": "second",
+            "text": "스킬 재사용 대기시간 -1초",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 HP +10%",
+            "type": "hpPercent",
+            "value": 10,
+            "unit": "percent",
+            "text": "최대 HP +10%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:스킬 재사용 대기시간 -1초",
+            "type": "cooldownReductionSecond",
+            "value": 1,
+            "unit": "second",
+            "text": "스킬 재사용 대기시간 -1초",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:HP 회복 아이템 및 회복 스킬 효율 +20%",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "HP 회복 아이템 및 회복 스킬 효율 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:STR +19",
+            "type": "strFlat",
+            "value": 19,
+            "unit": "flat",
+            "text": "STR +19",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:얼굴장식:1:루즈 컨트롤 머신 마크",
+        "name": "루즈 컨트롤 머신 마크",
+        "category": "faceAccessory",
+        "slot": "얼굴장식",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPDJBND",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 DEX +1",
+            "type": "dexPerLevel",
+            "value": 1,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 DEX +1",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +14",
+            "type": "attackFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "공격력 +14",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:눈장식:2:마력이 깃든 안대",
+        "name": "마력이 깃든 안대",
+        "category": "eyeAccessory",
+        "slot": "눈장식",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPAJFJJ",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:INT +18",
+            "type": "intFlat",
+            "value": 18,
+            "unit": "flat",
+            "text": "INT +18",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +5%",
+            "type": "allStatPercent",
+            "value": 5,
+            "unit": "percent",
+            "text": "올스탯 +5%",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:귀고리:3:커맨더 포스 이어링",
+        "name": "커맨더 포스 이어링",
+        "category": "earring",
+        "slot": "귀고리",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPBJEPH",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:DEX +4%",
+            "type": "dexPercent",
+            "value": 4,
+            "unit": "percent",
+            "text": "DEX +4%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:방어력 +100",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "방어력 +100",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:상의:4:에테르넬 파이렛코트",
+        "name": "에테르넬 파이렛코트",
+        "category": "top",
+        "slot": "상의",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPGJDNG",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +13%",
+            "type": "dexPercent",
+            "value": 13,
+            "unit": "percent",
+            "text": "DEX +13%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:LUK +13%",
+            "type": "lukPercent",
+            "value": 13,
+            "unit": "percent",
+            "text": "LUK +13%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +10%",
+            "type": "dexPercent",
+            "value": 10,
+            "unit": "percent",
+            "text": "DEX +10%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:DEX +7%",
+            "type": "dexPercent",
+            "value": 7,
+            "unit": "percent",
+            "text": "DEX +7%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +12",
+            "type": "attackFlat",
+            "value": 12,
+            "unit": "flat",
+            "text": "공격력 +12",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:방어력 +150",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "방어력 +150",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:하의:5:에테르넬 파이렛팬츠",
+        "name": "에테르넬 파이렛팬츠",
+        "category": "bottom",
+        "slot": "하의",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPEJFGI",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +13%",
+            "type": "dexPercent",
+            "value": 13,
+            "unit": "percent",
+            "text": "DEX +13%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +10%",
+            "type": "dexPercent",
+            "value": 10,
+            "unit": "percent",
+            "text": "DEX +10%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:피격 시 5% 확률로 데미지의 20% 무시",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "피격 시 5% 확률로 데미지의 20% 무시",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:공격력 +12",
+            "type": "attackFlat",
+            "value": 12,
+            "unit": "flat",
+            "text": "공격력 +12",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:INT +3%",
+            "type": "intPercent",
+            "value": 3,
+            "unit": "percent",
+            "text": "INT +3%",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:신발:6:아케인셰이드 파이렛슈즈",
+        "name": "아케인셰이드 파이렛슈즈",
+        "category": "shoes",
+        "slot": "신발",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPFIGID",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 HP +9%",
+            "type": "hpPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "최대 HP +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:DEX +4%",
+            "type": "dexPercent",
+            "value": 4,
+            "unit": "percent",
+            "text": "DEX +4%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:최대 HP +100",
+            "type": "hpFlat",
+            "value": 100,
+            "unit": "flat",
+            "text": "최대 HP +100",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:장갑:7:에테르넬 파이렛글러브",
+        "name": "에테르넬 파이렛글러브",
+        "category": "gloves",
+        "slot": "장갑",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPKJAIF",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:크리티컬 데미지 +8%",
+            "type": "criticalDamagePercent",
+            "value": 8,
+            "unit": "percent",
+            "text": "크리티컬 데미지 +8%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:크리티컬 데미지 +8%",
+            "type": "criticalDamagePercent",
+            "value": 8,
+            "unit": "percent",
+            "text": "크리티컬 데미지 +8%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:<쓸만한 샤프 아이즈> 스킬 사용 가능",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "<쓸만한 샤프 아이즈> 스킬 사용 가능",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:크리티컬 데미지 +3%",
+            "type": "criticalDamagePercent",
+            "value": 3,
+            "unit": "percent",
+            "text": "크리티컬 데미지 +3%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:STR +19",
+            "type": "strFlat",
+            "value": 19,
+            "unit": "flat",
+            "text": "STR +19",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +15",
+            "type": "attackFlat",
+            "value": 15,
+            "unit": "flat",
+            "text": "공격력 +15",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:망토:8:아케인셰이드 파이렛케이프",
+        "name": "아케인셰이드 파이렛케이프",
+        "category": "cape",
+        "slot": "망토",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOCJOKF",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:최대 HP +12%",
+            "type": "hpPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "최대 HP +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:올스탯 +5%",
+            "type": "allStatPercent",
+            "value": 5,
+            "unit": "percent",
+            "text": "올스탯 +5%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:올스탯 +2%",
+            "type": "allStatPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "올스탯 +2%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:보조무기:9:아스트라 매그넘",
+        "name": "아스트라 매그넘",
+        "category": "secondaryWeapon",
+        "slot": "보조무기",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEIAJOOA",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:보스 몬스터 데미지 +30%",
+            "type": "bossDamagePercent",
+            "value": 30,
+            "unit": "percent",
+            "text": "보스 몬스터 데미지 +30%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 STR +1",
+            "type": "strPerLevel",
+            "value": 1,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 STR +1",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:무기:10:제네시스 피스톨",
+        "name": "제네시스 피스톨",
+        "category": "weapon",
+        "slot": "무기",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KELLJFKE",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:보스 몬스터 데미지 +30%",
+            "type": "bossDamagePercent",
+            "value": 30,
+            "unit": "percent",
+            "text": "보스 몬스터 데미지 +30%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "soul": {
+          "name": "위대한 감시자 칼로스의 소울 적용",
+          "active": true,
+          "stage": 0,
+          "lines": []
+        },
+        "eligibleSoul": true
+      },
+      {
+        "id": "1:반지1:11:리스트레인트 링",
+        "name": "리스트레인트 링",
+        "category": "ring",
+        "slot": "반지1",
+        "level": 110,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIHHJ",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:반지2:12:어드벤처 딥다크 크리티컬 링",
+        "name": "어드벤처 딥다크 크리티컬 링",
+        "category": "ring",
+        "slot": "반지2",
+        "level": 130,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODPEPD",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:반지3:13:여명의 가디언 엔젤 링",
+        "name": "여명의 가디언 엔젤 링",
+        "category": "ring",
+        "slot": "반지3",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIEPH",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:DEX +8%",
+            "type": "dexPercent",
+            "value": 8,
+            "unit": "percent",
+            "text": "DEX +8%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:STR +18",
+            "type": "strFlat",
+            "value": 18,
+            "unit": "flat",
+            "text": "STR +18",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +14",
+            "type": "attackFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "공격력 +14",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:반지4:14:테네브리스 원정대 반지",
+        "name": "테네브리스 원정대 반지",
+        "category": "ring",
+        "slot": "반지4",
+        "level": 120,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODPEOG",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:DEX +4%",
+            "type": "dexPercent",
+            "value": 4,
+            "unit": "percent",
+            "text": "DEX +4%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:STR +2%",
+            "type": "strPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "STR +2%",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:펜던트:15:고통의 근원",
+        "name": "고통의 근원",
+        "category": "pendant",
+        "slot": "펜던트",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOAJDNB",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:최대 MP +100",
+            "type": "mpFlat",
+            "value": 100,
+            "unit": "flat",
+            "text": "최대 MP +100",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:훈장:16:THE BLACK",
+        "name": "THE BLACK",
+        "category": "unsupported",
+        "slot": "훈장",
+        "level": 0,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOGICPI",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:벨트:17:몽환의 벨트",
+        "name": "몽환의 벨트",
+        "category": "belt",
+        "slot": "벨트",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOBJEOJ",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:공격력 +14",
+            "type": "attackFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "공격력 +14",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:DEX +14",
+            "type": "dexFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "DEX +14",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:어깨장식:18:아케인셰이드 파이렛숄더",
+        "name": "아케인셰이드 파이렛숄더",
+        "category": "shoulder",
+        "slot": "어깨장식",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOHJFOB",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 DEX +2",
+            "type": "dexPerLevel",
+            "value": 2,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 DEX +2",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +6%",
+            "type": "dexPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "DEX +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 INT +1",
+            "type": "intPerLevel",
+            "value": 1,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 INT +1",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:포켓 아이템:19:저주받은 녹의 마도서",
+        "name": "저주받은 녹의 마도서",
+        "category": "unsupported",
+        "slot": "포켓 아이템",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOEJHGD",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:기계 심장:20:플라즈마 하트",
+        "name": "플라즈마 하트",
+        "category": "heart",
+        "slot": "기계 심장",
+        "level": 130,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEJFJHHI",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:올스탯 +5%",
+            "type": "allStatPercent",
+            "value": 5,
+            "unit": "percent",
+            "text": "올스탯 +5%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:INT +14",
+            "type": "intFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "INT +14",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:뱃지:21:크리스탈 웬투스 뱃지",
+        "name": "크리스탈 웬투스 뱃지",
+        "category": "unsupported",
+        "slot": "뱃지",
+        "level": 130,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOKJHGG",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:엠블렘:22:미트라의 분노 : 해적",
+        "name": "미트라의 분노 : 해적",
+        "category": "emblem",
+        "slot": "엠블렘",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOLLCLI",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:크리티컬 확률 +9%",
+            "type": "criticalRatePercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "크리티컬 확률 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:펜던트2:23:데이브레이크 펜던트",
+        "name": "데이브레이크 펜던트",
+        "category": "pendant",
+        "slot": "펜던트2",
+        "level": 140,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOAJDKC",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:DEX +4%",
+            "type": "dexPercent",
+            "value": 4,
+            "unit": "percent",
+            "text": "DEX +4%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:DEX +2%",
+            "type": "dexPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "DEX +2%",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "1:예비 특수 반지:24:컨티뉴어스 링",
+        "name": "컨티뉴어스 링",
+        "category": "ring",
+        "slot": "예비 특수 반지",
+        "level": 110,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIEMI",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      }
+    ],
+    "2": [
+      {
+        "id": "2:모자:0:에테르넬 파이렛햇",
+        "name": "에테르넬 파이렛햇",
+        "category": "hat",
+        "slot": "모자",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPCOOGF",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:스킬 재사용 대기시간 -2초",
+            "type": "cooldownReductionSecond",
+            "value": 2,
+            "unit": "second",
+            "text": "스킬 재사용 대기시간 -2초",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:스킬 재사용 대기시간 -1초",
+            "type": "cooldownReductionSecond",
+            "value": 1,
+            "unit": "second",
+            "text": "스킬 재사용 대기시간 -1초",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 HP +10%",
+            "type": "hpPercent",
+            "value": 10,
+            "unit": "percent",
+            "text": "최대 HP +10%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:스킬 재사용 대기시간 -1초",
+            "type": "cooldownReductionSecond",
+            "value": 1,
+            "unit": "second",
+            "text": "스킬 재사용 대기시간 -1초",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:HP 회복 아이템 및 회복 스킬 효율 +20%",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "HP 회복 아이템 및 회복 스킬 효율 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:STR +19",
+            "type": "strFlat",
+            "value": 19,
+            "unit": "flat",
+            "text": "STR +19",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:얼굴장식:1:루즈 컨트롤 머신 마크",
+        "name": "루즈 컨트롤 머신 마크",
+        "category": "faceAccessory",
+        "slot": "얼굴장식",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPDJBND",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 DEX +1",
+            "type": "dexPerLevel",
+            "value": 1,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 DEX +1",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +14",
+            "type": "attackFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "공격력 +14",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:눈장식:2:마력이 깃든 안대",
+        "name": "마력이 깃든 안대",
+        "category": "eyeAccessory",
+        "slot": "눈장식",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPAJFJJ",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:INT +18",
+            "type": "intFlat",
+            "value": 18,
+            "unit": "flat",
+            "text": "INT +18",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +5%",
+            "type": "allStatPercent",
+            "value": 5,
+            "unit": "percent",
+            "text": "올스탯 +5%",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:귀고리:3:커맨더 포스 이어링",
+        "name": "커맨더 포스 이어링",
+        "category": "earring",
+        "slot": "귀고리",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPBJEPH",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:DEX +4%",
+            "type": "dexPercent",
+            "value": 4,
+            "unit": "percent",
+            "text": "DEX +4%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:방어력 +100",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "방어력 +100",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:상의:4:에테르넬 파이렛코트",
+        "name": "에테르넬 파이렛코트",
+        "category": "top",
+        "slot": "상의",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPGJDNG",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +13%",
+            "type": "dexPercent",
+            "value": 13,
+            "unit": "percent",
+            "text": "DEX +13%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:LUK +13%",
+            "type": "lukPercent",
+            "value": 13,
+            "unit": "percent",
+            "text": "LUK +13%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +10%",
+            "type": "dexPercent",
+            "value": 10,
+            "unit": "percent",
+            "text": "DEX +10%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:DEX +7%",
+            "type": "dexPercent",
+            "value": 7,
+            "unit": "percent",
+            "text": "DEX +7%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +12",
+            "type": "attackFlat",
+            "value": 12,
+            "unit": "flat",
+            "text": "공격력 +12",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:방어력 +150",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "방어력 +150",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:하의:5:에테르넬 파이렛팬츠",
+        "name": "에테르넬 파이렛팬츠",
+        "category": "bottom",
+        "slot": "하의",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPEJFGI",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +13%",
+            "type": "dexPercent",
+            "value": 13,
+            "unit": "percent",
+            "text": "DEX +13%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +10%",
+            "type": "dexPercent",
+            "value": 10,
+            "unit": "percent",
+            "text": "DEX +10%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:피격 시 5% 확률로 데미지의 20% 무시",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "피격 시 5% 확률로 데미지의 20% 무시",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:공격력 +12",
+            "type": "attackFlat",
+            "value": 12,
+            "unit": "flat",
+            "text": "공격력 +12",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:INT +3%",
+            "type": "intPercent",
+            "value": 3,
+            "unit": "percent",
+            "text": "INT +3%",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:신발:6:아케인셰이드 파이렛슈즈",
+        "name": "아케인셰이드 파이렛슈즈",
+        "category": "shoes",
+        "slot": "신발",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPFIGID",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 HP +9%",
+            "type": "hpPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "최대 HP +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:DEX +4%",
+            "type": "dexPercent",
+            "value": 4,
+            "unit": "percent",
+            "text": "DEX +4%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:최대 HP +100",
+            "type": "hpFlat",
+            "value": 100,
+            "unit": "flat",
+            "text": "최대 HP +100",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:장갑:7:에테르넬 파이렛글러브",
+        "name": "에테르넬 파이렛글러브",
+        "category": "gloves",
+        "slot": "장갑",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPKJAIF",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:크리티컬 데미지 +8%",
+            "type": "criticalDamagePercent",
+            "value": 8,
+            "unit": "percent",
+            "text": "크리티컬 데미지 +8%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:크리티컬 데미지 +8%",
+            "type": "criticalDamagePercent",
+            "value": 8,
+            "unit": "percent",
+            "text": "크리티컬 데미지 +8%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:<쓸만한 샤프 아이즈> 스킬 사용 가능",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "<쓸만한 샤프 아이즈> 스킬 사용 가능",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:크리티컬 데미지 +3%",
+            "type": "criticalDamagePercent",
+            "value": 3,
+            "unit": "percent",
+            "text": "크리티컬 데미지 +3%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:STR +19",
+            "type": "strFlat",
+            "value": 19,
+            "unit": "flat",
+            "text": "STR +19",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +15",
+            "type": "attackFlat",
+            "value": 15,
+            "unit": "flat",
+            "text": "공격력 +15",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:망토:8:아케인셰이드 파이렛케이프",
+        "name": "아케인셰이드 파이렛케이프",
+        "category": "cape",
+        "slot": "망토",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOCJOKF",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:최대 HP +12%",
+            "type": "hpPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "최대 HP +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:올스탯 +5%",
+            "type": "allStatPercent",
+            "value": 5,
+            "unit": "percent",
+            "text": "올스탯 +5%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:올스탯 +2%",
+            "type": "allStatPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "올스탯 +2%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:보조무기:9:아스트라 매그넘",
+        "name": "아스트라 매그넘",
+        "category": "secondaryWeapon",
+        "slot": "보조무기",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEIAJOOA",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:보스 몬스터 데미지 +30%",
+            "type": "bossDamagePercent",
+            "value": 30,
+            "unit": "percent",
+            "text": "보스 몬스터 데미지 +30%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 STR +1",
+            "type": "strPerLevel",
+            "value": 1,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 STR +1",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:무기:10:제네시스 피스톨",
+        "name": "제네시스 피스톨",
+        "category": "weapon",
+        "slot": "무기",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KELLJFKE",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:보스 몬스터 데미지 +30%",
+            "type": "bossDamagePercent",
+            "value": 30,
+            "unit": "percent",
+            "text": "보스 몬스터 데미지 +30%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "soul": {
+          "name": "위대한 감시자 칼로스의 소울 적용",
+          "active": true,
+          "stage": 0,
+          "lines": []
+        },
+        "eligibleSoul": true
+      },
+      {
+        "id": "2:반지1:11:리스트레인트 링",
+        "name": "리스트레인트 링",
+        "category": "ring",
+        "slot": "반지1",
+        "level": 110,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIHHJ",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:반지2:12:어드벤처 딥다크 크리티컬 링",
+        "name": "어드벤처 딥다크 크리티컬 링",
+        "category": "ring",
+        "slot": "반지2",
+        "level": 130,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODPEPD",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:반지3:13:여명의 가디언 엔젤 링",
+        "name": "여명의 가디언 엔젤 링",
+        "category": "ring",
+        "slot": "반지3",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIEPH",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:DEX +8%",
+            "type": "dexPercent",
+            "value": 8,
+            "unit": "percent",
+            "text": "DEX +8%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:STR +18",
+            "type": "strFlat",
+            "value": 18,
+            "unit": "flat",
+            "text": "STR +18",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +14",
+            "type": "attackFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "공격력 +14",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:반지4:14:테네브리스 원정대 반지",
+        "name": "테네브리스 원정대 반지",
+        "category": "ring",
+        "slot": "반지4",
+        "level": 120,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODPEOG",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:DEX +4%",
+            "type": "dexPercent",
+            "value": 4,
+            "unit": "percent",
+            "text": "DEX +4%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:STR +2%",
+            "type": "strPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "STR +2%",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:펜던트:15:고통의 근원",
+        "name": "고통의 근원",
+        "category": "pendant",
+        "slot": "펜던트",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOAJDNB",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:최대 MP +100",
+            "type": "mpFlat",
+            "value": 100,
+            "unit": "flat",
+            "text": "최대 MP +100",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:훈장:16:THE BLACK",
+        "name": "THE BLACK",
+        "category": "unsupported",
+        "slot": "훈장",
+        "level": 0,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOGICPI",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:벨트:17:몽환의 벨트",
+        "name": "몽환의 벨트",
+        "category": "belt",
+        "slot": "벨트",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOBJEOJ",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:공격력 +14",
+            "type": "attackFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "공격력 +14",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:DEX +14",
+            "type": "dexFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "DEX +14",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:어깨장식:18:아케인셰이드 파이렛숄더",
+        "name": "아케인셰이드 파이렛숄더",
+        "category": "shoulder",
+        "slot": "어깨장식",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOHJFOB",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 DEX +2",
+            "type": "dexPerLevel",
+            "value": 2,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 DEX +2",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +6%",
+            "type": "dexPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "DEX +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 INT +1",
+            "type": "intPerLevel",
+            "value": 1,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 INT +1",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:포켓 아이템:19:저주받은 녹의 마도서",
+        "name": "저주받은 녹의 마도서",
+        "category": "unsupported",
+        "slot": "포켓 아이템",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOEJHGD",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:기계 심장:20:플라즈마 하트",
+        "name": "플라즈마 하트",
+        "category": "heart",
+        "slot": "기계 심장",
+        "level": 130,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEJFJHHI",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:올스탯 +5%",
+            "type": "allStatPercent",
+            "value": 5,
+            "unit": "percent",
+            "text": "올스탯 +5%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:INT +14",
+            "type": "intFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "INT +14",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:뱃지:21:크리스탈 웬투스 뱃지",
+        "name": "크리스탈 웬투스 뱃지",
+        "category": "unsupported",
+        "slot": "뱃지",
+        "level": 130,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOKJHGG",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:엠블렘:22:미트라의 분노 : 해적",
+        "name": "미트라의 분노 : 해적",
+        "category": "emblem",
+        "slot": "엠블렘",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOLLCLI",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:크리티컬 확률 +9%",
+            "type": "criticalRatePercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "크리티컬 확률 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:펜던트2:23:데이브레이크 펜던트",
+        "name": "데이브레이크 펜던트",
+        "category": "pendant",
+        "slot": "펜던트2",
+        "level": 140,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOAJDKC",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:DEX +4%",
+            "type": "dexPercent",
+            "value": 4,
+            "unit": "percent",
+            "text": "DEX +4%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:DEX +2%",
+            "type": "dexPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "DEX +2%",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "2:예비 특수 반지:24:컨티뉴어스 링",
+        "name": "컨티뉴어스 링",
+        "category": "ring",
+        "slot": "예비 특수 반지",
+        "level": 110,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIEMI",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      }
+    ],
+    "3": [
+      {
+        "id": "3:얼굴장식:0:레드 파이렛 마이스터 심볼",
+        "name": "레드 파이렛 마이스터 심볼",
+        "category": "faceAccessory",
+        "slot": "얼굴장식",
+        "level": 100,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPDJDOE",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:아이템 드롭률 +20%",
+            "type": "dropRatePercent",
+            "value": 20,
+            "unit": "percent",
+            "text": "아이템 드롭률 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:메소 획득량 +20%",
+            "type": "mesoRatePercent",
+            "value": 20,
+            "unit": "percent",
+            "text": "메소 획득량 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 HP +9%",
+            "type": "hpPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "최대 HP +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "rare",
+        "additional": [
+          {
+            "id": "rare:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "rare"
+          },
+          {
+            "id": "rare:최대 HP +50",
+            "type": "hpFlat",
+            "value": 50,
+            "unit": "flat",
+            "text": "최대 HP +50",
+            "grade": "rare"
+          },
+          {
+            "id": "rare:공격력 +2",
+            "type": "attackFlat",
+            "value": 2,
+            "unit": "flat",
+            "text": "공격력 +2",
+            "grade": "rare"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:눈장식:1:카오스 핑크빈 마크",
+        "name": "카오스 핑크빈 마크",
+        "category": "eyeAccessory",
+        "slot": "눈장식",
+        "level": 135,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPAJGKF",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:아이템 드롭률 +20%",
+            "type": "dropRatePercent",
+            "value": 20,
+            "unit": "percent",
+            "text": "아이템 드롭률 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 MP +9%",
+            "type": "mpPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "최대 MP +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "rare",
+        "additional": [
+          {
+            "id": "rare:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "rare"
+          },
+          {
+            "id": "rare:공격력 +3",
+            "type": "attackFlat",
+            "value": 3,
+            "unit": "flat",
+            "text": "공격력 +3",
+            "grade": "rare"
+          },
+          {
+            "id": "rare:STR +6",
+            "type": "strFlat",
+            "value": 6,
+            "unit": "flat",
+            "text": "STR +6",
+            "grade": "rare"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:귀고리:2:하프 이어링",
+        "name": "하프 이어링",
+        "category": "earring",
+        "slot": "귀고리",
+        "level": 75,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPBJHMD",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:아이템 드롭률 +20%",
+            "type": "dropRatePercent",
+            "value": 20,
+            "unit": "percent",
+            "text": "아이템 드롭률 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "rare",
+        "additional": [
+          {
+            "id": "rare:DEX +1%",
+            "type": "dexPercent",
+            "value": 1,
+            "unit": "percent",
+            "text": "DEX +1%",
+            "grade": "rare"
+          },
+          {
+            "id": "rare:최대 HP +40",
+            "type": "hpFlat",
+            "value": 40,
+            "unit": "flat",
+            "text": "최대 HP +40",
+            "grade": "rare"
+          },
+          {
+            "id": "rare:",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "",
+            "grade": "rare"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:반지1:3:글로리온 링 : 슈프림",
+        "name": "글로리온 링 : 슈프림",
+        "category": "ring",
+        "slot": "반지1",
+        "level": 120,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODPEPH",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:아이템 드롭률 +20%",
+            "type": "dropRatePercent",
+            "value": 20,
+            "unit": "percent",
+            "text": "아이템 드롭률 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 HP +9%",
+            "type": "hpPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "최대 HP +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 HP +9%",
+            "type": "hpPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "최대 HP +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:최대 MP +2%",
+            "type": "mpPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "최대 MP +2%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:반지2:4:SS급 마스터 쥬얼링",
+        "name": "SS급 마스터 쥬얼링",
+        "category": "ring",
+        "slot": "반지2",
+        "level": 120,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIFNA",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:아이템 드롭률 +20%",
+            "type": "dropRatePercent",
+            "value": 20,
+            "unit": "percent",
+            "text": "아이템 드롭률 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:DEX +4%",
+            "type": "dexPercent",
+            "value": 4,
+            "unit": "percent",
+            "text": "DEX +4%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:DEX +2%",
+            "type": "dexPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "DEX +2%",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:반지3:5:카오스 링",
+        "name": "카오스 링",
+        "category": "ring",
+        "slot": "반지3",
+        "level": 120,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODPEOH",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:아이템 드롭률 +20%",
+            "type": "dropRatePercent",
+            "value": 20,
+            "unit": "percent",
+            "text": "아이템 드롭률 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:DEX +2%",
+            "type": "dexPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "DEX +2%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:반지4:6:어웨이크 링",
+        "name": "어웨이크 링",
+        "category": "ring",
+        "slot": "반지4",
+        "level": 120,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODPEPJ",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:아이템 드롭률 +20%",
+            "type": "dropRatePercent",
+            "value": 20,
+            "unit": "percent",
+            "text": "아이템 드롭률 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:올스탯 +2%",
+            "type": "allStatPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "올스탯 +2%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:DEX +10",
+            "type": "dexFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "DEX +10",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:펜던트2:7:데이브레이크 펜던트",
+        "name": "데이브레이크 펜던트",
+        "category": "pendant",
+        "slot": "펜던트2",
+        "level": 140,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOAJDKC",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:메소 획득량 +20%",
+            "type": "mesoRatePercent",
+            "value": 20,
+            "unit": "percent",
+            "text": "메소 획득량 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:메소 획득량 +20%",
+            "type": "mesoRatePercent",
+            "value": 20,
+            "unit": "percent",
+            "text": "메소 획득량 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 MP +9%",
+            "type": "mpPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "최대 MP +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "rare",
+        "additional": [
+          {
+            "id": "rare:DEX +2%",
+            "type": "dexPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "DEX +2%",
+            "grade": "rare"
+          },
+          {
+            "id": "rare:공격력 +3",
+            "type": "attackFlat",
+            "value": 3,
+            "unit": "flat",
+            "text": "공격력 +3",
+            "grade": "rare"
+          },
+          {
+            "id": "rare:이동속도 +4",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "이동속도 +4",
+            "grade": "rare"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:모자:8:에테르넬 파이렛햇",
+        "name": "에테르넬 파이렛햇",
+        "category": "hat",
+        "slot": "모자",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPCOOGF",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:스킬 재사용 대기시간 -2초",
+            "type": "cooldownReductionSecond",
+            "value": 2,
+            "unit": "second",
+            "text": "스킬 재사용 대기시간 -2초",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:스킬 재사용 대기시간 -1초",
+            "type": "cooldownReductionSecond",
+            "value": 1,
+            "unit": "second",
+            "text": "스킬 재사용 대기시간 -1초",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 HP +10%",
+            "type": "hpPercent",
+            "value": 10,
+            "unit": "percent",
+            "text": "최대 HP +10%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:스킬 재사용 대기시간 -1초",
+            "type": "cooldownReductionSecond",
+            "value": 1,
+            "unit": "second",
+            "text": "스킬 재사용 대기시간 -1초",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:HP 회복 아이템 및 회복 스킬 효율 +20%",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "HP 회복 아이템 및 회복 스킬 효율 +20%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:STR +19",
+            "type": "strFlat",
+            "value": 19,
+            "unit": "flat",
+            "text": "STR +19",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:상의:9:에테르넬 파이렛코트",
+        "name": "에테르넬 파이렛코트",
+        "category": "top",
+        "slot": "상의",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPGJDNG",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +13%",
+            "type": "dexPercent",
+            "value": 13,
+            "unit": "percent",
+            "text": "DEX +13%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:LUK +13%",
+            "type": "lukPercent",
+            "value": 13,
+            "unit": "percent",
+            "text": "LUK +13%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +10%",
+            "type": "dexPercent",
+            "value": 10,
+            "unit": "percent",
+            "text": "DEX +10%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:DEX +7%",
+            "type": "dexPercent",
+            "value": 7,
+            "unit": "percent",
+            "text": "DEX +7%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +12",
+            "type": "attackFlat",
+            "value": 12,
+            "unit": "flat",
+            "text": "공격력 +12",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:방어력 +150",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "방어력 +150",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:하의:10:에테르넬 파이렛팬츠",
+        "name": "에테르넬 파이렛팬츠",
+        "category": "bottom",
+        "slot": "하의",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPEJFGI",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +13%",
+            "type": "dexPercent",
+            "value": 13,
+            "unit": "percent",
+            "text": "DEX +13%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +10%",
+            "type": "dexPercent",
+            "value": 10,
+            "unit": "percent",
+            "text": "DEX +10%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:피격 시 5% 확률로 데미지의 20% 무시",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "피격 시 5% 확률로 데미지의 20% 무시",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:공격력 +12",
+            "type": "attackFlat",
+            "value": 12,
+            "unit": "flat",
+            "text": "공격력 +12",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:INT +3%",
+            "type": "intPercent",
+            "value": 3,
+            "unit": "percent",
+            "text": "INT +3%",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:신발:11:아케인셰이드 파이렛슈즈",
+        "name": "아케인셰이드 파이렛슈즈",
+        "category": "shoes",
+        "slot": "신발",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPFIGID",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:최대 HP +9%",
+            "type": "hpPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "최대 HP +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:DEX +4%",
+            "type": "dexPercent",
+            "value": 4,
+            "unit": "percent",
+            "text": "DEX +4%",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:최대 HP +100",
+            "type": "hpFlat",
+            "value": 100,
+            "unit": "flat",
+            "text": "최대 HP +100",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:장갑:12:에테르넬 파이렛글러브",
+        "name": "에테르넬 파이렛글러브",
+        "category": "gloves",
+        "slot": "장갑",
+        "level": 250,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEPKJAIF",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:크리티컬 데미지 +8%",
+            "type": "criticalDamagePercent",
+            "value": 8,
+            "unit": "percent",
+            "text": "크리티컬 데미지 +8%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:크리티컬 데미지 +8%",
+            "type": "criticalDamagePercent",
+            "value": 8,
+            "unit": "percent",
+            "text": "크리티컬 데미지 +8%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:<쓸만한 샤프 아이즈> 스킬 사용 가능",
+            "type": "unknown",
+            "value": 0,
+            "unit": "text",
+            "text": "<쓸만한 샤프 아이즈> 스킬 사용 가능",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:크리티컬 데미지 +3%",
+            "type": "criticalDamagePercent",
+            "value": 3,
+            "unit": "percent",
+            "text": "크리티컬 데미지 +3%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:STR +19",
+            "type": "strFlat",
+            "value": 19,
+            "unit": "flat",
+            "text": "STR +19",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +15",
+            "type": "attackFlat",
+            "value": 15,
+            "unit": "flat",
+            "text": "공격력 +15",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:망토:13:아케인셰이드 파이렛케이프",
+        "name": "아케인셰이드 파이렛케이프",
+        "category": "cape",
+        "slot": "망토",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOCJOKF",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:최대 HP +12%",
+            "type": "hpPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "최대 HP +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:올스탯 +5%",
+            "type": "allStatPercent",
+            "value": 5,
+            "unit": "percent",
+            "text": "올스탯 +5%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:올스탯 +2%",
+            "type": "allStatPercent",
+            "value": 2,
+            "unit": "percent",
+            "text": "올스탯 +2%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:보조무기:14:아스트라 매그넘",
+        "name": "아스트라 매그넘",
+        "category": "secondaryWeapon",
+        "slot": "보조무기",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEIAJOOA",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:보스 몬스터 데미지 +30%",
+            "type": "bossDamagePercent",
+            "value": 30,
+            "unit": "percent",
+            "text": "보스 몬스터 데미지 +30%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 STR +1",
+            "type": "strPerLevel",
+            "value": 1,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 STR +1",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:무기:15:제네시스 피스톨",
+        "name": "제네시스 피스톨",
+        "category": "weapon",
+        "slot": "무기",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KELLJFKE",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:보스 몬스터 데미지 +30%",
+            "type": "bossDamagePercent",
+            "value": 30,
+            "unit": "percent",
+            "text": "보스 몬스터 데미지 +30%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "soul": {
+          "name": "위대한 감시자 칼로스의 소울 적용",
+          "active": true,
+          "stage": 0,
+          "lines": []
+        },
+        "eligibleSoul": true
+      },
+      {
+        "id": "3:펜던트:16:고통의 근원",
+        "name": "고통의 근원",
+        "category": "pendant",
+        "slot": "펜던트",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOAJDNB",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "epic",
+        "additional": [
+          {
+            "id": "epic:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:공격력 +10",
+            "type": "attackFlat",
+            "value": 10,
+            "unit": "flat",
+            "text": "공격력 +10",
+            "grade": "epic"
+          },
+          {
+            "id": "epic:최대 MP +100",
+            "type": "mpFlat",
+            "value": 100,
+            "unit": "flat",
+            "text": "최대 MP +100",
+            "grade": "epic"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:훈장:17:THE BLACK",
+        "name": "THE BLACK",
+        "category": "unsupported",
+        "slot": "훈장",
+        "level": 0,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOGICPI",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:벨트:18:몽환의 벨트",
+        "name": "몽환의 벨트",
+        "category": "belt",
+        "slot": "벨트",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOBJEOJ",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:공격력 +14",
+            "type": "attackFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "공격력 +14",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:DEX +14",
+            "type": "dexFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "DEX +14",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:어깨장식:19:아케인셰이드 파이렛숄더",
+        "name": "아케인셰이드 파이렛숄더",
+        "category": "shoulder",
+        "slot": "어깨장식",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOHJFOB",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:DEX +12%",
+            "type": "dexPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "DEX +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 DEX +2",
+            "type": "dexPerLevel",
+            "value": 2,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 DEX +2",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +6%",
+            "type": "dexPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "DEX +6%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:캐릭터 기준 9레벨 당 INT +1",
+            "type": "intPerLevel",
+            "value": 1,
+            "unit": "level",
+            "text": "캐릭터 기준 9레벨 당 INT +1",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:포켓 아이템:20:저주받은 녹의 마도서",
+        "name": "저주받은 녹의 마도서",
+        "category": "unsupported",
+        "slot": "포켓 아이템",
+        "level": 160,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOEJHGD",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:기계 심장:21:플라즈마 하트",
+        "name": "플라즈마 하트",
+        "category": "heart",
+        "slot": "기계 심장",
+        "level": 130,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEJFJHHI",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:올스탯 +9%",
+            "type": "allStatPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "올스탯 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:DEX +9%",
+            "type": "dexPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "DEX +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:올스탯 +6%",
+            "type": "allStatPercent",
+            "value": 6,
+            "unit": "percent",
+            "text": "올스탯 +6%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "unique",
+        "additional": [
+          {
+            "id": "unique:올스탯 +5%",
+            "type": "allStatPercent",
+            "value": 5,
+            "unit": "percent",
+            "text": "올스탯 +5%",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:INT +14",
+            "type": "intFlat",
+            "value": 14,
+            "unit": "flat",
+            "text": "INT +14",
+            "grade": "unique"
+          },
+          {
+            "id": "unique:공격력 +11",
+            "type": "attackFlat",
+            "value": 11,
+            "unit": "flat",
+            "text": "공격력 +11",
+            "grade": "unique"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:뱃지:22:크리스탈 웬투스 뱃지",
+        "name": "크리스탈 웬투스 뱃지",
+        "category": "unsupported",
+        "slot": "뱃지",
+        "level": 130,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOKJHGG",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:엠블렘:23:미트라의 분노 : 해적",
+        "name": "미트라의 분노 : 해적",
+        "category": "emblem",
+        "slot": "엠블렘",
+        "level": 200,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOLLCLI",
+        "potentialGrade": "legendary",
+        "potential": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "additionalGrade": "legendary",
+        "additional": [
+          {
+            "id": "legendary:공격력 +12%",
+            "type": "attackPercent",
+            "value": 12,
+            "unit": "percent",
+            "text": "공격력 +12%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:크리티컬 확률 +9%",
+            "type": "criticalRatePercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "크리티컬 확률 +9%",
+            "grade": "legendary"
+          },
+          {
+            "id": "legendary:공격력 +9%",
+            "type": "attackPercent",
+            "value": 9,
+            "unit": "percent",
+            "text": "공격력 +9%",
+            "grade": "legendary"
+          }
+        ],
+        "eligibleSoul": false
+      },
+      {
+        "id": "3:예비 특수 반지:24:컨티뉴어스 링",
+        "name": "컨티뉴어스 링",
+        "category": "ring",
+        "slot": "예비 특수 반지",
+        "level": 110,
+        "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIEMI",
+        "potential": [],
+        "additional": [],
+        "eligibleSoul": false
+      }
+    ]
+  },
+  "abilityPresets": {
+    "1": {
+      "grade": "legendary",
+      "lines": [
+        {
+          "id": "legendary:보스 몬스터 공격 시 데미지 20% 증가",
+          "type": "bossDamagePercent",
+          "value": 20,
+          "unit": "percent",
+          "text": "보스 몬스터 공격 시 데미지 20% 증가",
+          "grade": "legendary"
+        },
+        {
+          "id": "unique:상태 이상에 걸린 대상 공격 시 데미지 8% 증가",
+          "type": "unknown",
+          "value": 0,
+          "unit": "text",
+          "text": "상태 이상에 걸린 대상 공격 시 데미지 8% 증가",
+          "grade": "unique"
+        },
+        {
+          "id": "unique:버프 스킬의 지속 시간 33% 증가",
+          "type": "buffDurationPercent",
+          "value": 33,
+          "unit": "percent",
+          "text": "버프 스킬의 지속 시간 33% 증가",
+          "grade": "unique"
+        }
+      ],
+      "honor": 1690038
+    },
+    "2": {
+      "grade": "legendary",
+      "lines": [
+        {
+          "id": "legendary:아이템 드롭률 20% 증가",
+          "type": "dropRatePercent",
+          "value": 20,
+          "unit": "percent",
+          "text": "아이템 드롭률 20% 증가",
+          "grade": "legendary"
+        },
+        {
+          "id": "epic:일반 몬스터 공격 시 데미지 4% 증가",
+          "type": "unknown",
+          "value": 0,
+          "unit": "text",
+          "text": "일반 몬스터 공격 시 데미지 4% 증가",
+          "grade": "epic"
+        },
+        {
+          "id": "unique:메소 획득량 13% 증가",
+          "type": "mesoRatePercent",
+          "value": 13,
+          "unit": "percent",
+          "text": "메소 획득량 13% 증가",
+          "grade": "unique"
+        }
+      ],
+      "honor": 1690038
+    },
+    "3": {
+      "grade": "legendary",
+      "lines": [
+        {
+          "id": "legendary:보스 몬스터 공격 시 데미지 20% 증가",
+          "type": "bossDamagePercent",
+          "value": 20,
+          "unit": "percent",
+          "text": "보스 몬스터 공격 시 데미지 20% 증가",
+          "grade": "legendary"
+        },
+        {
+          "id": "unique:버프 스킬의 지속 시간 33% 증가",
+          "type": "buffDurationPercent",
+          "value": 33,
+          "unit": "percent",
+          "text": "버프 스킬의 지속 시간 33% 증가",
+          "grade": "unique"
+        },
+        {
+          "id": "unique:상태 이상에 걸린 대상 공격 시 데미지 7% 증가",
+          "type": "unknown",
+          "value": 0,
+          "unit": "text",
+          "text": "상태 이상에 걸린 대상 공격 시 데미지 7% 증가",
+          "grade": "unique"
+        }
+      ],
+      "honor": 1690038
+    }
+  },
+  "activeEquipmentPreset": "1",
+  "activeAbilityPreset": "1",
+  "profile": {
+    "mainStats": [
+      "dex"
+    ],
+    "secondaryStats": [
+      "str"
+    ],
+    "attackType": "attack"
+  }
+}

@@ -1,0 +1,5 @@
+* text=auto eol=lf
+# Official snapshot hashes are based on the exact stored bytes.
+public/rules/** -text
+*.png binary
+*.gz binary

@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dobak-character-api",
+  "main": "server/worker.ts",
+  "compatibility_date": "2026-09-17",
+  "vars": {
+    // Set exact public site origins before deployment; no paths or trailing slash.
+    "ALLOWED_ORIGINS": "https://nam3856.github.io,http://127.0.0.1:5173,http://localhost:5173,http://127.0.0.1:4173",
+  },
+  // Store NEXON_API_KEY with `wrangler secret put NEXON_API_KEY`, never here.
+  "ratelimits": [
+    {
+      "name": "CHAR_SEARCH_LIMITER",
+      // Choose a namespace ID not already used by another limiter in your account.
+      "namespace_id": "1001",
+      // Cloudflare enforces approximate per-IP limits separately in each location.
+      "simple": { "limit": 20, "period": 60 },
+    },
+  ],
+  "observability": { "enabled": false },
+}
