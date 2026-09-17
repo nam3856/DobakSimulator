@@ -54,7 +54,10 @@ test('each equal random quartile loads its original banner under the Pages subpa
   for (let index = 0; index < 4; index++) {
     await openBanner(page, (index + 0.5) / 4);
     const image = page.locator('.fake-ad-banner img');
-    await expect(image).toHaveAttribute('src', new RegExp(`banners/ad-${index + 1}\\.png$`));
+    await expect(image).toHaveAttribute(
+      'src',
+      new RegExp(`banners/ad-${index + 1}\\.png(?:\\?|$)`),
+    );
     await expect(image).toHaveJSProperty('naturalWidth', 1028);
     await expect(image).toHaveJSProperty('naturalHeight', 382);
     await expect(image).toHaveAttribute('alt', /\S/);
