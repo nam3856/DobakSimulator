@@ -50,7 +50,7 @@ const data: RuleData = {
     ],
   },
 };
-function config(batchSize: 1 | 3): SimulationConfig {
+function config(batchSize: 1 | 3, lowerTargets = ['b', 'c']): SimulationConfig {
   return {
     mode: 'ability',
     cubeType: 'black',
@@ -70,8 +70,7 @@ function config(batchSize: 1 | 3): SimulationConfig {
       stage: 0,
       conditions: [
         { type: 'a', minValue: 1, slot: 0 },
-        { type: 'b', minValue: 1, slots: [1, 2] },
-        { type: 'c', minValue: 1, slots: [1, 2] },
+        ...lowerTargets.map((type) => ({ type, minValue: 1, slots: [1, 2] })),
       ],
     },
   };
@@ -79,18 +78,19 @@ function config(batchSize: 1 | 3): SimulationConfig {
 
 /** Independent finite model: enumerate every ordered outcome AND every ordered batch,
  * directly selecting the earliest best candidate, then solve retained-miss self loops. */
-function oracle(batchSize: number, initial: string[]) {
+function oracle(batchSize: number, initial: string[], lowerTargets = ['b', 'c']) {
   const cache = new Map<string, { cost: number; attempts: number }>();
   const progress = (tuple: string[]) =>
-    tuple.slice(1).filter((type) => type === 'b' || type === 'c').length;
+    tuple.slice(1).filter((type) => lowerTargets.includes(type)).length;
+  const successRank = lowerTargets.length + 1;
   const rank = (tuple: string[]) =>
-    tuple[0] === 'a' && progress(tuple) === 2 ? 3 : progress(tuple);
+    tuple[0] === 'a' && progress(tuple) === lowerTargets.length ? successRank : progress(tuple);
   function visit(current: string[]): { cost: number; attempts: number } {
     const key = current.join(',');
-    if (rank(current) === 3) return { cost: 0, attempts: 0 };
+    if (rank(current) === successRank) return { cost: 0, attempts: 0 };
     const saved = cache.get(key);
     if (saved) return saved;
-    const fixed = [1, 2].filter((slot) => ['b', 'c'].includes(current[slot]));
+    const fixed = [1, 2].filter((slot) => lowerTargets.includes(current[slot]));
     const used = fixed.map((slot) => current[slot]);
     const slots = [0, 1, 2].filter((slot) => !fixed.includes(slot));
     const tuples: { lines: string[]; probability: number }[] = [];
@@ -161,5 +161,44 @@ describe('sequential ability benchmark against a complete independent finite mod
       expect(result.status).toBe('ready');
       expect(result.expectedCost).toBeCloseTo(expected.cost, 9);
       expect(result.expectedAttempts).toBeCloseTo(expected.attempts, 9);
+    });
+
+  for (const batchSize of [1, 3] as const)
+    for (const initial of [
+      ['c', 'a', 'd'],
+      ['d', 'b', 'c'],
+      ['d', 'c', 'b'],
+    ])
+      it(`two goals, ${batchSize} candidates, starting ${initial.join('/')} agree with ordered enumeration`, () => {
+        const cfg = config(batchSize, ['b']);
+        cfg.start.lines = initial.map(line);
+        const expected = oracle(batchSize, initial, ['b']);
+        const result = computeBenchmark(data, cfg, undefined, {
+          sampleCount: 2000,
+          seed: 'two-goal-oracle',
+        });
+        expect(result.status).toBe('ready');
+        expect(result.successProbability).toBeCloseTo(1, 12);
+        expect(result.expectedCost).toBeCloseTo(expected.cost, 9);
+        expect(result.expectedAttempts).toBeCloseTo(expected.attempts, 9);
+      });
+
+  for (const batchSize of [1, 3] as const)
+    it(`two goals with an acquired lower lock have the geometric cost CDF for ${batchSize} candidates`, () => {
+      const cfg = config(batchSize, ['b']);
+      cfg.start.lines = ['d', 'b', 'c'].map(line);
+      // With b fixed, P(first=a)=1/13. The excluded d/b/c tuple has mass
+      // (4/13)*(3/9), giving P(hit | changed)=3/35. The other lower line
+      // still rerolls, so an attempt costs 6 rather than the two-lock price 15.
+      const chance = 3 / 35;
+      const batchChance = 1 - (1 - chance) ** batchSize;
+      const result = computeBenchmark(data, cfg, 18, {
+        sampleCount: 100000,
+        seed: `two-goal-cdf-${batchSize}`,
+      });
+      expect(result.expectedAttempts).toBeCloseTo(batchSize / batchChance, 10);
+      expect(result.expectedCost).toBeCloseTo((6 * batchSize) / batchChance, 10);
+      expect(result.cdfAtActual).toBeCloseTo(1 - (1 - chance) ** 3, 2);
+      expect(result.note).not.toContain('나머지 아랫줄');
     });
 });

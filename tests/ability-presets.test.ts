@@ -8,7 +8,7 @@ import {
 import { allCandidates, type RuleData } from '../src/engine/rules';
 import { matchTarget } from '../src/engine/target';
 import { abilityProgress, abilityStrategyErrors } from '../src/engine/ability-strategy';
-import { makeConfig, lowerFirstGoal } from '../src/ui/setup';
+import { makeConfig, lowerFirstGoal, resizeAbilityGoal } from '../src/ui/setup';
 import type { CharacterSnapshot } from '../src/types';
 const read = (file: string) =>
   JSON.parse(readFileSync(new URL(`../public/${file}.json`, import.meta.url), 'utf8'));
@@ -200,8 +200,28 @@ describe('user-supplied advanced ability endgame presets', () => {
       [1, 2],
     ]);
     expect(lowerFirstGoal({ ...cfg.target, mode: 'exact' })).toBeUndefined();
+    const two = lowerFirstGoal({ ...cfg.target, conditions: cfg.target.conditions.slice(0, 2) })!;
+    expect(two.conditions.map((condition) => [condition.slot, condition.slots])).toEqual([
+      [0, undefined],
+      [undefined, [1, 2]],
+    ]);
+    expect(abilityStrategyErrors({ ...cfg, target: two })).toEqual([]);
     expect(
-      lowerFirstGoal({ ...cfg.target, conditions: cfg.target.conditions.slice(0, 2) }),
+      lowerFirstGoal({ ...cfg.target, conditions: cfg.target.conditions.slice(0, 1) }),
     ).toBeUndefined();
+  });
+  it('resizes between two and three goals while preserving edited values and avoiding duplicate types', () => {
+    const target = makeAbilityPresetGoal(data, '나이트로드', 'minimum');
+    target.conditions[1].minValue = 19;
+    const two = resizeAbilityGoal(target, 2, [])!;
+    expect(two.conditions).toHaveLength(2);
+    expect(two.conditions[1]).toMatchObject({
+      type: 'bossDamagePercent',
+      minValue: 19,
+      slots: [1, 2],
+    });
+    const three = resizeAbilityGoal(two, 3, target.conditions)!;
+    expect(three.conditions).toEqual(target.conditions);
+    expect(resizeAbilityGoal(two, 3, two.conditions)).toBeUndefined();
   });
 });

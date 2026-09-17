@@ -197,6 +197,16 @@ describe('lower-first ability expected cost', () => {
     expect(result.expectedAttempts).toBeCloseTo(exact.attempts, 9);
   });
 
+  it('preserves unused third-line values and baseline exclusion for a two-goal strategy', () => {
+    const { data, config } = fixture(true);
+    config.target.conditions = config.target.conditions.slice(0, 2);
+    const exact = fullStateMean(data, config);
+    const result = computeBenchmark(data, config, 60, { sampleCount: 3000 });
+    expect(result.status).toBe('ready');
+    expect(result.expectedCost).toBeCloseTo(exact.cost, 9);
+    expect(result.expectedAttempts).toBeCloseTo(exact.attempts, 9);
+  });
+
   it('uses already acquired lower lines and handles free completion or impossible lower targets', () => {
     const { data, config } = fixture();
     const rows = allCandidates(data, config, 'legendary', 0);
@@ -276,26 +286,31 @@ describe('lower-first ability expected cost', () => {
     expect(result.expectedCost).toBe(Infinity);
   });
 
-  it('evaluates official legendary maximum presets with 500,000 samples without replaying rare failures', () => {
-    const { data, config } = fixture();
-    data.ability = JSON.parse(
-      readFileSync(new URL('../public/rules/ability.json', import.meta.url), 'utf8'),
-    );
-    config.target = makeAbilityPresetGoal(data, '나이트로드');
-    config.start.lines = [0, 1, 2].map(
-      (slot) =>
-        allCandidates(data, config, 'legendary', slot).find(
-          (row) => row.line.type === ['strFlat', 'dexFlat', 'intFlat'][slot],
-        )!.line,
-    );
-    const started = performance.now();
-    const result = computeBenchmark(data, config);
-    expect(result.status).toBe('ready');
-    expect(result.sampleCount).toBe(500000);
-    expect(result.expectedCost).toBeGreaterThan(1e9);
-    expect(result.expectedAttempts).toBeGreaterThan(1000);
-    expect(result.quantiles.p10).toBeLessThan(result.quantiles.p50);
-    expect(result.quantiles.p50).toBeLessThan(result.quantiles.p90);
-    expect(performance.now() - started).toBeLessThan(15000);
-  }, 20000);
+  it.each([2, 3])(
+    'evaluates %i official legendary maximum goals with 500,000 samples without replaying rare failures',
+    (goalCount) => {
+      const { data, config } = fixture();
+      data.ability = JSON.parse(
+        readFileSync(new URL('../public/rules/ability.json', import.meta.url), 'utf8'),
+      );
+      config.target = makeAbilityPresetGoal(data, '나이트로드');
+      config.target.conditions = config.target.conditions.slice(0, goalCount);
+      config.start.lines = [0, 1, 2].map(
+        (slot) =>
+          allCandidates(data, config, 'legendary', slot).find(
+            (row) => row.line.type === ['strFlat', 'dexFlat', 'intFlat'][slot],
+          )!.line,
+      );
+      const started = performance.now();
+      const result = computeBenchmark(data, config);
+      expect(result.status).toBe('ready');
+      expect(result.sampleCount).toBe(500000);
+      expect(result.expectedCost).toBeGreaterThan(1e9);
+      expect(result.expectedAttempts).toBeGreaterThan(1000);
+      expect(result.quantiles.p10).toBeLessThan(result.quantiles.p50);
+      expect(result.quantiles.p50).toBeLessThan(result.quantiles.p90);
+      expect(performance.now() - started).toBeLessThan(15000);
+    },
+    20000,
+  );
 });

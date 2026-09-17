@@ -110,6 +110,91 @@ function draw(config: SimulationConfig, state: SimulationState, ...tuples: strin
 }
 
 describe('lower-line-first ability progression', () => {
+  it.each([1, 2])(
+    'supports two goals by securing secondary slot %i before pursuing the first line',
+    (lowerSlot) => {
+      const cfg = config();
+      cfg.target.conditions = cfg.target.conditions.slice(0, 2);
+      expect(validateConfig(data, cfg)).toEqual([]);
+      const tuple = (first: string, other: string) =>
+        lowerSlot === 1 ? [first, 'b', other] : [first, other, 'b'];
+      let state = createState(data, cfg);
+      expect(state.lockedSlots).toEqual([]);
+      state = draw(cfg, state, tuple('d', 'e'));
+      expect(state.lockedSlots).toEqual([lowerSlot]);
+      expect(abilityProgress(cfg, state.lines)).toEqual({
+        lockedSlots: [lowerSlot],
+        matchedLower: 1,
+        requiredLower: 1,
+      });
+      state = draw(cfg, state, tuple('e', 'd'));
+      expect(state.lines.map((line) => line.type)).toEqual(tuple('d', 'e'));
+      expect(state.candidates[0].adopted).toBe(false);
+      state = draw(cfg, state, tuple('a', 'f'));
+      expect(state.status).toBe('success');
+      expect(state.lines.map((line) => line.type)).toEqual(tuple('a', 'f'));
+      expect(state.lockedSlots).toEqual([lowerSlot]);
+      expect(state.spent.meso).toBe(14000000n);
+      expect(state.spent.honor).toBe(80000n);
+      expect(state.attempts).toBe(3n);
+    },
+  );
+
+  it.each([1, 2])(
+    'locks an existing two-goal secondary option in slot %i for free',
+    (lowerSlot) => {
+      const cfg = config();
+      cfg.target.conditions = cfg.target.conditions.slice(0, 2);
+      const tuple = (first: string) => (lowerSlot === 1 ? [first, 'b', 'e'] : [first, 'e', 'b']);
+      cfg.start.lines = tuple('d').map(option);
+      const state = createState(data, cfg);
+      expect(state.lockedSlots).toEqual([lowerSlot]);
+      expect(state.attempts).toBe(0n);
+      expect(state.spent.meso).toBe(0n);
+      const next = draw(cfg, state, tuple('a'));
+      expect(next.status).toBe('success');
+      expect(next.spent.meso).toBe(6000000n);
+      expect(next.spent.honor).toBe(30000n);
+      expect(next.lockedSlots).toEqual([lowerSlot]);
+    },
+  );
+
+  it('charges every comparison for two goals and keeps the earliest lower-line progress', () => {
+    const cfg = config();
+    cfg.batchSize = 3;
+    cfg.target.conditions = cfg.target.conditions.slice(0, 2);
+    let state = draw(
+      cfg,
+      createState(data, cfg),
+      ['d', 'b', 'e'],
+      ['d', 'e', 'b'],
+      ['a', 'd', 'f'],
+    );
+    expect(state.lines.map((line) => line.type)).toEqual(['d', 'b', 'e']);
+    expect(state.candidates.map((result) => result.adopted)).toEqual([true, false, false]);
+    expect(state.spent.meso).toBe(6000000n);
+    expect(state.spent.honor).toBe(60000n);
+    state = draw(cfg, state, ['d', 'b', 'f'], ['a', 'b', 'e'], ['a', 'b', 'f']);
+    expect(state.status).toBe('success');
+    expect(state.lines.map((line) => line.type)).toEqual(['a', 'b', 'e']);
+    expect(state.candidates.map((result) => result.adopted)).toEqual([false, true, false]);
+    expect(state.spent.meso).toBe(24000000n);
+    expect(state.spent.honor).toBe(150000n);
+    expect(state.attempts).toBe(6n);
+    expect(state.lockedSlots).toEqual([1]);
+  });
+
+  it('recognizes a complete two-goal starting state without requiring the unused lower line', () => {
+    const cfg = config();
+    cfg.target.conditions = cfg.target.conditions.slice(0, 2);
+    cfg.start.lines = ['a', 'f', 'b'].map(option);
+    const state = createState(data, cfg);
+    expect(state.status).toBe('success');
+    expect(state.attempts).toBe(0n);
+    expect(state.spent.meso).toBe(0n);
+    expect(state.lockedSlots).toEqual([2]);
+  });
+
   it('adopts lower-line progress, retains misses, and only pursues the first line after both locks', () => {
     const cfg = config();
     let state = createState(data, cfg);
@@ -212,7 +297,9 @@ describe('lower-line-first ability progression', () => {
     expect(validateConfig(data, cfg).join(' ')).toContain('수동 잠금');
     cfg.lockedSlots = [];
     cfg.target.conditions[1].slots = [0, 1, 2];
-    expect(validateConfig(data, cfg).join(' ')).toContain('목표 두 개');
+    expect(validateConfig(data, cfg).join(' ')).toContain('보조 목표 한 개 또는 두 개');
+    cfg.target.conditions = cfg.target.conditions.slice(0, 1);
+    expect(validateConfig(data, cfg).join(' ')).toContain('보조 목표 한 개 또는 두 개');
     const legacy = config();
     delete legacy.abilityStrategy;
     expect(usesLowerFirstAbility(legacy)).toBe(false);

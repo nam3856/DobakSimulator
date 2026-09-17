@@ -109,13 +109,15 @@ export function abilityStrategyErrors(config: SimulationConfig): string[] {
   const lower = abilityLowerConditions(config);
   const errors: string[] = [];
   if (
-    conditions.length !== 3 ||
+    (conditions.length !== 2 && conditions.length !== 3) ||
     first.length !== 1 ||
-    lower.length !== 2 ||
+    lower.length !== conditions.length - 1 ||
     lower.some((condition) => allowsSlot(condition, 0)) ||
     conditions.some((condition) => (condition.count ?? 1) !== 1)
   )
-    errors.push('아랫줄 우선 방식은 첫째 줄 목표 하나와 둘째·셋째 줄 목표 두 개가 필요합니다.');
+    errors.push(
+      '아랫줄 우선 방식은 첫째 줄 목표 하나와 둘째·셋째 줄의 보조 목표 한 개 또는 두 개가 필요합니다.',
+    );
   if (config.lockedSlots.length)
     errors.push(
       '아랫줄 우선 방식은 목표를 자동으로 잠급니다. 수동 잠금을 해제하거나 고정 잠금 방식으로 변경해 주세요.',

@@ -411,6 +411,132 @@ test('paid phases adopt lower goals and keep the original benchmark through comp
   expect(completed.state.spent.honor).toBe(90000n);
 });
 
+for (const lowerSlot of [1, 2])
+  test(`two ability goals acquire slot ${lowerSlot + 1} before the first line and charge every candidate`, async ({
+    page,
+  }) => {
+    await boot(page);
+    await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+    await page.getByLabel('어빌리티 목표 줄 수').selectOption('2');
+    await selectStart(page, ['attackFlat', 'strFlat', 'dexFlat']);
+    await benchmarkReady(page);
+    const initial = await stored(page);
+    const mean = (await page.locator('.expected-stat strong').textContent())!;
+    await expect(page.locator('.ability-progress-steps > span')).toHaveCount(2);
+    await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('자동 잠금 0/1줄');
+
+    const acquired = ['attackFlat', 'strFlat', 'dexFlat'];
+    acquired[lowerSlot] = 'bossDamagePercent';
+    await forceOneRoll(page, acquired, 3);
+    await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('첫 번째 줄 도전 중');
+    await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('자동 잠금 1/1줄');
+    await expect(
+      page.locator('.current-result').getByLabel(`${lowerSlot + 1}번째 줄 자동 잠금`),
+    ).toBeVisible();
+    const unusedSlot = lowerSlot === 1 ? 2 : 1;
+    await expect(
+      page.getByRole('button', { name: `${unusedSlot + 1}번째 보관 옵션 잠금`, exact: true }),
+    ).toBeEnabled();
+    const locked = await stored(page);
+    expect(locked.state.lockedSlots).toEqual([lowerSlot]);
+    expect(locked.state.attempts).toBe(3n);
+    expect(locked.state.spent.meso).toBe(6000000n);
+    expect(locked.state.spent.honor).toBe(60000n);
+    expect(locked.state.candidates).toHaveLength(3);
+    await expect(page.locator('.expected-stat strong')).toHaveText(mean);
+
+    await page.reload();
+    await benchmarkReady(page);
+    await expect(page.getByLabel('어빌리티 목표 줄 수')).toHaveValue('2');
+    await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('lowerFirst');
+    expect((await stored(page)).state.lockedSlots).toEqual([lowerSlot]);
+    const completed = [...acquired];
+    completed[0] = 'passiveSkillLevel';
+    completed[unusedSlot] = 'intFlat';
+    await forceOneRoll(page, completed, 3);
+    await expect(page.locator('.status-badge')).toHaveText('목표 달성');
+    await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('두 줄 완성');
+    await benchmarkReady(page);
+    await expect(page.locator('.expected-stat strong')).toHaveText(mean);
+    const result = await stored(page);
+    expect(result.config.target.conditions).toHaveLength(2);
+    expect(result.config.start).toEqual(initial.config.start);
+    expect(result.state.lines[unusedSlot].type).toBe('intFlat');
+    expect(result.state.lockedSlots).toEqual([lowerSlot]);
+    expect(result.state.attempts).toBe(6n);
+    expect(result.state.spent.meso).toBe(24000000n);
+    expect(result.state.spent.honor).toBe(150000n);
+    expect(result.state.candidates).toHaveLength(3);
+  });
+
+test('two ability goals persist across presets, reload and goal deletion on a narrow screen', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await boot(page);
+  await expect(page.getByLabel('어빌리티 목표 줄 수')).toHaveValue('3');
+  await page.getByLabel('어빌리티 목표 줄 수').selectOption('2');
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+  await expect(page.getByLabel('목표 조건 1 옵션')).toHaveValue('passiveSkillLevel');
+  await expect(page.getByLabel('목표 조건 2 옵션')).toHaveValue('bossDamagePercent');
+  await expect(page.getByLabel('목표 조건 3 옵션')).toHaveCount(0);
+  expect((await stored(page)).config.target.conditions).toHaveLength(2);
+  await page.reload();
+  await expect(page.getByLabel('어빌리티 목표 줄 수')).toHaveValue('2');
+  await page.getByLabel('어빌리티 목표 줄 수').selectOption('3');
+  await expect(page.getByLabel('목표 조건 3 옵션')).toHaveValue('statusAilmentDamagePercent');
+  await expect(page.getByLabel('목표 조건 3 수치')).toHaveValue('9');
+  await page.getByRole('button', { name: '목표 조건 3 삭제', exact: true }).click();
+  await expect(page.getByLabel('어빌리티 목표 줄 수')).toHaveValue('2');
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('lowerFirst');
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('비숍');
+  await expect(page.getByLabel('목표 조건 1 옵션')).toHaveValue('bossDamagePercent');
+  await expect(page.getByLabel('목표 조건 2 옵션')).toHaveValue('statusAilmentDamagePercent');
+  await expect(page.getByLabel('목표 조건 3 옵션')).toHaveCount(0);
+  await benchmarkReady(page);
+  const session = await stored(page);
+  expect(session.config.target.conditions[0].slot).toBe(0);
+  expect(session.config.target.conditions[1].slots).toEqual([1, 2]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
+});
+
+test('two ability goals reassess manual locks before automatic reset and use one-lock prices', async ({
+  page,
+}) => {
+  await page.route('**/assets/simulator.worker-*.js', async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      body: `self.crypto.getRandomValues = array => { array.fill(0); return array; };\n${await response.text()}`,
+    });
+  });
+  await boot(page);
+  await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
+  await page.getByLabel('어빌리티 목표 줄 수').selectOption('2');
+  await selectStart(page, ['attackFlat', 'bossDamagePercent', 'dexFlat']);
+  await benchmarkReady(page);
+  const initial = await stored(page);
+  const mean = (await page.locator('.expected-stat strong').textContent())!;
+  await page.getByRole('button', { name: '1번째 보관 옵션 잠금', exact: true }).click();
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('fixed');
+  await expect(page.locator('.expected-stat')).toContainText('달성할 수 없음');
+  await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
+  await expect(page.getByLabel('어빌리티 진행 방식')).toHaveValue('lowerFirst');
+  await expect(page.getByLabel('어빌리티 자동 잠금 진행')).toContainText('자동 잠금 1/1줄');
+  await expect.poll(async () => (await stored(page)).state.attempts).toBeGreaterThan(0n);
+  await page.getByRole('button', { name: '중지', exact: true }).click();
+  await benchmarkReady(page);
+  const paused = await stored(page);
+  expect(paused.config.lockedSlots).toEqual([]);
+  expect(paused.config.target.conditions).toHaveLength(2);
+  expect(paused.state.lockedSlots).toEqual([1]);
+  expect(paused.state.lines).toEqual(initial.state.lines);
+  expect(paused.state.attempts % 3n).toBe(0n);
+  expect(paused.state.spent.meso).toBe(paused.state.attempts * 6000000n);
+  expect(paused.state.spent.honor).toBe(paused.state.attempts * 30000n);
+  await expect(page.locator('.expected-stat strong')).toHaveText(mean);
+});
+
 test('ability presets and automatic lock progress fit a 360px screen', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await boot(page);

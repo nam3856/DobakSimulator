@@ -53,7 +53,7 @@ const resultCache = new WeakMap<
 /**
  * A retained miss changes only the excluded tuple probability r. The distribution of
  * strictly improving outcomes, conditional on their rank, does not depend on r.
- * This is a finite DAG (0 -> 1 -> 2 locks -> success), not a reroll Monte Carlo.
+ * This is a finite DAG (0 -> required lower locks -> success), not a reroll Monte Carlo.
  */
 export function abilityStrategyBenchmark(
   data: RuleData,
@@ -311,7 +311,12 @@ export function abilityStrategyBenchmark(
       let candidates = eligible(slot, prefix);
       if (
         depth === slots.length - 1 &&
-        abilityProgress(config, selected).matchedLower <= phase.locks.length
+        abilityProgress(config, selected).matchedLower <= phase.locks.length &&
+        !matchTarget(config.target, {
+          grade: 'legendary',
+          lines: selected,
+          stage: config.start.stage,
+        })
       ) {
         let relevant = relevantCandidates.get(candidates);
         if (!relevant) {
@@ -327,16 +332,12 @@ export function abilityStrategyBenchmark(
       }
       for (const candidate of candidates) {
         selected[slot] = candidate.line;
-        // The last drawn slot must produce progress or finish the first line.
-        // Earlier branches remain intact so type exclusions keep their exact weights.
+        // With one lower target, the remaining unlocked lower line may be irrelevant.
+        // Still draw it to preserve its type exclusions and retained-tuple probability.
+        // Skip only complete outcomes that neither improve the locks nor hit the goal.
         if (
           depth === slots.length - 1 &&
-          phase.locks.length < 2 &&
-          abilityProgress(config, selected).matchedLower <= phase.locks.length
-        )
-          continue;
-        if (
-          phase.locks.length === 2 &&
+          abilityProgress(config, selected).matchedLower <= phase.locks.length &&
           !matchTarget(config.target, {
             grade: 'legendary',
             lines: selected,
@@ -455,7 +456,7 @@ export function abilityStrategyBenchmark(
       actualCost === undefined ? undefined : upperBound(samples, actualCost) / sampleCount,
     note: partial
       ? '자동 잠금 이후 목표 달성에 실패할 수 있는 경로가 있어 무조건부 기댓값은 무한대입니다.'
-      : `아랫줄 목표 확보 → 자동 잠금 → 나머지 아랫줄 → 첫째 줄 순서입니다. 평균은 해석 계산, 분포는 고정 시드 ${sampleCount.toLocaleString('ko-KR')}개 역누적분포 표본입니다.${config.batchSize === 3 ? ' 매 비교는 같은 잠금에서 3회 전부 과금하고, 목표 성공 우선·잠금 진척 우선으로 채택합니다.' : ''}`,
+      : `아랫줄 목표 확보 → 자동 잠금 → ${config.target.conditions.length === 3 ? '나머지 아랫줄 → ' : ''}첫째 줄 순서입니다. 평균은 해석 계산, 분포는 고정 시드 ${sampleCount.toLocaleString('ko-KR')}개 역누적분포 표본입니다.${config.batchSize === 3 ? ' 매 비교는 같은 잠금에서 3회 전부 과금하고, 목표 성공 우선·잠금 진척 우선으로 채택합니다.' : ''}`,
   };
   let cache = resultCache.get(data);
   if (!cache) resultCache.set(data, (cache = new Map()));

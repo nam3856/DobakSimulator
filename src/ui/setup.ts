@@ -6,6 +6,7 @@ import type {
   OptionLine,
   SimulationConfig,
   SimulatorMode,
+  TargetCondition,
 } from '../types';
 import { suggestPotentialTargets } from '../character';
 import { makeAbilityPresetGoal, resolveAbilityPreset } from '../character/ability-presets';
@@ -23,8 +24,8 @@ export function lowerFirstGoal(target: Goal): Goal | undefined {
   if (
     target.mode !== 'ability' ||
     target.match !== 'all' ||
-    target.conditions.length !== 3 ||
-    new Set(target.conditions.map((c) => c.type)).size !== 3 ||
+    ![2, 3].includes(target.conditions.length) ||
+    new Set(target.conditions.map((c) => c.type)).size !== target.conditions.length ||
     target.conditions.some((c) => (c.count ?? 1) !== 1)
   )
     return undefined;
@@ -36,6 +37,20 @@ export function lowerFirstGoal(target: Goal): Goal | undefined {
       slots: index === 0 ? undefined : [1, 2],
     })),
   };
+}
+export function resizeAbilityGoal(
+  target: Goal,
+  count: 2 | 3,
+  alternatives: TargetCondition[],
+): Goal | undefined {
+  if (!lowerFirstGoal(target)) return undefined;
+  const conditions = target.conditions.slice(0, count);
+  for (const condition of alternatives) {
+    if (conditions.length === count) break;
+    if (!conditions.some((current) => current.type === condition.type)) conditions.push(condition);
+  }
+  if (conditions.length !== count) return undefined;
+  return lowerFirstGoal({ ...target, conditions });
 }
 export function reconcileLines(
   data: RuleData,

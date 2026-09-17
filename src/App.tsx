@@ -83,8 +83,8 @@ import {
 } from './ui/constants';
 import { formatAmount, formatPercent, safePrice } from './ui/format';
 import { archiveSession, readSession, saveSession } from './ui/storage';
-import { lowerFirstGoal, makeConfig, reconcileLines } from './ui/setup';
-import { clampConditionValue } from './ui/ability-bounds';
+import { lowerFirstGoal, makeConfig, reconcileLines, resizeAbilityGoal } from './ui/setup';
+import { boundAbilityCondition, clampConditionValue } from './ui/ability-bounds';
 import { getPotentialConditionBounds } from './ui/potential-bounds';
 import { FakeAdBanner } from './ui/FakeAdBanner';
 import { getLinkedCharacter, replaceCharacterLink } from './ui/character-link';
@@ -229,6 +229,7 @@ export default function App() {
     !abilityStrategyErrors({ ...config, abilityStrategy: 'lowerFirst', lockedSlots: [] }).length
       ? config.target
       : undefined;
+  const requiredAbilityLower = config ? abilityProgress(config, []).requiredLower : 0;
   const canAutoRun =
     canRun ||
     (!!data &&
@@ -608,7 +609,7 @@ export default function App() {
       draft.abilityStrategy = 'fixed';
       draft.lockedSlots = state?.lockedSlots ?? config.lockedSlots;
       strategyNotice =
-        '변경한 목표는 수동 잠금 방식으로 진행합니다. 아랫줄 우선 방식은 첫 줄 목표 하나와 보조 줄 목표 두 개가 필요합니다.';
+        '변경한 목표는 수동 잠금 방식으로 진행합니다. 아랫줄 우선 방식은 첫 줄 목표 하나와 보조 줄 목표 한두 개가 필요합니다.';
     }
     if (resetLines) draft.start = { ...draft.start, lines: [], failures: 0 };
     if ((draft.mode === 'cube' || draft.mode === 'soulPotential') && draft.target.mode === 'sum') {
@@ -631,12 +632,39 @@ export default function App() {
     if (!data || !config) return;
     const preset = resolveAbilityPreset(job);
     if (!preset) return;
+    const target = makeAbilityPresetGoal(data, preset.job, 'minimum');
+    if (lowerFirstGoal(config.target) && config.target.conditions.length === 2)
+      target.conditions = target.conditions.slice(0, 2);
     patchConfig({
-      target: makeAbilityPresetGoal(data, preset.job, 'minimum'),
+      target,
       abilityPresetJob: preset.job,
       abilityStrategy: 'lowerFirst',
       lockedSlots: [],
     });
+  }
+  function chooseAbilityGoalCount(count: 2 | 3) {
+    if (!data || !config || !character) return;
+    const preset = resolveAbilityPreset(config.abilityPresetJob ?? character.job);
+    const alternatives = [
+      ...(preset ? makeAbilityPresetGoal(data, preset.job, 'minimum').conditions : []),
+      ...targetOptions
+        .filter((option) => option.grade === 'legendary')
+        .map((option) =>
+          boundAbilityCondition(
+            targetOptions,
+            { type: option.type, minValue: option.value, minGrade: 'legendary', slots: [1, 2] },
+            true,
+          ),
+        ),
+    ];
+    const target = resizeAbilityGoal(config.target, count, alternatives);
+    if (target)
+      patchConfig({
+        target,
+        abilityPresetJob: config.abilityPresetJob,
+        abilityStrategy: 'lowerFirst',
+        lockedSlots: [],
+      });
   }
   function toggleAbilityLock(slot: number) {
     if (!config || !state || config.mode !== 'ability' || auto) return;
@@ -1335,9 +1363,21 @@ export default function App() {
                     </button>
                   )}
                   <p className="inline-note">
-                    세 줄 모두 레전드리 조합입니다. 목표 수치는 옵션의 최저치로 시작하며 직접 높일
-                    수 있습니다. 첫 글자는 1번째 줄, 나머지 두 옵션은 2·3번째 줄 순서 무관입니다.
+                    모든 목표는 레전드리 조합입니다. 목표 수치는 옵션의 최저치로 시작하며 직접 높일
+                    수 있습니다. 첫 글자는 1번째 줄, 보조 옵션은 2·3번째 줄 순서 무관입니다.
                   </p>
+                  {lowerFirstGoal(config.target) && (
+                    <Field label="어빌리티 목표 줄 수">
+                      <select
+                        aria-label="어빌리티 목표 줄 수"
+                        value={config.target.conditions.length}
+                        onChange={(e) => chooseAbilityGoalCount(Number(e.target.value) as 2 | 3)}
+                      >
+                        <option value={2}>2줄 · 첫 줄 + 보조 줄 하나</option>
+                        <option value={3}>3줄 · 첫 줄 + 보조 줄 두 개</option>
+                      </select>
+                    </Field>
+                  )}
                   <details className="ability-legend">
                     <summary>
                       패·재·상·보·크·공 뜻 <ChevronDown size={13} />
@@ -1372,7 +1412,9 @@ export default function App() {
                   </Field>
                   <p className="inline-note">
                     {usesLowerFirstAbility(config)
-                      ? '보조 목표 중 하나 확보 → 해당 줄 잠금 → 남은 보조 줄 확보·잠금 → 첫 줄 완성. 기댓값도 이 순서로 계산합니다.'
+                      ? requiredAbilityLower === 1
+                        ? '2·3번째 줄 중 하나에 보조 목표 확보 → 해당 줄 잠금 → 첫 줄 완성. 남은 한 줄은 무관하며, 기댓값도 이 순서로 계산합니다.'
+                        : '보조 목표 중 하나 확보 → 해당 줄 잠금 → 남은 보조 줄 확보·잠금 → 첫 줄 완성. 기댓값도 이 순서로 계산합니다.'
                       : automaticAbilityTarget
                         ? '직접 재설정은 선택한 잠금을 유지합니다. 자동 실행은 목표에 맞게 잠금을 다시 판단하고 아랫줄부터 완성합니다.'
                         : '선택한 줄의 잠금을 유지하며 목표 전체가 완성될 때까지 재설정합니다.'}
@@ -1493,15 +1535,20 @@ export default function App() {
                     <div className="ability-progress" aria-label="어빌리티 자동 잠금 진행">
                       <strong>
                         {state.status === 'success'
-                          ? '세 줄 완성'
-                          : (state.lockedSlots?.length ?? 0) === 2
+                          ? requiredAbilityLower === 1
+                            ? '두 줄 완성'
+                            : '세 줄 완성'
+                          : (state.lockedSlots?.length ?? 0) === requiredAbilityLower
                             ? '첫 번째 줄 도전 중'
                             : (state.lockedSlots?.length ?? 0) === 1
                               ? '남은 보조 줄 도전 중'
                               : '첫 보조 줄 도전 중'}
                       </strong>
                       <div className="ability-progress-steps">
-                        {['보조 줄 하나', '보조 줄 두 개', '첫 줄 완성'].map((label, index) => (
+                        {(requiredAbilityLower === 1
+                          ? ['보조 줄 하나', '첫 줄 완성']
+                          : ['보조 줄 하나', '보조 줄 두 개', '첫 줄 완성']
+                        ).map((label, index) => (
                           <span
                             key={label}
                             className={
@@ -1522,7 +1569,8 @@ export default function App() {
                       </div>
                       {state.status !== 'success' && (
                         <small>
-                          자동 잠금 {state.lockedSlots?.length ?? 0}/2줄 · 다음 1회{' '}
+                          자동 잠금 {state.lockedSlots?.length ?? 0}/{requiredAbilityLower}줄 · 다음
+                          1회{' '}
                           {formatAmount(
                             Number(
                               data.ability.costs.find(
