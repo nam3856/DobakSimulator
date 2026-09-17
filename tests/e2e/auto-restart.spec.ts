@@ -28,7 +28,7 @@ test.beforeEach(async ({ page }) => {
     const original = Worker.prototype.postMessage;
     Worker.prototype.postMessage = function (message) {
       if (message?.type === 'run') observed.runRequests.push(structuredClone(message));
-      original.call(this, message, []);
+      original.call(this, message, { transfer: [] });
     };
   });
 });
