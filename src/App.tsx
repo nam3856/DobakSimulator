@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   Sparkles,
   Sun,
+  Star,
   WandSparkles,
   X,
 } from 'lucide-react';
@@ -81,6 +82,7 @@ import {
   GRADES,
   isItemCube,
   isPrime,
+  isStandaloneTab,
   METRIC_LABELS,
   MODES,
   RULE_VERSION,
@@ -94,6 +96,8 @@ import { boundAbilityCondition, clampConditionValue } from './ui/ability-bounds'
 import { getPotentialConditionBounds } from './ui/potential-bounds';
 import { FakeAdBanner } from './ui/FakeAdBanner';
 import { AbilityOptimizer } from './ui/AbilityOptimizer';
+import { StarforceSimulator } from './ui/StarforceSimulator';
+import { paidBenchmarkCost } from './engine/soul-cost';
 import { getLinkedCharacter, replaceCharacterLink } from './ui/character-link';
 
 const baseUrl = new URL(import.meta.env.BASE_URL, document.baseURI).href;
@@ -107,6 +111,7 @@ const tabIcons = {
   soulAmplification: Orbit,
   soulPotential: Gem,
   abilityOptimizer: Route,
+  starforce: Star,
 };
 const workerFactory = () =>
   new Worker(new URL('./workers/simulator.worker.ts', import.meta.url), { type: 'module' });
@@ -256,7 +261,8 @@ export default function App() {
   const canRestartAuto =
     !!data && !!config && !errors.length && state?.status === 'success' && state.attempts > 0n;
   const itemBased = config?.mode === 'cube' && isItemCube(config.cubeType);
-  const actualCost = state ? Number(itemBased ? state.spent.cubes : state.spent.meso) : 0;
+  const paidCost = state && config ? paidBenchmarkCost(config, state.spent) : 0n;
+  const actualCost = Number(paidCost);
   const reaction =
     state?.status === 'success' && state.attempts > 0n && benchmark?.cdfAtActual !== undefined
       ? evaluateLuck(benchmark, actualCost)
@@ -377,10 +383,8 @@ export default function App() {
           setEquipmentId(stored.equipmentId);
           if (stored.playMode === 'recreate') archiveSession(stored.config, stored.state);
           const requested =
-            linkError || getTabFromHash() === 'abilityOptimizer'
-              ? stored.config.mode
-              : getModeFromHash();
-          if (getTabFromHash() !== 'abilityOptimizer')
+            linkError || isStandaloneTab(getTabFromHash()) ? stored.config.mode : getModeFromHash();
+          if (!isStandaloneTab(getTabFromHash()))
             setActiveTab(location.hash && !linkError ? requested : stored.config.mode);
           if (location.hash && requested !== stored.config.mode) {
             if (stored.playMode !== 'recreate') archiveSession(stored.config, stored.state);
@@ -467,7 +471,7 @@ export default function App() {
               ...stored.state,
               status: stored.state.status === 'running' ? 'paused' : stored.state.status,
             });
-            if (getTabFromHash() !== 'abilityOptimizer')
+            if (!isStandaloneTab(getTabFromHash()))
               history.replaceState(null, '', `#${stored.config.mode}`);
           }
         } else {
@@ -511,7 +515,7 @@ export default function App() {
     benchWorker.current?.terminate();
     benchWorker.current = null;
     setBenchmark(undefined);
-    if (activeTab === 'abilityOptimizer') {
+    if (isStandaloneTab(activeTab)) {
       setBenchmarkBusy(false);
       return;
     }
@@ -548,11 +552,7 @@ export default function App() {
         baseUrl,
         ...(current?.status === 'success' && current.attempts > 0n
           ? {
-              actualCost: Number(
-                config.mode === 'cube' && isItemCube(config.cubeType)
-                  ? current.spent.cubes
-                  : current.spent.meso,
-              ),
+              actualCost: Number(paidBenchmarkCost(config, current.spent)),
             }
           : {}),
       });
@@ -611,7 +611,7 @@ export default function App() {
     const listener = () => {
       const tab = getTabFromHash();
       setActiveTab(tab);
-      if (tab === 'abilityOptimizer') {
+      if (isStandaloneTab(tab)) {
         stop();
         return;
       }
@@ -729,11 +729,11 @@ export default function App() {
     begin(makeConfig(data, character, nextItem, mode, config.cubeType, abilityPreset));
   }
   function switchTab(tab: AppTab) {
-    if (tab === 'abilityOptimizer') {
+    if (isStandaloneTab(tab)) {
       stop();
       setActiveTab(tab);
       history.replaceState(null, '', `#${tab}`);
-    } else if (activeTab === 'abilityOptimizer' && config?.mode === tab) {
+    } else if (isStandaloneTab(activeTab) && config?.mode === tab) {
       setActiveTab(tab);
       history.replaceState(null, '', `#${tab}`);
     } else switchMode(tab);
@@ -797,7 +797,7 @@ export default function App() {
       rules,
       preserve,
     );
-    replaceCharacterLink(next.name, activeTab === 'abilityOptimizer' ? activeTab : mode);
+    replaceCharacterLink(next.name, isStandaloneTab(activeTab) ? activeTab : mode);
   }
   async function searchCharacter(event: React.FormEvent) {
     event.preventDefault();
@@ -979,7 +979,7 @@ export default function App() {
       <main>
         <h1 className="sr-only">이세계 직작 시뮬레이터</h1>
         <section className="hero">
-          <FakeAdBanner />
+          <FakeAdBanner onStarforce={() => switchTab('starforce')} />
           <button className="character-card" onClick={openSearch} aria-label="캐릭터 검색 열기">
             <div className="portrait-frame">
               <Avatar character={character} />
@@ -1015,6 +1015,8 @@ export default function App() {
         </nav>
         {activeTab === 'abilityOptimizer' ? (
           <AbilityOptimizer key={character.name} character={character} data={data} />
+        ) : activeTab === 'starforce' ? (
+          <StarforceSimulator key={character.name} character={character} />
         ) : (
           <div className="workspace">
             <aside className="setup-column">
@@ -1379,7 +1381,7 @@ export default function App() {
                     )}
                     {config.mode === 'soulAmplification' &&
                       [1, 2, 3, 4].map((x) => (
-                        <Field label={`${x}단계 에테르 단가 (메소, 선택)`} key={x}>
+                        <Field label={`${x}단계 에테르 단가 (메소)`} key={x}>
                           <input
                             inputMode="numeric"
                             value={config.unitPrices[`ether${x}`] ?? ''}
@@ -1397,8 +1399,9 @@ export default function App() {
                         </Field>
                       ))}
                     <small className="inline-note">
-                      시세 환산은 별도 표시합니다. 행운 판정은 공식 메소 또는 큐브 개수를 기준으로
-                      합니다.
+                      {config.mode === 'soulAmplification'
+                        ? '에테르 단가는 기댓값과 행운 판정에 반영됩니다. 보유 에테르를 비용에서 제외하려면 0을 입력하세요.'
+                        : '시세 환산은 별도 표시합니다. 행운 판정은 공식 메소 또는 큐브 개수를 기준으로 합니다.'}
                     </small>
                   </details>
                 )}
@@ -1890,14 +1893,15 @@ export default function App() {
                       </div>
                     </div>
                     <div className="stat-card spent-stat">
-                      <span>{itemBased ? '사용한 큐브' : '사용한 메소'}</span>
-                      <strong
-                        title={formatAmount(
-                          itemBased ? state.spent.cubes : state.spent.meso,
-                          false,
-                        )}
-                      >
-                        {formatAmount(itemBased ? state.spent.cubes : state.spent.meso)}
+                      <span>
+                        {itemBased
+                          ? '사용한 큐브'
+                          : config.mode === 'soulAmplification'
+                            ? '사용한 총비용'
+                            : '사용한 메소'}
+                      </span>
+                      <strong title={formatAmount(paidCost, false)}>
+                        {formatAmount(paidCost)}
                         <small>{itemBased ? '개' : '메소'}</small>
                       </strong>
                       <div>
@@ -1938,6 +1942,11 @@ export default function App() {
                     config.mode === 'soulAmplification' ||
                     marketValue > 0n) && (
                     <div className="resource-ledger">
+                      {config.mode === 'soulAmplification' && (
+                        <span>
+                          강화 메소 <b>{formatAmount(state.spent.meso)} 메소</b>
+                        </span>
+                      )}
                       {config.mode === 'soulAmplification' &&
                         state.spent.ethers.map((x, i) => (
                           <span key={i}>

@@ -19,6 +19,12 @@ const number = (input: unknown, fallback = 0): number => {
   const value = Number(input);
   return Number.isFinite(value) && value >= 0 ? value : fallback;
 };
+const starforce = (input: unknown): number | undefined => {
+  if (typeof input !== 'number' && (typeof input !== 'string' || !/^\d+$/.test(input.trim())))
+    return undefined;
+  const value = Number(input);
+  return Number.isInteger(value) && value >= 0 && value <= 30 ? value : undefined;
+};
 const image = (input: unknown): string => {
   try {
     const value = new URL(string(input));
@@ -92,6 +98,19 @@ function equipmentItem(raw: JsonObject, preset: string, index: number): Equipmen
   const part = string(raw.item_equipment_part);
   const slot = string(raw.item_equipment_slot) || part;
   const category = normalizeEquipmentCategory(part, slot);
+  const stars = starforce(raw.starforce);
+  const description = string(raw.item_description);
+  const superiorEquipment = /슈페리얼/i.test(`${name} ${description}`)
+    ? true
+    : description
+      ? false
+      : undefined;
+  const extraordinaryStarforce =
+    raw.starforce_scroll_flag === '사용'
+      ? true
+      : raw.starforce_scroll_flag === '미사용'
+        ? false
+        : undefined;
   const potentialGrade = normalizeGrade(raw.potential_option_grade);
   const additionalGrade = normalizeGrade(raw.additional_potential_option_grade);
   const soulGrade = normalizeGrade(raw.soul_potential_grade);
@@ -117,6 +136,9 @@ function equipmentItem(raw: JsonObject, preset: string, index: number): Equipmen
     slot,
     level: baseLevel,
     imageUrl: image(raw.item_icon),
+    ...(stars !== undefined ? { starforce: stars } : {}),
+    ...(superiorEquipment !== undefined ? { superiorEquipment } : {}),
+    ...(extraordinaryStarforce !== undefined ? { extraordinaryStarforce } : {}),
     potentialGrade,
     potential: optionLines(raw, 'potential_option', potentialGrade ?? 'rare'),
     additionalGrade,

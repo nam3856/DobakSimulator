@@ -69,7 +69,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:얼굴장식:1:루즈 컨트롤 머신 마크",
@@ -132,7 +134,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 22,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:눈장식:2:마력이 깃든 안대",
@@ -195,7 +199,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 21,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:귀고리:3:커맨더 포스 이어링",
@@ -258,7 +264,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:상의:4:에테르넬 파이렛코트",
@@ -321,7 +329,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:하의:5:에테르넬 파이렛팬츠",
@@ -384,7 +394,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:신발:6:아케인셰이드 파이렛슈즈",
@@ -447,7 +459,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:장갑:7:에테르넬 파이렛글러브",
@@ -510,7 +524,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 19,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:망토:8:아케인셰이드 파이렛케이프",
@@ -573,7 +589,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 19,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:보조무기:9:아스트라 매그넘",
@@ -636,7 +654,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 20,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:무기:10:제네시스 피스톨",
@@ -705,7 +725,9 @@
           "stage": 0,
           "lines": []
         },
-        "eligibleSoul": true
+        "eligibleSoul": true,
+        "starforce": 22,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:반지1:11:리스트레인트 링",
@@ -716,7 +738,10 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIHHJ",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:반지2:12:어드벤처 딥다크 크리티컬 링",
@@ -727,7 +752,10 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODPEPD",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:반지3:13:여명의 가디언 엔젤 링",
@@ -790,7 +818,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 19,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:반지4:14:테네브리스 원정대 반지",
@@ -853,7 +883,10 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:펜던트:15:고통의 근원",
@@ -916,7 +949,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:훈장:16:THE BLACK",
@@ -927,7 +962,9 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOGICPI",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:벨트:17:몽환의 벨트",
@@ -990,7 +1027,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:어깨장식:18:아케인셰이드 파이렛숄더",
@@ -1053,7 +1092,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:포켓 아이템:19:저주받은 녹의 마도서",
@@ -1064,7 +1105,10 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOEJHGD",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:기계 심장:20:플라즈마 하트",
@@ -1127,7 +1171,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 20,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:뱃지:21:크리스탈 웬투스 뱃지",
@@ -1138,7 +1184,9 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOKJHGG",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:엠블렘:22:미트라의 분노 : 해적",
@@ -1201,7 +1249,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:펜던트2:23:데이브레이크 펜던트",
@@ -1264,7 +1314,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 19,
+        "extraordinaryStarforce": false
       },
       {
         "id": "1:예비 특수 반지:24:컨티뉴어스 링",
@@ -1275,7 +1327,10 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIEMI",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       }
     ],
     "2": [
@@ -1340,7 +1395,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:얼굴장식:1:루즈 컨트롤 머신 마크",
@@ -1403,7 +1460,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 22,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:눈장식:2:마력이 깃든 안대",
@@ -1466,7 +1525,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 21,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:귀고리:3:커맨더 포스 이어링",
@@ -1529,7 +1590,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:상의:4:에테르넬 파이렛코트",
@@ -1592,7 +1655,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:하의:5:에테르넬 파이렛팬츠",
@@ -1655,7 +1720,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:신발:6:아케인셰이드 파이렛슈즈",
@@ -1718,7 +1785,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:장갑:7:에테르넬 파이렛글러브",
@@ -1781,7 +1850,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 19,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:망토:8:아케인셰이드 파이렛케이프",
@@ -1844,7 +1915,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 19,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:보조무기:9:아스트라 매그넘",
@@ -1907,7 +1980,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 20,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:무기:10:제네시스 피스톨",
@@ -1976,7 +2051,9 @@
           "stage": 0,
           "lines": []
         },
-        "eligibleSoul": true
+        "eligibleSoul": true,
+        "starforce": 22,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:반지1:11:리스트레인트 링",
@@ -1987,7 +2064,10 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIHHJ",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:반지2:12:어드벤처 딥다크 크리티컬 링",
@@ -1998,7 +2078,10 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODPEPD",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:반지3:13:여명의 가디언 엔젤 링",
@@ -2061,7 +2144,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 19,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:반지4:14:테네브리스 원정대 반지",
@@ -2124,7 +2209,10 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:펜던트:15:고통의 근원",
@@ -2187,7 +2275,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:훈장:16:THE BLACK",
@@ -2198,7 +2288,9 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOGICPI",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:벨트:17:몽환의 벨트",
@@ -2261,7 +2353,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:어깨장식:18:아케인셰이드 파이렛숄더",
@@ -2324,7 +2418,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:포켓 아이템:19:저주받은 녹의 마도서",
@@ -2335,7 +2431,10 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOEJHGD",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:기계 심장:20:플라즈마 하트",
@@ -2398,7 +2497,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 20,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:뱃지:21:크리스탈 웬투스 뱃지",
@@ -2409,7 +2510,9 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOKJHGG",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:엠블렘:22:미트라의 분노 : 해적",
@@ -2472,7 +2575,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:펜던트2:23:데이브레이크 펜던트",
@@ -2535,7 +2640,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 19,
+        "extraordinaryStarforce": false
       },
       {
         "id": "2:예비 특수 반지:24:컨티뉴어스 링",
@@ -2546,7 +2653,10 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIEMI",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       }
     ],
     "3": [
@@ -2611,7 +2721,9 @@
             "grade": "rare"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 8,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:눈장식:1:카오스 핑크빈 마크",
@@ -2674,7 +2786,9 @@
             "grade": "rare"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 16,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:귀고리:2:하프 이어링",
@@ -2737,7 +2851,9 @@
             "grade": "rare"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:반지1:3:글로리온 링 : 슈프림",
@@ -2800,7 +2916,10 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:반지2:4:SS급 마스터 쥬얼링",
@@ -2863,7 +2982,10 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:반지3:5:카오스 링",
@@ -2926,7 +3048,10 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:반지4:6:어웨이크 링",
@@ -2989,7 +3114,10 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:펜던트2:7:데이브레이크 펜던트",
@@ -3052,7 +3180,9 @@
             "grade": "rare"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:모자:8:에테르넬 파이렛햇",
@@ -3115,7 +3245,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:상의:9:에테르넬 파이렛코트",
@@ -3178,7 +3310,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:하의:10:에테르넬 파이렛팬츠",
@@ -3241,7 +3375,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:신발:11:아케인셰이드 파이렛슈즈",
@@ -3304,7 +3440,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:장갑:12:에테르넬 파이렛글러브",
@@ -3367,7 +3505,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 19,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:망토:13:아케인셰이드 파이렛케이프",
@@ -3430,7 +3570,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 19,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:보조무기:14:아스트라 매그넘",
@@ -3493,7 +3635,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 20,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:무기:15:제네시스 피스톨",
@@ -3562,7 +3706,9 @@
           "stage": 0,
           "lines": []
         },
-        "eligibleSoul": true
+        "eligibleSoul": true,
+        "starforce": 22,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:펜던트:16:고통의 근원",
@@ -3625,7 +3771,9 @@
             "grade": "epic"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:훈장:17:THE BLACK",
@@ -3636,7 +3784,9 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOGICPI",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:벨트:18:몽환의 벨트",
@@ -3699,7 +3849,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:어깨장식:19:아케인셰이드 파이렛숄더",
@@ -3762,7 +3914,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 18,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:포켓 아이템:20:저주받은 녹의 마도서",
@@ -3773,7 +3927,10 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOEJHGD",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:기계 심장:21:플라즈마 하트",
@@ -3836,7 +3993,9 @@
             "grade": "unique"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 20,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:뱃지:22:크리스탈 웬투스 뱃지",
@@ -3847,7 +4006,9 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOKJHGG",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:엠블렘:23:미트라의 분노 : 해적",
@@ -3910,7 +4071,9 @@
             "grade": "legendary"
           }
         ],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "extraordinaryStarforce": false
       },
       {
         "id": "3:예비 특수 반지:24:컨티뉴어스 링",
@@ -3921,7 +4084,10 @@
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEODIEMI",
         "potential": [],
         "additional": [],
-        "eligibleSoul": false
+        "eligibleSoul": false,
+        "starforce": 0,
+        "superiorEquipment": false,
+        "extraordinaryStarforce": false
       }
     ]
   },
@@ -4020,12 +4186,9 @@
   "activeEquipmentPreset": "1",
   "activeAbilityPreset": "1",
   "profile": {
-    "mainStats": [
-      "dex"
-    ],
-    "secondaryStats": [
-      "str"
-    ],
+    "mainStats": ["dex"],
+    "secondaryStats": ["str"],
     "attackType": "attack"
-  }
+  },
+  "starforceFetchedAt": "2026-09-17T20:01:48.838Z"
 }

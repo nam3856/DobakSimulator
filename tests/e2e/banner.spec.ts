@@ -104,7 +104,7 @@ test('banner mouse and keyboard actions show a resettable three-second notice wi
   page,
 }) => {
   await pauseClock(page);
-  await openBanner(page, 0, '#soulAmplification', true);
+  await openBanner(page, 0.75, '#soulAmplification', true);
   await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
   await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
   const state = await simulationSnapshot(page);
@@ -135,7 +135,7 @@ test('banner mouse and keyboard actions show a resettable three-second notice wi
 test('banners preserve their full image and layout in both themes, on mobile and on image failure', async ({
   page,
 }) => {
-  await openBanner(page);
+  await openBanner(page, 0.75);
   const banner = page.locator('.fake-ad-banner');
   const image = banner.locator('img');
   for (const width of [1440, 360]) {

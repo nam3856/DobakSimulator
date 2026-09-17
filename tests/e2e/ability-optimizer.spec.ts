@@ -95,7 +95,7 @@ async function boot(page: Page, character?: CharacterSnapshot) {
   ).toBeVisible();
   await expect(
     page.getByRole('navigation', { name: '시뮬레이터' }).getByRole('button'),
-  ).toHaveCount(5);
+  ).toHaveCount(6);
   await expect(page.getByRole('button', { name: '어빌리티 최적화', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
@@ -329,7 +329,7 @@ test('character search keeps the optimizer tab and prices while importing the ne
   expect(requests).toBe(1);
 });
 
-test('already complete results and all five tabs remain readable at 360px in both themes', async ({
+test('already complete results and all six tabs remain readable at 360px in both themes', async ({
   page,
 }) => {
   test.setTimeout(90_000);

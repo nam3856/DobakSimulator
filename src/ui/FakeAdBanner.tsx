@@ -20,7 +20,7 @@ function BannerImage({ src, name }: { src: string; name: string }) {
   );
 }
 
-export function FakeAdBanner() {
+export function FakeAdBanner({ onStarforce }: { onStarforce: () => void }) {
   const [index, setIndex] = useState(() => Math.floor(Math.random() * BANNERS.length));
   const [notice, setNotice] = useState(false);
   const noticeTimer = useRef<number | undefined>(undefined);
@@ -47,8 +47,17 @@ export function FakeAdBanner() {
       <button
         type="button"
         className="fake-ad-banner"
-        aria-label={`${banner.name} 가짜 광고 안내 보기`}
-        onClick={showNotice}
+        aria-label={
+          banner.file === 'ad-2.png'
+            ? '스타포스 시뮬레이터로 이동'
+            : `${banner.name} 가짜 광고 안내 보기`
+        }
+        onClick={() => {
+          if (banner.file !== 'ad-2.png') return showNotice();
+          window.clearTimeout(noticeTimer.current);
+          setNotice(false);
+          onStarforce();
+        }}
       >
         <BannerImage
           key={banner.file}

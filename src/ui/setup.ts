@@ -11,6 +11,7 @@ import type {
 import { suggestPotentialTargets } from '../character';
 import { makeAbilityPresetGoal, resolveAbilityPreset } from '../character/ability-presets';
 import { getLineOptions } from '../engine';
+import { withDefaultEtherPrices } from '../engine/soul-cost';
 import type { RuleData } from '../engine/rules';
 import { isPrime, RULE_VERSION } from './constants';
 import { boundAbilityCondition } from './ability-bounds';
@@ -123,7 +124,7 @@ export function makeConfig(
     abilityStrategy: mode === 'ability' ? 'lowerFirst' : undefined,
     batchSize: mode === 'soulAmplification' ? 1 : 3,
     target,
-    unitPrices: {},
+    unitPrices: mode === 'soulAmplification' ? withDefaultEtherPrices({}) : {},
     ruleVersion: RULE_VERSION,
   };
   if (mode === 'soulAmplification') return config;

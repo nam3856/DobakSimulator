@@ -125,6 +125,85 @@ describe('character normalization', () => {
     expect(result).not.toContain('private-key');
   });
 
+  it('preserves reported stars and superior or amazing-scroll exclusions per preset', () => {
+    const snapshot = normalizeCharacter(
+      basic,
+      {
+        preset_no: 2,
+        item_equipment_preset_1: [
+          {
+            ...weapon,
+            starforce: '0',
+            item_description: '일반 장비',
+            starforce_scroll_flag: '미사용',
+          },
+        ],
+        item_equipment: [
+          {
+            ...weapon,
+            starforce: '15',
+            item_description: '슈페리얼 장비입니다.',
+            starforce_scroll_flag: '미사용',
+          },
+        ],
+        item_equipment_preset_3: [
+          { ...weapon, starforce: 12, item_description: null, starforce_scroll_flag: '사용' },
+        ],
+      },
+      {},
+    );
+    expect(snapshot.equipmentPresets['1'][0]).toMatchObject({
+      starforce: 0,
+      superiorEquipment: false,
+      extraordinaryStarforce: false,
+    });
+    expect(snapshot.equipmentPresets['2'][0]).toMatchObject({
+      starforce: 15,
+      superiorEquipment: true,
+      extraordinaryStarforce: false,
+    });
+    expect(snapshot.equipmentPresets['3'][0]).toMatchObject({
+      starforce: 12,
+      extraordinaryStarforce: true,
+    });
+    expect(snapshot.equipmentPresets['3'][0]).not.toHaveProperty('superiorEquipment');
+  });
+
+  it('does not invent or clamp stars when API fields are missing or malformed', () => {
+    const invalid = [
+      undefined,
+      null,
+      '',
+      ' ',
+      '12.5',
+      12.5,
+      -1,
+      '31',
+      NaN,
+      Infinity,
+      true,
+      [],
+      '0x10',
+    ];
+    for (const value of invalid) {
+      const item = normalizeCharacter(
+        basic,
+        { item_equipment: [{ ...weapon, starforce: value }] },
+        {},
+      ).equipmentPresets['1'][0];
+      expect(item).not.toHaveProperty('starforce');
+      expect(item).not.toHaveProperty('superiorEquipment');
+      expect(item).not.toHaveProperty('extraordinaryStarforce');
+    }
+    const item = normalizeCharacter(
+      basic,
+      { item_equipment: [{ ...weapon, starforce: ' 30 ', item_name: '슈페리얼 테스트' }] },
+      {},
+    ).equipmentPresets['1'][0];
+    expect(item.starforce).toBe(30);
+    expect(item.superiorEquipment).toBe(true);
+  });
+
   it('distinguishes shield/force-shield pools and numbered accessory slots', () => {
     expect(normalizeEquipmentCategory('포스실드', '보조무기')).toBe('forceShieldSoulRing');
     expect(normalizeEquipmentCategory('방패', '보조무기')).toBe('shield');
@@ -358,6 +437,12 @@ describe('default avatar and snapshot', () => {
     expect(Object.keys(snapshot.equipmentPresets)).toEqual(['1', '2', '3']);
     expect(snapshot.profile.mainStats).toEqual(['dex']);
     expect(Date.parse(snapshot.fetchedAt)).toBeGreaterThan(0);
+    expect(Date.parse(snapshot.starforceFetchedAt ?? '')).toBeGreaterThan(0);
+    for (const equipment of Object.values(snapshot.equipmentPresets).flat()) {
+      expect(Number.isInteger(equipment.starforce)).toBe(true);
+      expect(equipment.starforce).toBeGreaterThanOrEqual(0);
+      expect(equipment.starforce).toBeLessThanOrEqual(30);
+    }
     expect(snapshot.sourceUrl).toContain('openapi.nexon.com');
     expect(snapshotText.toLowerCase()).not.toMatch(/ocid|api_key|apikey|x-nxopen/);
     for (const reaction of ['cry', 'neutral', 'happy', 'jackpot']) {

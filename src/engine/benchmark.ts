@@ -24,6 +24,7 @@ import {
 import { conditionMatchesLine, matchTarget, metricValue } from './target';
 import { usesAbilityProgression } from './ability-strategy';
 import { abilityStrategyBenchmark } from './ability-benchmark';
+import { etherPrice } from './soul-cost';
 import {
   finiteGeometricMean,
   gcd,
@@ -401,6 +402,7 @@ function amplificationBenchmark(
   data: RuleData,
   config: SimulationConfig,
   actualCost?: number,
+  options: BenchmarkOptions = {},
 ): BenchmarkResult {
   let divisor = 0n;
   const stages = [];
@@ -408,7 +410,7 @@ function amplificationBenchmark(
     expectedCost = 0;
   for (let stage = config.start.stage; stage < config.target.stage; stage++) {
     const rule = data.soul.amplificationStages.find((s) => s.stage === stage + 1)!;
-    const cost = BigInt(rule.systemCostPerAttempt);
+    const cost = BigInt(rule.systemCostPerAttempt) + etherPrice(config, stage + 1);
     divisor = gcd(divisor, cost);
     let survival = 1,
       mean = 0;
@@ -423,6 +425,42 @@ function amplificationBenchmark(
     stages.push({ cost, pmf });
     expectedAttempts += mean;
     expectedCost += mean * Number(cost);
+  }
+  // Arbitrary user prices may have a gcd of one. Never allocate an array per meso.
+  const latticeSize = stages.reduce(
+    (sum, stage) => sum + Number(stage.cost / divisor) * (stage.pmf.length - 1),
+    1,
+  );
+  if (latticeSize > 200_000) {
+    const count = Math.max(1, Math.floor(options.sampleCount ?? 500_000));
+    const rng = seededRandom(options.seed ?? 'soul-ether-distribution-v1');
+    const samples = new Float64Array(count);
+    const cumulativeStages = stages.map(({ cost, pmf }) => {
+      let total = 0;
+      return { cost: Number(cost), cdf: pmf.slice(1).map((p) => (total += p)) };
+    });
+    for (let index = 0; index < count; index++)
+      for (const stage of cumulativeStages)
+        samples[index] +=
+          stage.cost * (Math.min(stage.cdf.length - 1, upperBound(stage.cdf, rng())) + 1);
+    samples.sort();
+    const quantile = (q: number) => samples[Math.max(0, Math.ceil(q * count) - 1)];
+    return {
+      status: 'ready',
+      expectedCost,
+      expectedAttempts,
+      successProbability: 1,
+      unit: 'meso',
+      method: 'sampled',
+      sampleCount: count,
+      quantiles: { p10: quantile(0.1), p50: quantile(0.5), p90: quantile(0.9) },
+      distribution: Array.from({ length: 101 }, (_, index) => {
+        const cost = quantile(index / 100);
+        return { cost, cdf: upperBound(samples, cost) / count };
+      }),
+      cdfAtActual: actualCost === undefined ? undefined : upperBound(samples, actualCost) / count,
+      note: '강화 메소와 입력 단가로 환산한 에테르를 합산합니다. 평균은 해석값, 비용 분포·백분위는 고정 시드 역누적분포 표본 추정입니다.',
+    };
   }
   let distribution = new Float64Array([1]);
   for (const stage of stages) {
@@ -462,6 +500,7 @@ function amplificationBenchmark(
     quantiles: { p10: quantile(0.1), p50: quantile(0.5), p90: quantile(0.9) },
     distribution: points,
     cdfAtActual: actualCost === undefined ? undefined : cdf(actualCost),
+    note: '강화 메소와 입력 단가로 환산한 에테르를 합산하여 기댓값과 행운을 계산합니다.',
   };
 }
 
@@ -492,7 +531,8 @@ export function computeBenchmark(
       'already',
       '시작 옵션이 이미 목표를 만족합니다. 행운을 판정하지 않습니다.',
     );
-  if (config.mode === 'soulAmplification') return amplificationBenchmark(data, config, actualCost);
+  if (config.mode === 'soulAmplification')
+    return amplificationBenchmark(data, config, actualCost, options);
   if (config.start.lines.length !== 3)
     throw new Error('초기 옵션 세 줄을 먼저 생성한 뒤 예상 비용을 계산해주세요.');
   if (usesAbilityProgression(config))

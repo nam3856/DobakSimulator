@@ -1,0 +1,693 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ArrowRight,
+  Hammer,
+  LoaderCircle,
+  Pause,
+  Play,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+  Star,
+} from 'lucide-react';
+import type { CharacterSnapshot, EquipmentSnapshot } from '../types';
+import {
+  createStarforceState,
+  maxStarforceStars,
+  quoteStarforce,
+  restoreStarforce,
+  rollStarforce,
+  validateStarforceConfig,
+  type StarforceBenchmark,
+  type StarforceConfig,
+  type StarforceRules,
+  type StarforceState,
+} from '../engine/starforce';
+import { Field } from './components';
+import { formatAmount, formatPercent } from './format';
+import { deserialize, serialize } from './storage';
+import './starforce.css';
+
+type Phase = 'idle' | 'charging' | 'result' | 'restoring' | 'restored';
+const outcomeText = {
+  success: '강화 성공',
+  stay: '강화 실패 · 단계 유지',
+  down: '강화 실패 · 단계 하락',
+  destroy: '장비 파괴',
+};
+const eligible = (item: EquipmentSnapshot) =>
+  item.level > 0 &&
+  item.level <= 250 &&
+  !item.superiorEquipment &&
+  !item.extraordinaryStarforce &&
+  !['unsupported', 'emblem', 'forceShieldSoulRing'].includes(item.category) &&
+  (item.category !== 'secondaryWeapon' || item.name.includes('블레이드')) &&
+  !/^(봉인된 제네시스|제네시스|데스티니|아스트라)/.test(item.name) &&
+  (item.category !== 'ring' || item.level !== 110) &&
+  !/이벤트 링|어웨이크 링|테네브리스 원정대 반지|글로리온 링|이터널 플레임 링|결속의 반지|벤젼스 링|코스모스 링|딥다크 크리티컬 링/.test(
+    item.name,
+  );
+interface SavedChallenge {
+  version: 1;
+  ruleId: string;
+  preset: string;
+  itemId: string;
+  config: StarforceConfig;
+  state: StarforceState;
+}
+
+function EquipmentArt({ item }: { item?: EquipmentSnapshot }) {
+  const [failed, setFailed] = useState(false);
+  return item?.imageUrl && !failed ? (
+    <img src={item.imageUrl} alt={item.name} onError={() => setFailed(true)} />
+  ) : (
+    <Hammer size={58} aria-hidden="true" />
+  );
+}
+
+export function StarforceSimulator({ character }: { character: CharacterSnapshot }) {
+  const [rules, setRules] = useState<StarforceRules>();
+  const [error, setError] = useState('');
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`${import.meta.env.BASE_URL}rules/starforce.json`, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error('스타포스 확률표를 불러오지 못했습니다.');
+        return response.json();
+      })
+      .then(setRules)
+      .catch((error: Error) => {
+        if (error.name !== 'AbortError') setError(error.message);
+      });
+    return () => controller.abort();
+  }, []);
+  if (error)
+    return (
+      <section className="panel sf-loading" role="alert">
+        {error}
+      </section>
+    );
+  if (!rules)
+    return (
+      <section className="panel sf-loading" role="status">
+        <LoaderCircle className="spin" size={18} /> 스타포스 확률표를 불러오는 중
+      </section>
+    );
+  return <StarforceChallenge character={character} rules={rules} />;
+}
+
+function StarforceChallenge({
+  character,
+  rules,
+}: {
+  character: CharacterSnapshot;
+  rules: StarforceRules;
+}) {
+  const key = `isekai:starforce:v1:${character.name}`;
+  const [initial] = useState(() => {
+    try {
+      const saved = deserialize<SavedChallenge>(localStorage.getItem(key) ?? 'null');
+      if (
+        saved?.version === 1 &&
+        saved.ruleId === rules.ruleId &&
+        character.equipmentPresets[saved.preset] &&
+        (saved.itemId === 'manual' ||
+          character.equipmentPresets[saved.preset].some(
+            (item) => item.id === saved.itemId && eligible(item),
+          )) &&
+        validateStarforceConfig(rules, saved.config).length === 0 &&
+        ['ready', 'success', 'destroyed'].includes(saved.state.status) &&
+        Number.isInteger(saved.state.stars) &&
+        saved.state.stars >= 0 &&
+        saved.state.stars <= maxStarforceStars(rules, saved.config.level) &&
+        [
+          'attempts',
+          'destructions',
+          'restorations',
+          'enhancementMeso',
+          'restorationMeso',
+          'replacementMeso',
+          'replacementCopies',
+          'spentMeso',
+        ].every(
+          (field) =>
+            typeof saved.state[field as keyof StarforceState] === 'bigint' &&
+            (saved.state[field as keyof StarforceState] as bigint) >= 0n,
+        ) &&
+        Array.isArray(saved.state.history) &&
+        saved.state.history.length <= 100 &&
+        (saved.state.status !== 'destroyed' ||
+          typeof saved.state.pendingRestoration?.totalCost === 'bigint')
+      )
+        return saved;
+    } catch {
+      /* A damaged local save must not prevent a new challenge. */
+    }
+    const preset = character.activeEquipmentPreset;
+    const item = character.equipmentPresets[preset]?.find(eligible);
+    const level = item?.level ?? 200;
+    const maximum = maxStarforceStars(rules, level);
+    const startStars = Math.min(maximum, item?.starforce ?? 0);
+    const config: StarforceConfig = {
+      level,
+      startStars,
+      targetStars: Math.min(maximum, Math.max(17, startStars + 1)),
+      safeguard: false,
+      restoration: 'trace12',
+      replacementPrice: 0,
+      equipmentType: 'normal',
+    };
+    return {
+      version: 1 as const,
+      ruleId: rules.ruleId,
+      preset,
+      itemId: item?.id ?? 'manual',
+      config,
+      state: createStarforceState(rules, config),
+    };
+  });
+  const [preset, setPreset] = useState(initial.preset);
+  const [itemId, setItemId] = useState(initial.itemId);
+  const [config, setConfig] = useState(initial.config);
+  const [state, setState] = useState(initial.state);
+  const [phase, setPhase] = useState<Phase>('idle');
+  const [auto, setAuto] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(true);
+  const [benchmark, setBenchmark] = useState<StarforceBenchmark>();
+  const [benchmarkError, setBenchmarkError] = useState('');
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const generation = useRef(0);
+  const live = useRef({ config, state, auto });
+  live.current = { config, state, auto };
+  const items = (character.equipmentPresets[preset] ?? []).filter(eligible);
+  const item = items.find((candidate) => candidate.id === itemId);
+  const maximum = maxStarforceStars(rules, config.level);
+  const busy = phase !== 'idle';
+  const last = state.history.at(-1);
+  const quote = useMemo(() => {
+    try {
+      return state.status === 'ready' ? quoteStarforce(rules, config, state) : undefined;
+    } catch {
+      return undefined;
+    }
+  }, [rules, config, state]);
+
+  useEffect(() => {
+    const worker = new Worker(new URL('../workers/starforce.worker.ts', import.meta.url), {
+      type: 'module',
+    });
+    setBenchmark(undefined);
+    setBenchmarkError('');
+    worker.onmessage = (event: MessageEvent<{ result?: StarforceBenchmark; error?: string }>) => {
+      setBenchmark(event.data.result);
+      setBenchmarkError(event.data.error ?? '');
+    };
+    worker.onerror = () =>
+      setBenchmarkError('기댓값 계산을 불러오지 못했습니다. 다시 시도해 주세요.');
+    worker.postMessage({ rules, config });
+    return () => worker.terminate();
+  }, [rules, config]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        key,
+        serialize({ version: 1, ruleId: rules.ruleId, preset, itemId, config, state }),
+      );
+      setSaved(true);
+    } catch {
+      setSaved(false);
+    }
+  }, [key, rules.ruleId, preset, itemId, config, state]);
+  useEffect(
+    () => () => {
+      generation.current++;
+      clearTimeout(timer.current);
+    },
+    [],
+  );
+
+  function stop() {
+    generation.current++;
+    clearTimeout(timer.current);
+    setAuto(false);
+    setPhase('idle');
+    live.current.auto = false;
+  }
+  function commit(next: StarforceState) {
+    live.current.state = next;
+    setState(next);
+  }
+  function schedule(next: StarforceState, token: number) {
+    timer.current = setTimeout(() => {
+      if (token !== generation.current) return;
+      if (live.current.auto && next.status !== 'success') attempt();
+      else {
+        setPhase('idle');
+        setAuto(false);
+        live.current.auto = false;
+      }
+    }, 1100);
+  }
+  function attempt() {
+    const token = generation.current;
+    const current = live.current.state;
+    if (current.status === 'success') return;
+    setError('');
+    setPhase(current.status === 'destroyed' ? 'restoring' : 'charging');
+    timer.current = setTimeout(() => {
+      if (token !== generation.current) return;
+      try {
+        const next =
+          current.status === 'destroyed'
+            ? restoreStarforce(rules, live.current.config, current)
+            : rollStarforce(rules, live.current.config, current).state;
+        commit(next);
+        setPhase(current.status === 'destroyed' ? 'restored' : 'result');
+        schedule(next, token);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : '강화에 실패했습니다.');
+        stop();
+      }
+    }, 900);
+  }
+  function startAutomatic() {
+    if (busy) return;
+    if (state.status === 'success') commit(createStarforceState(rules, config));
+    live.current.auto = true;
+    setAuto(true);
+    attempt();
+  }
+  function reset(nextConfig = config) {
+    stop();
+    setError('');
+    try {
+      const next = createStarforceState(rules, nextConfig);
+      setConfig(nextConfig);
+      live.current.config = nextConfig;
+      commit(next);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '설정을 확인해 주세요.');
+    }
+  }
+  function patch(patch: Partial<StarforceConfig>) {
+    const next = { ...config, ...patch };
+    const max = maxStarforceStars(rules, next.level);
+    next.startStars = Math.min(max, Math.max(0, next.startStars));
+    next.targetStars = Math.min(max, Math.max(1, next.targetStars));
+    reset(next);
+  }
+  function selectItem(id: string, selectedPreset = preset) {
+    const selected = character.equipmentPresets[selectedPreset]?.find(
+      (item) => item.id === id && eligible(item),
+    );
+    const level = selected?.level ?? 200;
+    const max = maxStarforceStars(rules, level);
+    const startStars = Math.min(max, selected?.starforce ?? 0);
+    setPreset(selectedPreset);
+    setItemId(selected?.id ?? 'manual');
+    reset({
+      ...config,
+      level,
+      startStars,
+      targetStars: Math.min(max, Math.max(17, startStars + 1)),
+      restoration: 'trace12',
+    });
+  }
+  const resultText =
+    phase === 'charging'
+      ? '별의 힘을 모으는 중…'
+      : phase === 'restoring'
+        ? '장비를 복구하는 중…'
+        : phase === 'restored'
+          ? `${state.stars}성 복구 완료`
+          : state.status === 'destroyed'
+            ? '장비 파괴 · 흔적 복구 대기'
+            : state.status === 'success'
+              ? state.attempts > 0n
+                ? '목표 강화 달성!'
+                : '이미 목표 단계입니다'
+              : last?.restored
+                ? `${state.stars}성 복구 완료`
+                : last
+                  ? outcomeText[last.outcome]
+                  : '다음 별을 향해';
+  return (
+    <div className="workspace sf-workspace">
+      <aside className="setup-column">
+        <section className="panel settings-panel">
+          <div className="panel-heading">
+            <h2>
+              <Hammer size={18} /> 스타포스 설정
+            </h2>
+            <span className="panel-step">01</span>
+          </div>
+          <fieldset className="sf-settings" disabled={busy || auto}>
+            <Field label="장비 프리셋">
+              <select
+                value={preset}
+                onChange={(e) => {
+                  const selectedPreset = e.target.value;
+                  selectItem(
+                    character.equipmentPresets[selectedPreset]?.find(eligible)?.id ?? 'manual',
+                    selectedPreset,
+                  );
+                }}
+              >
+                {Object.keys(character.equipmentPresets).map((value) => (
+                  <option key={value} value={value}>
+                    프리셋 {value}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="스타포스 장비">
+              <select value={itemId} onChange={(e) => selectItem(e.target.value)}>
+                {items.map((item) => (
+                  <option value={item.id} key={item.id}>
+                    {item.slot} · {item.name}
+                    {item.starforce === undefined ? '' : ` (${item.starforce}성)`}
+                  </option>
+                ))}
+                <option value="manual">일반 장비 직접 설정</option>
+              </select>
+            </Field>
+            <div className="sf-input-pair">
+              <Field label="장비 레벨">
+                <input
+                  type="number"
+                  min={1}
+                  max={250}
+                  value={config.level}
+                  disabled={!!item}
+                  onChange={(e) =>
+                    patch({ level: Math.min(250, Math.max(1, Math.round(Number(e.target.value)))) })
+                  }
+                />
+              </Field>
+              <Field label="시작 스타포스">
+                <select
+                  value={config.startStars}
+                  onChange={(e) => patch({ startStars: Number(e.target.value) })}
+                >
+                  {Array.from({ length: maximum + 1 }, (_, star) => (
+                    <option value={star} key={star}>
+                      {star}성
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            {item && (
+              <small className="inline-note">
+                {item.starforce === undefined
+                  ? '조회된 강화 단계가 없어 0성으로 시작합니다. 직접 수정할 수 있어요.'
+                  : `조회 당시 ${item.starforce}성 · 시작 단계를 직접 수정할 수 있어요.`}
+              </small>
+            )}
+            <Field label="목표 스타포스">
+              <select
+                value={config.targetStars}
+                onChange={(e) => patch({ targetStars: Number(e.target.value) })}
+              >
+                {Array.from({ length: maximum }, (_, index) => index + 1).map((star) => (
+                  <option value={star} key={star}>
+                    {star}성
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <label className="sf-toggle">
+              <input
+                type="checkbox"
+                checked={config.safeguard}
+                onChange={(e) => patch({ safeguard: e.target.checked })}
+              />
+              <span>
+                <b>파괴 방지</b>
+                <small>15~17성에서 적용 · 기본 강화 비용의 총 3배</small>
+              </span>
+              <ShieldCheck size={19} />
+            </label>
+            <Field label="파괴 후 복구 방식">
+              <select
+                value={config.restoration}
+                onChange={(e) =>
+                  patch({ restoration: e.target.value as StarforceConfig['restoration'] })
+                }
+              >
+                <option value="trace12">12성으로 복구</option>
+                <option value="original">흔적의 단계로 복구 (최대 22성)</option>
+              </select>
+            </Field>
+            <Field label="복구용 동일 장비 가격 (메소)">
+              <input
+                inputMode="numeric"
+                value={config.replacementPrice}
+                onChange={(e) => {
+                  if (/^\d*$/.test(e.target.value) && Number.isSafeInteger(Number(e.target.value)))
+                    patch({ replacementPrice: Number(e.target.value) });
+                }}
+              />
+            </Field>
+            <small className="inline-note">
+              장비 가격 0은 복구용 장비를 보유한 경우입니다. 입력한 장비값과 복구 메소까지 실제
+              비용·기댓값에 포함합니다.
+            </small>
+          </fieldset>
+          <div className="sf-rules-note">
+            평상시 일반 장비 · 단계 하락 없음 · 스타캐치 효과 기본 적용. 슈페리얼·놀장·특수 장비와
+            이벤트 할인은 지원하지 않습니다.
+          </div>
+        </section>
+        <section className="panel sf-sources">
+          <h3>확률과 비용 기준</h3>
+          <p>
+            확률은 본서버 공식 표를 적용합니다. 강화·단계 보존 복구 비용은 검증 모델(베타)이며 실제
+            게임과 차이가 있을 수 있습니다.
+          </p>
+          <a
+            href="https://maplestory.nexon.com/Guide/N23GameInformation/Articles/412"
+            target="_blank"
+            rel="noreferrer"
+          >
+            공식 스타포스 안내 ↗
+          </a>
+          <a href="https://maplestory.nexon.com/News/Update/799" target="_blank" rel="noreferrer">
+            스타캐치·복구 개편 ↗
+          </a>
+        </section>
+      </aside>
+      <section className="result-column">
+        <section className="panel sf-panel">
+          <div className="sf-heading">
+            <div>
+              <span className="eyebrow">ONE MORE STAR</span>
+              <h2>스타포스 시뮬레이터</h2>
+              <p>별 하나마다, 또 다른 나의 운명</p>
+            </div>
+            <Star size={36} />
+          </div>
+          <div
+            className="sf-stars"
+            aria-label={`현재 ${state.stars}성 / 목표 ${config.targetStars}성`}
+          >
+            {Array.from({ length: maximum }, (_, index) => (
+              <Star
+                key={index}
+                size={17}
+                aria-hidden="true"
+                className={index < state.stars && state.status !== 'destroyed' ? 'lit' : ''}
+              />
+            ))}
+          </div>
+          <div
+            className={`sf-stage phase-${phase} outcome-${last?.restored ? 'none' : (last?.outcome ?? 'none')}`}
+          >
+            <div className="sf-orbit sf-orbit-outer" />
+            <div className="sf-orbit" />
+            <div className="sf-item">
+              <EquipmentArt item={item} key={item?.imageUrl ?? 'manual'} />
+            </div>
+            <div className="sf-sparks" aria-hidden="true">
+              {Array.from({ length: 8 }, (_, i) => (
+                <span key={i} style={{ '--spark-angle': `${i * 45}deg` } as React.CSSProperties}>
+                  ✦
+                </span>
+              ))}
+            </div>
+            <div className="sf-stage-caption">
+              <span>{item?.name ?? `Lv.${config.level} 일반 장비`}</span>
+              <strong>
+                {state.status === 'destroyed' ? '파괴' : `${state.stars}성`}
+                <ArrowRight size={20} />
+                {config.targetStars}성
+              </strong>
+            </div>
+          </div>
+          <div className="sf-outcome" role="status" aria-live="polite">
+            <strong>{resultText}</strong>
+            <span>
+              {auto
+                ? '자동 강화 중 · 약 2초마다 한 번씩 진행합니다'
+                : '연출과 함께 한 번씩 강화합니다'}
+            </span>
+          </div>
+          <div className="sf-quote">
+            {quote ? (
+              <>
+                <span>
+                  성공 <b>{formatPercent(quote.successProbability * 100)}%</b>
+                </span>
+                <span>
+                  유지 <b>{formatPercent(quote.maintainProbability * 100)}%</b>
+                </span>
+                <span>
+                  파괴 <b>{formatPercent(quote.destroyProbability * 100)}%</b>
+                </span>
+                <span>
+                  다음 강화 <b>{formatAmount(quote.cost)} 메소</b>
+                </span>
+              </>
+            ) : state.pendingRestoration ? (
+              <>
+                <span>
+                  복구 단계 <b>{state.pendingRestoration.toStars}성</b>
+                </span>
+                <span>
+                  동일 장비 <b>{String(state.pendingRestoration.equipmentCount)}개</b>
+                </span>
+                <span>
+                  복구 총비용 <b>{formatAmount(state.pendingRestoration.totalCost)} 메소</b>
+                </span>
+              </>
+            ) : (
+              <span>
+                목표 {config.targetStars}성 {state.attempts > 0n ? '달성' : '이상에서 시작'}
+              </span>
+            )}
+          </div>
+          {(error || benchmarkError) && (
+            <p className="sf-error" role="alert">
+              {error || benchmarkError}
+            </p>
+          )}
+          <div className="sf-actions">
+            <button
+              className="button primary roll-button"
+              disabled={
+                busy || auto || state.status === 'success' || !benchmark || !!benchmarkError
+              }
+              onClick={attempt}
+            >
+              <Hammer size={18} />
+              {state.status === 'destroyed' ? '장비 복구하기' : '강화하기'}
+            </button>
+            {busy || auto ? (
+              <button className="button auto-button stop" onClick={stop}>
+                <Pause size={18} />
+                중지
+              </button>
+            ) : (
+              <button
+                className="button auto-button"
+                disabled={!benchmark || !!benchmarkError || config.startStars >= config.targetStars}
+                onClick={startAutomatic}
+              >
+                <Play size={18} />
+                {state.status === 'success' ? '다시 자동 강화' : '자동 강화'}
+              </button>
+            )}
+          </div>
+          <div className="sf-reset">
+            <button className="text-button" onClick={() => reset()}>
+              <RotateCcw size={14} />
+              처음부터 다시
+            </button>
+            <span>{saved ? '이 브라우저에 저장됨' : '브라우저 저장 공간을 확인해 주세요'}</span>
+          </div>
+        </section>
+        <section className="stats-row sf-stats">
+          <div className="stat-card">
+            <span>강화 시도</span>
+            <strong>
+              {formatAmount(state.attempts)}
+              <small>회</small>
+            </strong>
+            <div>
+              파괴 {formatAmount(state.destructions)}회 · 복구 {formatAmount(state.restorations)}회
+            </div>
+          </div>
+          <div className="stat-card spent-stat">
+            <span>사용한 총비용</span>
+            <strong>
+              {formatAmount(state.spentMeso)}
+              <small>메소</small>
+            </strong>
+            <div>복구용 장비 {formatAmount(state.replacementCopies)}개 포함</div>
+          </div>
+          <div className="stat-card expected-stat">
+            <span>목표까지 기댓값</span>
+            <strong>
+              {benchmark ? formatAmount(benchmark.expectedMeso) : benchmarkError ? '—' : '계산 중'}
+              <small>{benchmark ? '메소' : ''}</small>
+            </strong>
+            <div>
+              {benchmark
+                ? `평균 ${formatAmount(benchmark.expectedAttempts)}회 · 파괴 ${benchmark.expectedDestructions.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}회`
+                : '같은 시작 단계와 복구 방식으로 계산'}
+            </div>
+          </div>
+        </section>
+        <div className="resource-ledger">
+          <span>
+            강화 <b>{formatAmount(state.enhancementMeso)} 메소</b>
+          </span>
+          <span>
+            복구 메소 <b>{formatAmount(state.restorationMeso)} 메소</b>
+          </span>
+          <span>
+            복구용 장비 <b>{formatAmount(state.replacementMeso)} 메소</b>
+          </span>
+        </div>
+        {state.status === 'success' &&
+          state.attempts > 0n &&
+          benchmark &&
+          benchmark.expectedMeso > 0 && (
+            <div className="panel sf-complete">
+              <Sparkles size={24} />
+              <div>
+                <strong>{config.targetStars}성, 이 세계에서는 해냈다!</strong>
+                <p>
+                  기댓값의 {((Number(state.spentMeso) / benchmark.expectedMeso) * 100).toFixed(1)}
+                  %를 사용했어요.
+                </p>
+              </div>
+            </div>
+          )}
+        <details className="panel history-panel">
+          <summary>강화 기록 · 최근 {state.history.length}회</summary>
+          <div className="sf-history">
+            {state.history.length ? (
+              [...state.history].reverse().map((row) => (
+                <div key={String(row.sequence)}>
+                  <span>
+                    {String(row.sequence)}회 · {row.fromStars}성
+                  </span>
+                  <b className={`sf-history-${row.outcome}`}>
+                    {outcomeText[row.outcome]}
+                    {row.toStars !== null && ` → ${row.toStars}성`}
+                    {row.restored && ` · ${row.restoration?.toStars}성 복구`}
+                  </b>
+                  <span>{formatAmount(row.mesoCost)} 메소</span>
+                </div>
+              ))
+            ) : (
+              <p>첫 강화의 결과를 기다리고 있어요.</p>
+            )}
+          </div>
+        </details>
+      </section>
+    </div>
+  );
+}

@@ -104,6 +104,12 @@ export interface EquipmentSnapshot {
   slot: string;
   level: number;
   imageUrl: string;
+  /** Actual API value; absent when the source did not provide a valid star count. */
+  starforce?: number;
+  /** Explicit superior marker from the item name/description; absence is unknown. */
+  superiorEquipment?: boolean;
+  /** Whether an amazing equipment enhancement scroll was applied (blue stars). */
+  extraordinaryStarforce?: boolean;
   potentialGrade?: Grade;
   potential: OptionLine[];
   additionalGrade?: Grade;
@@ -123,6 +129,8 @@ export interface CharacterProfile {
 }
 export interface CharacterSnapshot {
   bundledAvatars?: boolean;
+  /** Separate provenance when only Star Force metadata was refreshed in the bundled snapshot. */
+  starforceFetchedAt?: string;
   name: string;
   world: string;
   job: string;

@@ -7,6 +7,7 @@ import type {
   SimulationState,
 } from '../../src/types';
 import { deserialize, serialize, type StoredSession } from '../../src/ui/storage';
+import { DEFAULT_ETHER_PRICES } from '../../src/engine/soul-cost';
 
 const SESSION_KEY = 'isekai-jikjak:session:v1';
 const ARCHIVE_KEY = 'isekai-jikjak:archive:v1';
@@ -209,7 +210,13 @@ async function expectArchived(page: Page, previous: StoredSession) {
   const records = deserialize<{ config: SimulationConfig; state: SimulationState }[]>(
     await page.evaluate((key) => localStorage.getItem(key)!, ARCHIVE_KEY),
   );
-  expect(records[0].config).toEqual(previous.config);
+  expect(records[0].config).toEqual({
+    ...previous.config,
+    unitPrices:
+      previous.config.mode === 'soulAmplification'
+        ? { ...DEFAULT_ETHER_PRICES, ...previous.config.unitPrices }
+        : previous.config.unitPrices,
+  });
   expect(records[0].state).toEqual(previous.state);
 }
 
@@ -229,7 +236,11 @@ for (const mode of ['cube', 'soulAmplification', 'soulPotential'] as const) {
     const migrated = await expectImportedStart(page);
     expect(migrated.config.target).toEqual(previous.config.target);
     expect(migrated.config.batchSize).toBe(previous.config.batchSize);
-    expect(migrated.config.unitPrices).toEqual(previous.config.unitPrices);
+    expect(migrated.config.unitPrices).toEqual(
+      mode === 'soulAmplification'
+        ? { ...DEFAULT_ETHER_PRICES, ...previous.config.unitPrices }
+        : previous.config.unitPrices,
+    );
     expect(migrated.state.candidates).toEqual([]);
     expect(migrated.state.history).toEqual([]);
     await expectArchived(page, previous);

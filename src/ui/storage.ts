@@ -1,5 +1,6 @@
 import type { CharacterSnapshot, SimulationConfig, SimulationState } from '../types';
 import { abilityProgress, usesAbilityProgression } from '../engine/ability-strategy';
+import { withDefaultEtherPrices } from '../engine/soul-cost';
 export interface StoredSession {
   version: 1;
   character: CharacterSnapshot;
@@ -88,6 +89,8 @@ export function readSession(): StoredSession | null {
       !validCost(x.state?.spent)
     )
       return null;
+    if (x.config.mode === 'soulAmplification')
+      x.config.unitPrices = withDefaultEtherPrices(x.config.unitPrices);
     if (usesAbilityProgression(x.config))
       x.state.lockedSlots = abilityProgress(x.config, x.state.lines).lockedSlots;
     return x;

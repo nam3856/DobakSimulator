@@ -1,0 +1,1086 @@
+{
+  "ruleId": "kms-starforce-2026-09-17-beta-costs",
+  "minimumLevel": 1,
+  "maximumLevel": 250,
+  "maximumStarBands": [
+    {
+      "minimumLevel": 1,
+      "maximumLevel": 94,
+      "maximumStar": 5
+    },
+    {
+      "minimumLevel": 95,
+      "maximumLevel": 107,
+      "maximumStar": 8
+    },
+    {
+      "minimumLevel": 108,
+      "maximumLevel": 117,
+      "maximumStar": 10
+    },
+    {
+      "minimumLevel": 118,
+      "maximumLevel": 127,
+      "maximumStar": 15
+    },
+    {
+      "minimumLevel": 128,
+      "maximumLevel": 137,
+      "maximumStar": 20
+    },
+    {
+      "minimumLevel": 138,
+      "maximumLevel": 250,
+      "maximumStar": 30
+    }
+  ],
+  "costFormula": {
+    "baseCost": 1000,
+    "levelExponent": 3,
+    "starOffset": 1,
+    "starExponent": 2.7,
+    "roundTo": 100,
+    "denominators": [
+      {
+        "minimumStar": 0,
+        "maximumStar": 9,
+        "denominator": 25,
+        "starExponentOverride": 1
+      },
+      {
+        "minimumStar": 10,
+        "maximumStar": 10,
+        "denominator": 400
+      },
+      {
+        "minimumStar": 11,
+        "maximumStar": 11,
+        "denominator": 220
+      },
+      {
+        "minimumStar": 12,
+        "maximumStar": 12,
+        "denominator": 214
+      },
+      {
+        "minimumStar": 13,
+        "maximumStar": 13,
+        "denominator": 157
+      },
+      {
+        "minimumStar": 14,
+        "maximumStar": 14,
+        "denominator": 107
+      },
+      {
+        "minimumStar": 15,
+        "maximumStar": 16,
+        "denominator": 200
+      },
+      {
+        "minimumStar": 17,
+        "maximumStar": 17,
+        "denominator": 150
+      },
+      {
+        "minimumStar": 18,
+        "maximumStar": 18,
+        "denominator": 70
+      },
+      {
+        "minimumStar": 19,
+        "maximumStar": 19,
+        "denominator": 45
+      },
+      {
+        "minimumStar": 20,
+        "maximumStar": 20,
+        "denominator": 200
+      },
+      {
+        "minimumStar": 21,
+        "maximumStar": 21,
+        "denominator": 125
+      },
+      {
+        "minimumStar": 22,
+        "maximumStar": 29,
+        "denominator": 200
+      }
+    ]
+  },
+  "transitions": [
+    {
+      "star": 0,
+      "successProbability": 0.9975,
+      "maintainProbability": 0.0025,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 1
+    },
+    {
+      "star": 1,
+      "successProbability": 0.945,
+      "maintainProbability": 0.055,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 2
+    },
+    {
+      "star": 2,
+      "successProbability": 0.8925,
+      "maintainProbability": 0.1075,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 3
+    },
+    {
+      "star": 3,
+      "successProbability": 0.8925,
+      "maintainProbability": 0.1075,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 4
+    },
+    {
+      "star": 4,
+      "successProbability": 0.84,
+      "maintainProbability": 0.16,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 5
+    },
+    {
+      "star": 5,
+      "successProbability": 0.7875,
+      "maintainProbability": 0.2125,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 6
+    },
+    {
+      "star": 6,
+      "successProbability": 0.735,
+      "maintainProbability": 0.265,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 7
+    },
+    {
+      "star": 7,
+      "successProbability": 0.6825,
+      "maintainProbability": 0.3175,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 8
+    },
+    {
+      "star": 8,
+      "successProbability": 0.63,
+      "maintainProbability": 0.37,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 9
+    },
+    {
+      "star": 9,
+      "successProbability": 0.5775,
+      "maintainProbability": 0.4225,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 10
+    },
+    {
+      "star": 10,
+      "successProbability": 0.525,
+      "maintainProbability": 0.475,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 11
+    },
+    {
+      "star": 11,
+      "successProbability": 0.4725,
+      "maintainProbability": 0.5275,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 12
+    },
+    {
+      "star": 12,
+      "successProbability": 0.42,
+      "maintainProbability": 0.58,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 13
+    },
+    {
+      "star": 13,
+      "successProbability": 0.3675,
+      "maintainProbability": 0.6325,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 14
+    },
+    {
+      "star": 14,
+      "successProbability": 0.315,
+      "maintainProbability": 0.685,
+      "decreaseProbability": 0,
+      "destroyProbability": 0,
+      "successStar": 15
+    },
+    {
+      "star": 15,
+      "successProbability": 0.315,
+      "maintainProbability": 0.66445,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.02055,
+      "successStar": 16,
+      "traceStar": 15
+    },
+    {
+      "star": 16,
+      "successProbability": 0.315,
+      "maintainProbability": 0.66445,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.02055,
+      "successStar": 17,
+      "traceStar": 16
+    },
+    {
+      "star": 17,
+      "successProbability": 0.1575,
+      "maintainProbability": 0.7751,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.0674,
+      "successStar": 18,
+      "traceStar": 17
+    },
+    {
+      "star": 18,
+      "successProbability": 0.1575,
+      "maintainProbability": 0.7751,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.0674,
+      "successStar": 19,
+      "traceStar": 18
+    },
+    {
+      "star": 19,
+      "successProbability": 0.1575,
+      "maintainProbability": 0.75825,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.08425,
+      "successStar": 20,
+      "traceStar": 19
+    },
+    {
+      "star": 20,
+      "successProbability": 0.315,
+      "maintainProbability": 0.58225,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.10275,
+      "successStar": 21,
+      "traceStar": 20
+    },
+    {
+      "star": 21,
+      "successProbability": 0.1575,
+      "maintainProbability": 0.716125,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.126375,
+      "successStar": 22,
+      "traceStar": 21
+    },
+    {
+      "star": 22,
+      "successProbability": 0.1575,
+      "maintainProbability": 0.674,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.1685,
+      "successStar": 23,
+      "traceStar": 22
+    },
+    {
+      "star": 23,
+      "successProbability": 0.105,
+      "maintainProbability": 0.716,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.179,
+      "successStar": 24,
+      "traceStar": 22
+    },
+    {
+      "star": 24,
+      "successProbability": 0.105,
+      "maintainProbability": 0.716,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.179,
+      "successStar": 25,
+      "traceStar": 22
+    },
+    {
+      "star": 25,
+      "successProbability": 0.105,
+      "maintainProbability": 0.716,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.179,
+      "successStar": 26,
+      "traceStar": 22
+    },
+    {
+      "star": 26,
+      "successProbability": 0.0735,
+      "maintainProbability": 0.7412,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.1853,
+      "successStar": 27,
+      "traceStar": 22
+    },
+    {
+      "star": 27,
+      "successProbability": 0.0525,
+      "maintainProbability": 0.758,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.1895,
+      "successStar": 28,
+      "traceStar": 22
+    },
+    {
+      "star": 28,
+      "successProbability": 0.0315,
+      "maintainProbability": 0.7748,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.1937,
+      "successStar": 29,
+      "traceStar": 22
+    },
+    {
+      "star": 29,
+      "successProbability": 0.0105,
+      "maintainProbability": 0.7916,
+      "decreaseProbability": 0,
+      "destroyProbability": 0.1979,
+      "successStar": 30,
+      "traceStar": 22
+    }
+  ],
+  "events": [
+    {
+      "id": "none",
+      "displayName": "이벤트 없음",
+      "attemptCostMultiplier": 1,
+      "destroyProbabilityMultiplier": 1,
+      "fullRestoreCostMultiplier": 1,
+      "guaranteedSuccessStars": []
+    },
+    {
+      "id": "costDiscount30",
+      "displayName": "강화 비용 30% 할인",
+      "attemptCostMultiplier": 0.7,
+      "destroyProbabilityMultiplier": 1,
+      "fullRestoreCostMultiplier": 1,
+      "guaranteedSuccessStars": []
+    },
+    {
+      "id": "destroyReduction30",
+      "displayName": "21성 이하 파괴 확률 30% 감소",
+      "attemptCostMultiplier": 1,
+      "destroyProbabilityMultiplier": 0.7,
+      "maximumDestroyReductionStarInclusive": 21,
+      "fullRestoreCostMultiplier": 1,
+      "guaranteedSuccessStars": []
+    }
+  ],
+  "discounts": {
+    "mvpRates": {
+      "none": 0,
+      "silver": 0.03,
+      "gold": 0.05,
+      "diamondPlus": 0.1
+    },
+    "pcRoomRate": 0.05,
+    "maximumAttemptStarInclusive": 16,
+    "stackingMode": "additive"
+  },
+  "safeguard": {
+    "eligibleStars": [
+      15,
+      16,
+      17
+    ],
+    "additionalBaseCostMultiplier": 2,
+    "destroyProbabilityMultiplier": 0,
+    "applyEventCostMultiplier": false,
+    "applyMvpDiscount": false,
+    "applyPcRoomDiscount": false
+  },
+  "destinySecondTranscendence": {
+    "version": "2026.08.20.1",
+    "requiredEquipmentLevel": 250,
+    "requiredProfileSource": "snapshot",
+    "maximumStar": 25,
+    "fullRestore": {
+      "equipmentCountOverride": 1,
+      "defaultAdditionalMeso": "0",
+      "minimumOverrideTraceStar": 19,
+      "maximumOverrideTraceStar": 22,
+      "additionalMesoOverrides": [
+        {
+          "minimumTraceStar": 19,
+          "maximumTraceStar": 20,
+          "additionalMeso": "10000000000"
+        },
+        {
+          "minimumTraceStar": 21,
+          "maximumTraceStar": 21,
+          "additionalMeso": "20000000000"
+        },
+        {
+          "minimumTraceStar": 22,
+          "maximumTraceStar": 22,
+          "additionalMeso": "30000000000"
+        }
+      ]
+    }
+  },
+  "astraSecondary": {
+    "version": "2026.09.05.1",
+    "requiredEquipmentLevel": 200,
+    "requiredProfileSource": "snapshot",
+    "requiredSlot": "secondaryWeapon",
+    "maximumStar": 30,
+    "ignoreProgressionCap": true,
+    "fullRestore": {
+      "equipmentCountOverride": 1,
+      "defaultAdditionalMeso": "0",
+      "minimumOverrideTraceStar": 19,
+      "maximumOverrideTraceStar": 22,
+      "additionalMesoOverrides": [
+        {
+          "minimumTraceStar": 19,
+          "maximumTraceStar": 20,
+          "additionalMeso": "1000000000"
+        },
+        {
+          "minimumTraceStar": 21,
+          "maximumTraceStar": 21,
+          "additionalMeso": "2000000000"
+        },
+        {
+          "minimumTraceStar": 22,
+          "maximumTraceStar": 22,
+          "additionalMeso": "3000000000"
+        }
+      ]
+    }
+  },
+  "restoration": {
+    "restoreToBase": {
+      "restoredStar": 12,
+      "mesoCost": "0",
+      "equipmentCount": 1
+    },
+    "fullRestoreBands": [
+      {
+        "minimumLevel": 130,
+        "maximumLevel": 130,
+        "minimumTraceStar": 15,
+        "maximumTraceStar": 15,
+        "mesoCost": "119000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 130,
+        "maximumLevel": 130,
+        "minimumTraceStar": 16,
+        "maximumTraceStar": 16,
+        "mesoCost": "287000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 130,
+        "maximumLevel": 130,
+        "minimumTraceStar": 17,
+        "maximumTraceStar": 17,
+        "mesoCost": "485000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 130,
+        "maximumLevel": 130,
+        "minimumTraceStar": 18,
+        "maximumTraceStar": 18,
+        "mesoCost": "1103000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 130,
+        "maximumLevel": 130,
+        "minimumTraceStar": 19,
+        "maximumTraceStar": 19,
+        "mesoCost": "1827000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 135,
+        "maximumLevel": 135,
+        "minimumTraceStar": 15,
+        "maximumTraceStar": 15,
+        "mesoCost": "133000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 135,
+        "maximumLevel": 135,
+        "minimumTraceStar": 16,
+        "maximumTraceStar": 16,
+        "mesoCost": "321000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 135,
+        "maximumLevel": 135,
+        "minimumTraceStar": 17,
+        "maximumTraceStar": 17,
+        "mesoCost": "542000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 135,
+        "maximumLevel": 135,
+        "minimumTraceStar": 18,
+        "maximumTraceStar": 18,
+        "mesoCost": "1231000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 135,
+        "maximumLevel": 135,
+        "minimumTraceStar": 19,
+        "maximumTraceStar": 19,
+        "mesoCost": "2043000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 140,
+        "maximumLevel": 140,
+        "minimumTraceStar": 15,
+        "maximumTraceStar": 15,
+        "mesoCost": "149000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 140,
+        "maximumLevel": 140,
+        "minimumTraceStar": 16,
+        "maximumTraceStar": 16,
+        "mesoCost": "359000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 140,
+        "maximumLevel": 140,
+        "minimumTraceStar": 17,
+        "maximumTraceStar": 17,
+        "mesoCost": "606000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 140,
+        "maximumLevel": 140,
+        "minimumTraceStar": 18,
+        "maximumTraceStar": 18,
+        "mesoCost": "1380000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 140,
+        "maximumLevel": 140,
+        "minimumTraceStar": 19,
+        "maximumTraceStar": 19,
+        "mesoCost": "2280000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 140,
+        "maximumLevel": 140,
+        "minimumTraceStar": 20,
+        "maximumTraceStar": 20,
+        "mesoCost": "4020000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 140,
+        "maximumLevel": 140,
+        "minimumTraceStar": 21,
+        "maximumTraceStar": 21,
+        "mesoCost": "5050000000",
+        "equipmentCount": 3
+      },
+      {
+        "minimumLevel": 140,
+        "maximumLevel": 140,
+        "minimumTraceStar": 22,
+        "maximumTraceStar": 22,
+        "mesoCost": "8290000000",
+        "equipmentCount": 4
+      },
+      {
+        "minimumLevel": 145,
+        "maximumLevel": 145,
+        "minimumTraceStar": 15,
+        "maximumTraceStar": 15,
+        "mesoCost": "165000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 145,
+        "maximumLevel": 145,
+        "minimumTraceStar": 16,
+        "maximumTraceStar": 16,
+        "mesoCost": "400000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 145,
+        "maximumLevel": 145,
+        "minimumTraceStar": 17,
+        "maximumTraceStar": 17,
+        "mesoCost": "672000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 145,
+        "maximumLevel": 145,
+        "minimumTraceStar": 18,
+        "maximumTraceStar": 18,
+        "mesoCost": "1689000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 145,
+        "maximumLevel": 145,
+        "minimumTraceStar": 19,
+        "maximumTraceStar": 19,
+        "mesoCost": "2803000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 145,
+        "maximumLevel": 145,
+        "minimumTraceStar": 20,
+        "maximumTraceStar": 20,
+        "mesoCost": "4944000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 145,
+        "maximumLevel": 145,
+        "minimumTraceStar": 21,
+        "maximumTraceStar": 21,
+        "mesoCost": "6224000000",
+        "equipmentCount": 3
+      },
+      {
+        "minimumLevel": 145,
+        "maximumLevel": 145,
+        "minimumTraceStar": 22,
+        "maximumTraceStar": 22,
+        "mesoCost": "10179000000",
+        "equipmentCount": 4
+      },
+      {
+        "minimumLevel": 150,
+        "maximumLevel": 150,
+        "minimumTraceStar": 15,
+        "maximumTraceStar": 15,
+        "mesoCost": "183000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 150,
+        "maximumLevel": 150,
+        "minimumTraceStar": 16,
+        "maximumTraceStar": 16,
+        "mesoCost": "441000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 150,
+        "maximumLevel": 150,
+        "minimumTraceStar": 17,
+        "maximumTraceStar": 17,
+        "mesoCost": "745000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 150,
+        "maximumLevel": 150,
+        "minimumTraceStar": 18,
+        "maximumTraceStar": 18,
+        "mesoCost": "1689000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 150,
+        "maximumLevel": 150,
+        "minimumTraceStar": 19,
+        "maximumTraceStar": 19,
+        "mesoCost": "2803000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 150,
+        "maximumLevel": 150,
+        "minimumTraceStar": 20,
+        "maximumTraceStar": 20,
+        "mesoCost": "4944000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 150,
+        "maximumLevel": 150,
+        "minimumTraceStar": 21,
+        "maximumTraceStar": 21,
+        "mesoCost": "6224000000",
+        "equipmentCount": 3
+      },
+      {
+        "minimumLevel": 150,
+        "maximumLevel": 150,
+        "minimumTraceStar": 22,
+        "maximumTraceStar": 22,
+        "mesoCost": "10179000000",
+        "equipmentCount": 4
+      },
+      {
+        "minimumLevel": 160,
+        "maximumLevel": 160,
+        "minimumTraceStar": 15,
+        "maximumTraceStar": 15,
+        "mesoCost": "222000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 160,
+        "maximumLevel": 160,
+        "minimumTraceStar": 16,
+        "maximumTraceStar": 16,
+        "mesoCost": "535000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 160,
+        "maximumLevel": 160,
+        "minimumTraceStar": 17,
+        "maximumTraceStar": 17,
+        "mesoCost": "904000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 160,
+        "maximumLevel": 160,
+        "minimumTraceStar": 18,
+        "maximumTraceStar": 18,
+        "mesoCost": "2060000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 160,
+        "maximumLevel": 160,
+        "minimumTraceStar": 19,
+        "maximumTraceStar": 19,
+        "mesoCost": "3410000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 160,
+        "maximumLevel": 160,
+        "minimumTraceStar": 20,
+        "maximumTraceStar": 20,
+        "mesoCost": "6000000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 160,
+        "maximumLevel": 160,
+        "minimumTraceStar": 21,
+        "maximumTraceStar": 21,
+        "mesoCost": "7540000000",
+        "equipmentCount": 3
+      },
+      {
+        "minimumLevel": 160,
+        "maximumLevel": 160,
+        "minimumTraceStar": 22,
+        "maximumTraceStar": 22,
+        "mesoCost": "12400000000",
+        "equipmentCount": 4
+      },
+      {
+        "minimumLevel": 200,
+        "maximumLevel": 200,
+        "minimumTraceStar": 15,
+        "maximumTraceStar": 15,
+        "mesoCost": "433000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 200,
+        "maximumLevel": 200,
+        "minimumTraceStar": 16,
+        "maximumTraceStar": 16,
+        "mesoCost": "1050000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 200,
+        "maximumLevel": 200,
+        "minimumTraceStar": 17,
+        "maximumTraceStar": 17,
+        "mesoCost": "1770000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 200,
+        "maximumLevel": 200,
+        "minimumTraceStar": 18,
+        "maximumTraceStar": 18,
+        "mesoCost": "4010000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 200,
+        "maximumLevel": 200,
+        "minimumTraceStar": 19,
+        "maximumTraceStar": 19,
+        "mesoCost": "6650000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 200,
+        "maximumLevel": 200,
+        "minimumTraceStar": 20,
+        "maximumTraceStar": 20,
+        "mesoCost": "11800000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 200,
+        "maximumLevel": 200,
+        "minimumTraceStar": 21,
+        "maximumTraceStar": 21,
+        "mesoCost": "14800000000",
+        "equipmentCount": 3
+      },
+      {
+        "minimumLevel": 200,
+        "maximumLevel": 200,
+        "minimumTraceStar": 22,
+        "maximumTraceStar": 22,
+        "mesoCost": "24200000000",
+        "equipmentCount": 4
+      },
+      {
+        "minimumLevel": 250,
+        "maximumLevel": 250,
+        "minimumTraceStar": 15,
+        "maximumTraceStar": 15,
+        "mesoCost": "846000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 250,
+        "maximumLevel": 250,
+        "minimumTraceStar": 16,
+        "maximumTraceStar": 16,
+        "mesoCost": "2040000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 250,
+        "maximumLevel": 250,
+        "minimumTraceStar": 17,
+        "maximumTraceStar": 17,
+        "mesoCost": "3450000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 250,
+        "maximumLevel": 250,
+        "minimumTraceStar": 18,
+        "maximumTraceStar": 18,
+        "mesoCost": "7830000000",
+        "equipmentCount": 1
+      },
+      {
+        "minimumLevel": 250,
+        "maximumLevel": 250,
+        "minimumTraceStar": 19,
+        "maximumTraceStar": 19,
+        "mesoCost": "13000000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 250,
+        "maximumLevel": 250,
+        "minimumTraceStar": 20,
+        "maximumTraceStar": 20,
+        "mesoCost": "22900000000",
+        "equipmentCount": 2
+      },
+      {
+        "minimumLevel": 250,
+        "maximumLevel": 250,
+        "minimumTraceStar": 21,
+        "maximumTraceStar": 21,
+        "mesoCost": "28800000000",
+        "equipmentCount": 3
+      },
+      {
+        "minimumLevel": 250,
+        "maximumLevel": 250,
+        "minimumTraceStar": 22,
+        "maximumTraceStar": 22,
+        "mesoCost": "47300000000",
+        "equipmentCount": 4
+      }
+    ]
+  },
+  "equipmentPresets": [
+    {
+      "id": "level130",
+      "displayName": "130제 장비",
+      "requiredLevel": 130
+    },
+    {
+      "id": "level135",
+      "displayName": "135제 장비",
+      "requiredLevel": 135
+    },
+    {
+      "id": "level140",
+      "displayName": "140제 장비",
+      "requiredLevel": 140
+    },
+    {
+      "id": "level145",
+      "displayName": "145제 장비",
+      "requiredLevel": 145
+    },
+    {
+      "id": "level150",
+      "displayName": "150제 장비",
+      "requiredLevel": 150
+    },
+    {
+      "id": "level160",
+      "displayName": "160제 장비",
+      "requiredLevel": 160
+    },
+    {
+      "id": "level200",
+      "displayName": "200제 장비",
+      "requiredLevel": 200
+    },
+    {
+      "id": "level250",
+      "displayName": "250제 장비",
+      "requiredLevel": 250
+    }
+  ],
+  "version": "official-probability-beta-costs-v1",
+  "effectiveDate": "2026-09-17",
+  "checkedAt": "2026-09-18",
+  "sourceUrl": "https://maplestory.nexon.com/Guide/N23GameInformation/Articles/412",
+  "status": "beta-costs",
+  "probabilityStatus": "official",
+  "costStatus": "jijakbi-cross-validated-beta",
+  "scope": {
+    "equipment": "normal",
+    "supported": [
+      "normal"
+    ],
+    "excluded": [
+      "superior",
+      "amazing-enhancement-scroll",
+      "fixed-star-equipment"
+    ],
+    "note": "슈페리얼은 별도 하락·파괴 규칙이며 확인된 확률·비용 자료가 없어 계산하지 않습니다."
+  },
+  "mechanics": {
+    "normalDecrease": false,
+    "chanceTime": false,
+    "starCatchAvailable": false,
+    "automaticStarCatchIncluded": true,
+    "maximumTraceStar": 22,
+    "normalRuleEffectiveFrom": "2025-03-20",
+    "restorationEffectiveFrom": "2026-03-19"
+  },
+  "sources": {
+    "guide": {
+      "url": "https://maplestory.nexon.com/Guide/N23GameInformation/Articles/412",
+      "snapshot": "snapshots/starforce/guide-412.html.gz",
+      "sha256": "8b5cf529048a37dc1e5417f5b98e2602a213af622f88a5b53793d7c21409c971",
+      "checkedAt": "2026-09-18"
+    },
+    "update2025": {
+      "url": "https://maplestory.nexon.com/News/Update/767",
+      "snapshot": "snapshots/starforce/update-767.html.gz",
+      "sha256": "7cfb3d0bc233d1e04b9eb594956bd74fa03d1384b678dd5839daef8d330caee5",
+      "checkedAt": "2026-09-18"
+    },
+    "update2026": {
+      "url": "https://maplestory.nexon.com/News/Update/799",
+      "snapshot": "snapshots/starforce/update-799.html.gz",
+      "sha256": "73d1274579b89512e09d55cb9ba887de1955adfc26970f1b12a98d03c3017019",
+      "checkedAt": "2026-09-18"
+    },
+    "lowStarProbabilities": {
+      "url": "https://archive.maplestory.nexon.com/News/ProbabilityResult/MonthData/20240215",
+      "snapshot": "snapshots/starforce/probabilities-20240215.html.gz",
+      "sha256": "6736e1cdb27aeb3b745968c0cd591387dd926003701b7bc187c6382c1739ead7",
+      "checkedAt": "2026-09-18"
+    },
+    "starCatchMultiplier": {
+      "url": "https://maplestory.nexon.com/News/Notice/All/133192",
+      "snapshot": "snapshots/starforce/notice-133192.html.gz",
+      "sha256": "f0f9e6186c619918804935e8b1052c8e920061ef7c7063101d6dbbbc873e4ec3",
+      "checkedAt": "2026-09-18"
+    },
+    "mvp": {
+      "url": "https://maplestory.nexon.com/Guide/N23GameInformation/Articles/425",
+      "snapshot": "snapshots/starforce/guide-425.html.gz",
+      "sha256": "c54af9afdefb56a15c16dcd308eb2bed731da4ceebe5186930a3eaa1319bfecc",
+      "checkedAt": "2026-09-18"
+    },
+    "pcRoom": {
+      "url": "https://maplestory.nexon.com/Guide/N23GameInformation/Articles/444",
+      "snapshot": "snapshots/starforce/guide-444.html.gz",
+      "sha256": "6bd8922e41b56eea917302c21462a69978ba156ec8212f895a97731416df8ffb",
+      "checkedAt": "2026-09-18"
+    }
+  },
+  "costProvenance": {
+    "status": "beta",
+    "sourceProject": "JIJAKBI",
+    "sourceFile": "rules/starforce.json",
+    "sourceRuleId": "kms-starforce-2026-08-20-beta-costs",
+    "snapshot": "snapshots/starforce/jijakbi-reference.json.gz",
+    "sha256": "b3c937ea27734afa6b6f5b9f5808327720ffa37e6e78495262bd5f0e22d54f9f",
+    "verificationSnapshot": "snapshots/starforce/jijakbi-cost-verification.json.gz",
+    "verificationSha256": "165eff9d27ba7c88b3978d62eb008faa88f06978463be0fcd0f87f49a387b401",
+    "crossValidationSource": "https://starforce.gg/ev",
+    "crossValidationCheckedAt": "2026-09-04T00:00:00+09:00",
+    "officialStaticCostTableAvailable": false,
+    "note": "강화 비용 공식과 단계 보존 복구 메소는 JIJAKBI의 beta 자료를 이식했습니다. 공식 확률표와 구분하며 미등록 레벨의 단계 보존 복구 비용은 보간하지 않습니다."
+  },
+  "normalization": {
+    "lowStars": "공식 2024-02-15 이벤트 미적용·스타캐치 성공 표의 설정 확률 0~14성을 사용합니다. 실제 관측 비율은 사용하지 않습니다.",
+    "highStars": "공식 2025-03-20 표에 2026-03-19 상시 적용된 기존 스타캐치 배율을 반영합니다: 성공=기존성공×1.05, 파괴=기존파괴×(1−새성공)/(1−기존성공), 유지=1−성공−파괴.",
+    "validation": "공식 원문으로 재구성한 30개 전이를 JIJAKBI 독립 스냅샷과 1e-12 이내로 대조합니다.",
+    "costRounding": "기본 비용과 할인·파괴 방지 적용 후 비용은 100메소 단위 반올림(round half up)합니다."
+  }
+}

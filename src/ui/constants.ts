@@ -14,13 +14,18 @@ export const MODES: { id: SimulatorMode; name: string; caption: string }[] = [
   { id: 'soulAmplification', name: '소울 증폭', caption: '한 단계 더, 한 번만 더' },
   { id: 'soulPotential', name: '소울 잠재', caption: '깨어나는 소울의 힘' },
 ];
-export type AppTab = SimulatorMode | 'abilityOptimizer';
+export type AppTab = SimulatorMode | 'abilityOptimizer' | 'starforce';
+export function isStandaloneTab(tab: AppTab): tab is 'abilityOptimizer' | 'starforce' {
+  return tab === 'abilityOptimizer' || tab === 'starforce';
+}
 export const TABS: { id: AppTab; name: string }[] = [
   ...MODES,
   { id: 'abilityOptimizer', name: '어빌리티 최적화' },
+  { id: 'starforce', name: '스타포스' },
 ];
 export function getTabFromHash(): AppTab {
-  return location.hash === '#abilityOptimizer' ? 'abilityOptimizer' : getModeFromHash();
+  const tab = location.hash.slice(1) as AppTab;
+  return TABS.some((item) => item.id === tab) ? tab : getModeFromHash();
 }
 export const CUBES: {
   id: CubeType;
