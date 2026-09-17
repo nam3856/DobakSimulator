@@ -95,10 +95,14 @@ export function AbilityOptimizer({
   });
   const [batchSize, setBatchSize] = useState<1 | 3>(savedSettings.batchSize === 1 ? 1 : 3);
   const [medalPrice, setMedalPrice] = useState(
-    typeof savedPrices.medal === 'string' ? savedPrices.medal : '',
+    typeof savedPrices.medal === 'string' && savedPrices.medal.trim()
+      ? savedPrices.medal
+      : '4000000',
   );
   const [circulatorPrice, setCirculatorPrice] = useState(
-    typeof savedPrices.circulator === 'string' ? savedPrices.circulator : '',
+    typeof savedPrices.circulator === 'string' && savedPrices.circulator.trim()
+      ? savedPrices.circulator
+      : '200000000',
   );
   const [result, setResult] = useState<AbilityOptimizerResult>();
   const [busy, setBusy] = useState(false);

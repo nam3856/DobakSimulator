@@ -123,6 +123,7 @@ describe('frozen normal KMS Star Force data', () => {
       'none',
       'costDiscount30',
       'destroyReduction30',
+      'shiningWithout1516',
     ]);
     expect(rules.events.find((event) => event.id === 'none')).toMatchObject({
       attemptCostMultiplier: 1,
@@ -134,5 +135,16 @@ describe('frozen normal KMS Star Force data', () => {
       destroyProbabilityMultiplier: 0.7,
       maximumDestroyReductionStarInclusive: 21,
     });
+    expect(rules.events.find((event) => event.id === 'shiningWithout1516')).toMatchObject({
+      attemptCostMultiplier: 0.7,
+      destroyProbabilityMultiplier: 0.7,
+      maximumDestroyReductionStarInclusive: 21,
+      fullRestoreCostMultiplier: 0.8,
+      guaranteedSuccessStars: [],
+    });
+    expect(sha256(snapshot(rules.shiningEvidence.snapshot))).toBe(rules.shiningEvidence.sha256);
+    expect(rules.shiningEvidence.pageUrl).toBe(
+      'https://maplestory.nexon.com/News/Event/Closed/1377',
+    );
   });
 });

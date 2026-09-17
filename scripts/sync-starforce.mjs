@@ -33,6 +33,10 @@ const sources = {
     url: 'https://maplestory.nexon.com/Guide/N23GameInformation/Articles/444',
     file: 'guide-444.html.gz',
   },
+  shining: {
+    url: 'https://maplestory.nexon.com/News/Event/Closed/1377',
+    file: 'event-1377.html.gz',
+  },
 };
 await mkdir(directory, { recursive: true });
 const html = {};
@@ -53,6 +57,24 @@ await Promise.all(
     delete source.file;
   }),
 );
+// The current event's three benefits are published in an image, not HTML text.
+// Its fixed hash records the exact image visually checked on 2026-09-18.
+const shiningImageUrl =
+  'https://lwi.nexon.com/maplestory/2026/0820_board/290906_6A29969365697B3F.png';
+const shiningImageFile = 'event-1377.png.gz';
+if (!html.shining.includes('290906_6A29969365697B3F.png'))
+  throw new Error('Official Shining event image changed. Recheck its stated benefits.');
+let shiningImage;
+if (offline) shiningImage = gunzipSync(await readFile(join(directory, shiningImageFile)));
+else {
+  const response = await fetch(shiningImageUrl, { signal: AbortSignal.timeout(30_000) });
+  if (!response.ok) throw new Error(`Shining event image: HTTP ${response.status}`);
+  shiningImage = Buffer.from(await response.arrayBuffer());
+}
+const shiningImageHash = sha256(shiningImage);
+if (shiningImageHash !== '71e52ffbe200876c60ca09bc319e76ca808adf6de2640de6b17a8648f8546d73')
+  throw new Error('Official Shining event image content changed. Recheck its stated benefits.');
+if (!offline) await writeFile(join(directory, shiningImageFile), gzipSync(shiningImage));
 const referenceBytes = gunzipSync(await readFile(join(directory, 'jijakbi-reference.json.gz')));
 const verificationBytes = gunzipSync(
   await readFile(join(directory, 'jijakbi-cost-verification.json.gz')),
@@ -211,10 +233,25 @@ const rules = {
     restorationEffectiveFrom: '2026-03-19',
   },
   transitions,
-  // Keep only individually documented event effects. Shining bundles vary by event date.
+  // This exact three-effect bundle is confirmed by the 2026-09-06 official event image.
   events: reference.events.filter((event) =>
-    ['none', 'costDiscount30', 'destroyReduction30'].includes(event.id),
+    ['none', 'costDiscount30', 'destroyReduction30', 'shiningWithout1516'].includes(event.id),
   ),
+  shiningEvidence: {
+    pageUrl: sources.shining.url,
+    imageUrl: shiningImageUrl,
+    snapshot: `snapshots/starforce/${shiningImageFile}`,
+    sha256: shiningImageHash,
+    checkedAt,
+    eventDate: '2026-09-06',
+    verifiedEffects: [
+      '강화 비용 30% 할인, 파괴 방지 추가 비용 제외',
+      '21성 이하 강화 시 파괴 확률 30% 감소',
+      '흔적 복구 메소 20% 할인',
+      '5/10/15성 확정 성공 없음',
+      '슈페리얼 제외',
+    ],
+  },
   sources,
   costProvenance: {
     status: 'beta',

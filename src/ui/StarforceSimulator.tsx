@@ -9,8 +9,9 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
+  FastForward,
 } from 'lucide-react';
-import type { CharacterSnapshot, EquipmentSnapshot } from '../types';
+import type { BenchmarkResult, CharacterSnapshot, EquipmentSnapshot } from '../types';
 import {
   createStarforceState,
   maxStarforceStars,
@@ -23,12 +24,24 @@ import {
   type StarforceRules,
   type StarforceState,
 } from '../engine/starforce';
-import { Field } from './components';
+import { DistributionChart, Field, ReactionStage } from './components';
+import { evaluateLuck } from '../engine/benchmark';
 import { formatAmount, formatPercent } from './format';
 import { deserialize, serialize } from './storage';
+import type { StarforceOptimization } from '../engine/starforce-optimizer';
 import './starforce.css';
 
 type Phase = 'idle' | 'charging' | 'result' | 'restoring' | 'restored';
+const pacing = (state: StarforceState) =>
+  state.status !== 'destroyed' && state.stars <= 12
+    ? { charge: 300, result: 367 }
+    : { charge: 450, result: 550 };
+interface PendingPhase {
+  callback: () => void;
+  remaining: number;
+  startedAt: number;
+  speed: number;
+}
 const outcomeText = {
   success: '강화 성공',
   stay: '강화 실패 · 단계 유지',
@@ -172,19 +185,50 @@ function StarforceChallenge({
   const [state, setState] = useState(initial.state);
   const [phase, setPhase] = useState<Phase>('idle');
   const [auto, setAuto] = useState(false);
+  const [fast, setFast] = useState(false);
+  const [timing, setTiming] = useState(() => pacing(initial.state));
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(true);
   const [benchmark, setBenchmark] = useState<StarforceBenchmark>();
   const [benchmarkError, setBenchmarkError] = useState('');
+  const [distribution, setDistribution] =
+    useState<
+      Pick<BenchmarkResult, 'method' | 'sampleCount' | 'quantiles' | 'distribution' | 'note'>
+    >();
+  const [distributionError, setDistributionError] = useState('');
+  const [percentile, setPercentile] = useState<{ cost: number; cdf: number }>();
+  const benchmarkWorker = useRef<Worker | null>(null);
+  const [optimization, setOptimization] = useState<StarforceOptimization>();
+  const [optimizing, setOptimizing] = useState(false);
+  const optimizeWorker = useRef<Worker | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const pendingPhase = useRef<PendingPhase | undefined>(undefined);
   const generation = useRef(0);
-  const live = useRef({ config, state, auto });
-  live.current = { config, state, auto };
+  const live = useRef({ config, state, auto, fast });
+  live.current = { config, state, auto, fast };
   const items = (character.equipmentPresets[preset] ?? []).filter(eligible);
   const item = items.find((candidate) => candidate.id === itemId);
   const maximum = maxStarforceStars(rules, config.level);
   const busy = phase !== 'idle';
   const last = state.history.at(-1);
+  const actualCost = Number(state.spentMeso);
+  const done = state.status === 'success' && state.attempts > 0n;
+  const costBenchmark: BenchmarkResult | undefined =
+    benchmark && distribution
+      ? {
+          ...distribution,
+          status: benchmark.status,
+          expectedCost: benchmark.expectedMeso,
+          expectedAttempts: benchmark.expectedAttempts,
+          successProbability: benchmark.status === 'impossible' ? 0 : 1,
+          unit: 'meso',
+          cdfAtActual: done && percentile?.cost === actualCost ? percentile.cdf : undefined,
+        }
+      : undefined;
+  const reaction =
+    done && costBenchmark?.cdfAtActual !== undefined
+      ? evaluateLuck(costBenchmark, actualCost)
+      : undefined;
   const quote = useMemo(() => {
     try {
       return state.status === 'ready' ? quoteStarforce(rules, config, state) : undefined;
@@ -192,6 +236,23 @@ function StarforceChallenge({
       return undefined;
     }
   }, [rules, config, state]);
+  const routeSteps = useMemo(() => {
+    if (!config.policy) return [];
+    const reachable = new Set<number>();
+    const pending = [config.startStars];
+    while (pending.length) {
+      const stars = pending.pop()!;
+      if (stars >= config.targetStars || reachable.has(stars)) continue;
+      reachable.add(stars);
+      const next = quoteStarforce(rules, config, { stars });
+      if (next.successProbability > 0) pending.push(next.successStar);
+      if (next.decreaseProbability > 0) pending.push(next.decreaseStar);
+      if (next.destroyProbability > 0 && next.restoration) pending.push(next.restoration.toStars);
+    }
+    return config.policy
+      .filter((step) => reachable.has(step.stars))
+      .sort((a, b) => a.stars - b.stars);
+  }, [rules, config]);
 
   useEffect(() => {
     const worker = new Worker(new URL('../workers/starforce.worker.ts', import.meta.url), {
@@ -199,15 +260,35 @@ function StarforceChallenge({
     });
     setBenchmark(undefined);
     setBenchmarkError('');
-    worker.onmessage = (event: MessageEvent<{ result?: StarforceBenchmark; error?: string }>) => {
-      setBenchmark(event.data.result);
-      setBenchmarkError(event.data.error ?? '');
+    setDistribution(undefined);
+    setDistributionError('');
+    setPercentile(undefined);
+    benchmarkWorker.current = worker;
+    worker.onmessage = (event) => {
+      if (event.data.type === 'distribution') {
+        setDistribution(event.data.result);
+        setDistributionError(event.data.error ?? '');
+      } else if (event.data.type === 'cdf') {
+        setPercentile({ cost: event.data.actualCost, cdf: event.data.cdf });
+      } else {
+        setBenchmark(event.data.result);
+        setBenchmarkError(event.data.error ?? '');
+      }
     };
-    worker.onerror = () =>
+    worker.onerror = () => {
       setBenchmarkError('기댓값 계산을 불러오지 못했습니다. 다시 시도해 주세요.');
-    worker.postMessage({ rules, config });
-    return () => worker.terminate();
+      setDistributionError('비용 분포를 계산하지 못했습니다. 새로고침해 다시 시도해 주세요.');
+    };
+    worker.postMessage({ type: 'benchmark', rules, config });
+    return () => {
+      worker.terminate();
+      if (benchmarkWorker.current === worker) benchmarkWorker.current = null;
+    };
   }, [rules, config]);
+  useEffect(() => {
+    if (done && distribution) benchmarkWorker.current?.postMessage({ type: 'cdf', actualCost });
+    else setPercentile(undefined);
+  }, [done, actualCost, distribution]);
   useEffect(() => {
     try {
       localStorage.setItem(
@@ -223,6 +304,8 @@ function StarforceChallenge({
     () => () => {
       generation.current++;
       clearTimeout(timer.current);
+      pendingPhase.current = undefined;
+      optimizeWorker.current?.terminate();
     },
     [],
   );
@@ -230,6 +313,7 @@ function StarforceChallenge({
   function stop() {
     generation.current++;
     clearTimeout(timer.current);
+    pendingPhase.current = undefined;
     setAuto(false);
     setPhase('idle');
     live.current.auto = false;
@@ -238,8 +322,33 @@ function StarforceChallenge({
     live.current.state = next;
     setState(next);
   }
-  function schedule(next: StarforceState, token: number) {
+  function queuePhase(callback: () => void, remaining: number) {
+    clearTimeout(timer.current);
+    const pending: PendingPhase = {
+      callback,
+      remaining,
+      startedAt: performance.now(),
+      speed: live.current.fast ? 2 : 1,
+    };
+    pendingPhase.current = pending;
     timer.current = setTimeout(() => {
+      if (pendingPhase.current !== pending) return;
+      pendingPhase.current = undefined;
+      callback();
+    }, remaining / pending.speed);
+  }
+  function toggleSpeed() {
+    const pending = pendingPhase.current;
+    live.current.fast = !live.current.fast;
+    setFast(live.current.fast);
+    if (pending)
+      queuePhase(
+        pending.callback,
+        Math.max(0, pending.remaining - (performance.now() - pending.startedAt) * pending.speed),
+      );
+  }
+  function schedule(next: StarforceState, token: number, delay: number) {
+    queuePhase(() => {
       if (token !== generation.current) return;
       if (live.current.auto && next.status !== 'success') attempt();
       else {
@@ -247,15 +356,17 @@ function StarforceChallenge({
         setAuto(false);
         live.current.auto = false;
       }
-    }, 1100);
+    }, delay);
   }
   function attempt() {
     const token = generation.current;
     const current = live.current.state;
     if (current.status === 'success') return;
+    const duration = pacing(current);
+    setTiming(duration);
     setError('');
     setPhase(current.status === 'destroyed' ? 'restoring' : 'charging');
-    timer.current = setTimeout(() => {
+    queuePhase(() => {
       if (token !== generation.current) return;
       try {
         const next =
@@ -264,12 +375,12 @@ function StarforceChallenge({
             : rollStarforce(rules, live.current.config, current).state;
         commit(next);
         setPhase(current.status === 'destroyed' ? 'restored' : 'result');
-        schedule(next, token);
+        schedule(next, token, duration.result);
       } catch (error) {
         setError(error instanceof Error ? error.message : '강화에 실패했습니다.');
         stop();
       }
-    }, 900);
+    }, duration.charge);
   }
   function startAutomatic() {
     if (busy) return;
@@ -291,7 +402,8 @@ function StarforceChallenge({
     }
   }
   function patch(patch: Partial<StarforceConfig>) {
-    const next = { ...config, ...patch };
+    setOptimization(undefined);
+    const next = { ...config, ...patch, policy: undefined };
     const max = maxStarforceStars(rules, next.level);
     next.startStars = Math.min(max, Math.max(0, next.startStars));
     next.targetStars = Math.min(max, Math.max(1, next.targetStars));
@@ -306,13 +418,47 @@ function StarforceChallenge({
     const startStars = Math.min(max, selected?.starforce ?? 0);
     setPreset(selectedPreset);
     setItemId(selected?.id ?? 'manual');
+    setOptimization(undefined);
     reset({
       ...config,
       level,
       startStars,
       targetStars: Math.min(max, Math.max(17, startStars + 1)),
       restoration: 'trace12',
+      policy: undefined,
     });
+  }
+  function cancelOptimization() {
+    optimizeWorker.current?.terminate();
+    optimizeWorker.current = null;
+    setOptimizing(false);
+  }
+  function optimizeRoute() {
+    if (busy || auto || optimizing) return;
+    setError('');
+    setOptimizing(true);
+    const worker = new Worker(new URL('../workers/starforce.worker.ts', import.meta.url), {
+      type: 'module',
+    });
+    optimizeWorker.current = worker;
+    worker.onmessage = (
+      event: MessageEvent<{ result?: StarforceOptimization; error?: string }>,
+    ) => {
+      if (optimizeWorker.current !== worker) return;
+      const result = event.data.result;
+      cancelOptimization();
+      if (!result || result.status !== 'ready') {
+        setError(event.data.error ?? '시작 단계보다 높은 목표를 선택해 주세요.');
+        return;
+      }
+      reset(result.config);
+      setOptimization(result);
+    };
+    worker.onerror = () => {
+      cancelOptimization();
+      setError('강화 루트 계산을 불러오지 못했습니다. 다시 시도해 주세요.');
+    };
+    worker.postMessage({ type: 'optimize', rules, config });
   }
   const resultText =
     phase === 'charging'
@@ -342,7 +488,7 @@ function StarforceChallenge({
             </h2>
             <span className="panel-step">01</span>
           </div>
-          <fieldset className="sf-settings" disabled={busy || auto}>
+          <fieldset className="sf-settings" disabled={busy || auto || optimizing}>
             <Field label="장비 프리셋">
               <select
                 value={preset}
@@ -420,12 +566,25 @@ function StarforceChallenge({
             <label className="sf-toggle">
               <input
                 type="checkbox"
+                checked={config.event === 'shiningNoGuarantee'}
+                onChange={(e) => patch({ event: e.target.checked ? 'shiningNoGuarantee' : 'none' })}
+              />
+              <span>
+                <b>샤이닝 스타포스</b>
+                <small>15→16성 확정 성공 제외</small>
+                <small>강화 비용 30% · 21성 이하 파괴 확률 30% · 복구 메소 20% 감소</small>
+              </span>
+              <Sparkles size={19} />
+            </label>
+            <label className="sf-toggle">
+              <input
+                type="checkbox"
                 checked={config.safeguard}
                 onChange={(e) => patch({ safeguard: e.target.checked })}
               />
               <span>
                 <b>파괴 방지</b>
-                <small>15~17성에서 적용 · 기본 강화 비용의 총 3배</small>
+                <small>15~17성 · 기본 강화 비용의 2배 추가 (추가분은 할인 제외)</small>
               </span>
               <ShieldCheck size={19} />
             </label>
@@ -455,9 +614,78 @@ function StarforceChallenge({
               비용·기댓값에 포함합니다.
             </small>
           </fieldset>
+          <div className="sf-route-settings">
+            <button
+              className="button sf-optimize-button"
+              disabled={busy || auto || (!optimizing && config.startStars >= config.targetStars)}
+              onClick={optimizing ? cancelOptimization : optimizeRoute}
+            >
+              {optimizing ? <LoaderCircle size={17} className="spin" /> : <Sparkles size={17} />}
+              {optimizing ? '최적화 중단' : '강화 루트 최적화'}
+            </button>
+            <small className="inline-note">
+              장비값에 맞춰 단계별 파괴 방지·복구 방식을 계산하고, 현재 시작 설정의 새 도전에
+              적용합니다.
+            </small>
+            {config.policy?.length ? (
+              <div className="sf-route-result" aria-live="polite">
+                <strong>최적 루트 적용 중</strong>
+                {optimization?.savedMeso != null && (
+                  <p>
+                    수동 설정 대비 기대 비용{' '}
+                    <b>{formatAmount(Math.max(0, optimization.savedMeso))} 메소</b> 절약
+                    {optimization.savedPercent != null &&
+                      ` (${optimization.savedPercent.toFixed(1)}%)`}
+                  </p>
+                )}
+                {optimization?.baselineError && <p>{optimization.baselineError}</p>}
+                <small>
+                  현재 장비·목표에서 단계별 파괴 방지와 두 복구 방식 중 기대 총비용이 가장 낮은
+                  조합입니다. 설정을 바꾸면 수동 방식으로 돌아갑니다.
+                </small>
+                <details className="sf-route-details">
+                  <summary>단계별 강화 루트 보기</summary>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th scope="col">강화 단계</th>
+                        <th scope="col">파괴 방지</th>
+                        <th scope="col">파괴 시 복구</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {routeSteps.map((step) => (
+                        <tr key={step.stars}>
+                          <th scope="row">
+                            {step.stars}→{step.stars + 1}성
+                          </th>
+                          <td>{step.safeguard ? '사용' : '미사용'}</td>
+                          <td>
+                            {step.stars < 15 || step.safeguard
+                              ? '파괴 없음'
+                              : step.restoration === 'original'
+                                ? `${Math.min(step.stars, 22)}성`
+                                : '12성'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </details>
+                <button
+                  type="button"
+                  className="text-button"
+                  disabled={busy || auto || optimizing}
+                  onClick={() => patch({ policy: undefined })}
+                >
+                  수동 설정으로 돌아가기
+                </button>
+              </div>
+            ) : null}
+          </div>
           <div className="sf-rules-note">
-            평상시 일반 장비 · 단계 하락 없음 · 스타캐치 효과 기본 적용. 슈페리얼·놀장·특수 장비와
-            이벤트 할인은 지원하지 않습니다.
+            일반 장비 · 단계 하락 없음 · 스타캐치 효과 기본 적용. 슈페리얼·놀장·특수 장비는 지원하지
+            않습니다.
           </div>
         </section>
         <section className="panel sf-sources">
@@ -475,6 +703,13 @@ function StarforceChallenge({
           </a>
           <a href="https://maplestory.nexon.com/News/Update/799" target="_blank" rel="noreferrer">
             스타캐치·복구 개편 ↗
+          </a>
+          <a
+            href="https://maplestory.nexon.com/News/Event/Closed/1377"
+            target="_blank"
+            rel="noreferrer"
+          >
+            샤이닝 스타포스 혜택 ↗
           </a>
         </section>
       </aside>
@@ -503,6 +738,12 @@ function StarforceChallenge({
           </div>
           <div
             className={`sf-stage phase-${phase} outcome-${last?.restored ? 'none' : (last?.outcome ?? 'none')}`}
+            style={
+              {
+                '--sf-charge-duration': `${timing.charge / (fast ? 2 : 1)}ms`,
+                '--sf-result-duration': `${timing.result / (fast ? 2 : 1)}ms`,
+              } as React.CSSProperties
+            }
           >
             <div className="sf-orbit sf-orbit-outer" />
             <div className="sf-orbit" />
@@ -529,8 +770,10 @@ function StarforceChallenge({
             <strong>{resultText}</strong>
             <span>
               {auto
-                ? '자동 강화 중 · 약 2초마다 한 번씩 진행합니다'
-                : '연출과 함께 한 번씩 강화합니다'}
+                ? `자동 강화 중 · ${fast ? '2배 속도 · ' : ''}약 ${((timing.charge + timing.result) / (fast ? 2 : 1) / 1000).toFixed(2)}초 간격`
+                : fast
+                  ? '2배 속도 · 0~12성은 약 0.33초, 13성부터는 0.5초'
+                  : '0~12성은 약 0.67초, 13성부터는 1초 · 연출과 함께 강화합니다'}
             </span>
           </div>
           <div className="sf-quote">
@@ -572,26 +815,42 @@ function StarforceChallenge({
               {error || benchmarkError}
             </p>
           )}
-          <div className="sf-actions">
+          <div className={`sf-actions${auto ? ' is-auto' : ''}`}>
             <button
               className="button primary roll-button"
               disabled={
-                busy || auto || state.status === 'success' || !benchmark || !!benchmarkError
+                busy ||
+                auto ||
+                optimizing ||
+                state.status === 'success' ||
+                !benchmark ||
+                !!benchmarkError
               }
               onClick={attempt}
             >
               <Hammer size={18} />
-              {state.status === 'destroyed' ? '장비 복구하기' : '강화하기'}
+              {!auto && state.status === 'destroyed' ? '장비 복구하기' : '강화하기'}
             </button>
+            {auto && (
+              <button className="button sf-speed-button" aria-pressed={fast} onClick={toggleSpeed}>
+                <FastForward size={18} />
+                {fast ? '기본 속도로' : '2배 빠르게'}
+              </button>
+            )}
             {busy || auto ? (
               <button className="button auto-button stop" onClick={stop}>
                 <Pause size={18} />
-                중지
+                중단
               </button>
             ) : (
               <button
                 className="button auto-button"
-                disabled={!benchmark || !!benchmarkError || config.startStars >= config.targetStars}
+                disabled={
+                  optimizing ||
+                  !benchmark ||
+                  !!benchmarkError ||
+                  config.startStars >= config.targetStars
+                }
                 onClick={startAutomatic}
               >
                 <Play size={18} />
@@ -600,7 +859,7 @@ function StarforceChallenge({
             )}
           </div>
           <div className="sf-reset">
-            <button className="text-button" onClick={() => reset()}>
+            <button className="text-button" disabled={optimizing} onClick={() => reset()}>
               <RotateCcw size={14} />
               처음부터 다시
             </button>
@@ -650,21 +909,75 @@ function StarforceChallenge({
             복구용 장비 <b>{formatAmount(state.replacementMeso)} 메소</b>
           </span>
         </div>
-        {state.status === 'success' &&
-          state.attempts > 0n &&
-          benchmark &&
-          benchmark.expectedMeso > 0 && (
-            <div className="panel sf-complete">
-              <Sparkles size={24} />
-              <div>
-                <strong>{config.targetStars}성, 이 세계에서는 해냈다!</strong>
-                <p>
-                  기댓값의 {((Number(state.spentMeso) / benchmark.expectedMeso) * 100).toFixed(1)}
-                  %를 사용했어요.
-                </p>
-              </div>
-            </div>
-          )}
+        <ReactionStage
+          character={character}
+          state={{
+            status:
+              state.status === 'success'
+                ? 'success'
+                : auto
+                  ? 'running'
+                  : state.attempts > 0n
+                    ? 'paused'
+                    : 'idle',
+            attempts: state.attempts,
+          }}
+          benchmark={
+            costBenchmark ??
+            (benchmark?.status === 'already'
+              ? {
+                  status: 'already',
+                  expectedCost: 0,
+                  expectedAttempts: 0,
+                  successProbability: 1,
+                  unit: 'meso',
+                  method: 'analytic',
+                  sampleCount: 0,
+                  quantiles: { p10: 0, p50: 0, p90: 0 },
+                  distribution: [],
+                }
+              : undefined)
+          }
+          actualCost={actualCost}
+          reaction={reaction}
+          messages={{
+            jackpot: [
+              state.attempts % 2n === 0n
+                ? '이게 뜬다고? 오늘은 내 날이다!'
+                : '아 게임에서 돌릴걸..',
+              `${config.targetStars}성 달성! 이 비용 안에 성공할 확률이 10% 이하예요.`,
+            ],
+            happy: [
+              state.attempts % 2n === 0n
+                ? '이 정도면 내가 이긴 거지!'
+                : '좋아, 오늘은 손맛 좀 보네!',
+              `${config.targetStars}성 달성! 기댓값보다 가볍게 끝냈어요.`,
+            ],
+            neutral: [
+              actualCost > (benchmark?.expectedMeso ?? Infinity)
+                ? '그래.. 이거면 된거야..'
+                : '그래, 이 정도면 잘했다.',
+              `${config.targetStars}성 달성. 기댓값 언저리에서 무난하게 도착했어요.`,
+            ],
+            cry: [
+              state.attempts % 2n === 0n ? '아무튼 내가 이긴거야..' : '그래.. 이거면 된거야..',
+              `${config.targetStars}성은 남았으니까.. 기댓값보다 먼 길을 돌아왔어요.`,
+            ],
+          }}
+        />
+        {costBenchmark?.status === 'ready' ? (
+          <div className="panel sf-distribution">
+            <DistributionChart benchmark={costBenchmark} actualCost={actualCost} done={done} />
+            <p className="sf-distribution-note">
+              {costBenchmark.note} 백분위는 이 비용 이내에 성공할 확률이며, 낮을수록 행운이에요.
+            </p>
+          </div>
+        ) : benchmark?.status === 'ready' ? (
+          <p className="sf-distribution-note" role="status">
+            {distributionError ||
+              '같은 조건의 비용 분포를 계산하고 있어요. 강화는 바로 시작할 수 있습니다.'}
+          </p>
+        ) : null}
         <details className="panel history-panel">
           <summary>강화 기록 · 최근 {state.history.length}회</summary>
           <div className="sf-history">

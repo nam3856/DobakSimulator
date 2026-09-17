@@ -533,7 +533,7 @@ export function optimizeAbilityCost(
       outputs.push({
         id: `${timing}-${mask}`,
         name: `${accepted} 먼저 · ${timingLabel}`,
-        description: `첫 보조 줄은 ${accepted} 중 하나를 2·3번째 줄에 확보합니다. 이후 다른 목표를 보조 줄에 잠그고 남은 목표를 첫 줄에 완성합니다.`,
+        description: `첫 보조 줄은 ${accepted}${accepted.length === 1 ? '를' : ' 중 하나를'} 2·3번째 줄에 확보합니다. 이후 다른 목표를 보조 줄에 잠그고 남은 목표를 첫 줄에 완성합니다.`,
         expectedMeso: expected.meso,
         expectedHonor: expected.honor,
         expectedResets: expected.resets,

@@ -391,6 +391,15 @@
       "maximumDestroyReductionStarInclusive": 21,
       "fullRestoreCostMultiplier": 1,
       "guaranteedSuccessStars": []
+    },
+    {
+      "id": "shiningWithout1516",
+      "displayName": "샤이닝 스타포스 (15→16 확정 제외)",
+      "attemptCostMultiplier": 0.7,
+      "destroyProbabilityMultiplier": 0.7,
+      "maximumDestroyReductionStarInclusive": 21,
+      "fullRestoreCostMultiplier": 0.8,
+      "guaranteedSuccessStars": []
     }
   ],
   "discounts": {
@@ -1019,6 +1028,21 @@
     "normalRuleEffectiveFrom": "2025-03-20",
     "restorationEffectiveFrom": "2026-03-19"
   },
+  "shiningEvidence": {
+    "pageUrl": "https://maplestory.nexon.com/News/Event/Closed/1377",
+    "imageUrl": "https://lwi.nexon.com/maplestory/2026/0820_board/290906_6A29969365697B3F.png",
+    "snapshot": "snapshots/starforce/event-1377.png.gz",
+    "sha256": "71e52ffbe200876c60ca09bc319e76ca808adf6de2640de6b17a8648f8546d73",
+    "checkedAt": "2026-09-18",
+    "eventDate": "2026-09-06",
+    "verifiedEffects": [
+      "강화 비용 30% 할인, 파괴 방지 추가 비용 제외",
+      "21성 이하 강화 시 파괴 확률 30% 감소",
+      "흔적 복구 메소 20% 할인",
+      "5/10/15성 확정 성공 없음",
+      "슈페리얼 제외"
+    ]
+  },
   "sources": {
     "guide": {
       "url": "https://maplestory.nexon.com/Guide/N23GameInformation/Articles/412",
@@ -1060,6 +1084,12 @@
       "url": "https://maplestory.nexon.com/Guide/N23GameInformation/Articles/444",
       "snapshot": "snapshots/starforce/guide-444.html.gz",
       "sha256": "6bd8922e41b56eea917302c21462a69978ba156ec8212f895a97731416df8ffb",
+      "checkedAt": "2026-09-18"
+    },
+    "shining": {
+      "url": "https://maplestory.nexon.com/News/Event/Closed/1377",
+      "snapshot": "snapshots/starforce/event-1377.html.gz",
+      "sha256": "4ec6d6d9ab3edc7f4267fe9d12b38f2785d7e3e758e7f86315dfab3dbfc3d49d",
       "checkedAt": "2026-09-18"
     }
   },

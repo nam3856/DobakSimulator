@@ -563,12 +563,14 @@ export function ReactionStage({
   benchmark,
   reaction,
   actualCost,
+  messages,
 }: {
   character: CharacterSnapshot;
-  state: SimulationState;
+  state: Pick<SimulationState, 'status' | 'attempts'>;
   benchmark?: BenchmarkResult;
   reaction?: LuckReaction;
   actualCost: number;
+  messages?: Partial<Record<LuckReaction, readonly [string, string]>>;
 }) {
   const done = state.status === 'success' && state.attempts > 0n;
   const judged = done && !!reaction;
@@ -579,7 +581,7 @@ export function ReactionStage({
     cry: ['다른 세계의 나도… 울고 있다.', '기댓값보다 조금 더 먼 길을 돌아왔어요.'],
   };
   const text = judged
-    ? copy[reaction]
+    ? (messages?.[reaction] ?? copy[reaction])
     : done && benchmark && (benchmark.status === 'partial' || benchmark.status === 'impossible')
       ? [
           '목표 달성! 평균과의 비교는 할 수 없어요.',

@@ -989,9 +989,9 @@ small {
   background: var(--accent-wash);
 }
 .grade-dot {
-  height: 4px;
-  width: 4px;
-  margin-top: 10px;
+  height: 8px;
+  width: 8px;
+  margin-top: 8px;
   flex-shrink: 0;
   border-radius: 1px;
   background: currentColor;

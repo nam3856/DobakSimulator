@@ -149,6 +149,12 @@ test('fifth-tab deep links select the character job and active preset, validate 
   );
   await expect(page.getByLabel('최적화 목표 C', { exact: true })).toHaveValue('attackFlat');
   const calculateButton = page.getByRole('button', { name: '최적의 방법 계산', exact: true });
+  await expect(page.getByLabel('명예의 훈장 가격', { exact: true })).toHaveValue('4000000');
+  await expect(page.getByLabel('심연의 서큘레이터 가격', { exact: true })).toHaveValue('200000000');
+  await expect(calculateButton).toBeEnabled();
+  await prices(page, '', '200000000');
+  await expect(calculateButton).toBeDisabled();
+  await prices(page, '4000000', '');
   await expect(calculateButton).toBeDisabled();
   await prices(page, '-1', '10000000');
   await expect(calculateButton).toBeDisabled();
@@ -203,6 +209,23 @@ test('fifth-tab deep links select the character job and active preset, validate 
   await expect(calculateButton).toBeEnabled();
   await expect(page.locator('.optimizer-comparison')).toHaveCount(0);
   await page.unroute(workerRoute);
+  // Older blank or missing fields adopt the defaults; explicitly saved custom prices and zero stay.
+  await page.evaluate(
+    (key) => localStorage.setItem(key, JSON.stringify({ medal: ' ', circulator: '0' })),
+    PRICE_KEY,
+  );
+  await page.reload();
+  await expect(page.getByLabel('명예의 훈장 가격', { exact: true })).toHaveValue('4000000');
+  await expect(page.getByLabel('심연의 서큘레이터 가격', { exact: true })).toHaveValue('0');
+  await expect(calculateButton).toBeEnabled();
+  await page.evaluate(
+    (key) => localStorage.setItem(key, JSON.stringify({ medal: '12345' })),
+    PRICE_KEY,
+  );
+  await page.reload();
+  await expect(page.getByLabel('명예의 훈장 가격', { exact: true })).toHaveValue('12345');
+  await expect(page.getByLabel('심연의 서큘레이터 가격', { exact: true })).toHaveValue('200000000');
+  await expect(calculateButton).toBeEnabled();
 });
 
 test('real worker results include every cost and rerank after the circulator price changes', async ({
@@ -231,6 +254,14 @@ test('real worker results include every cost and rerank after the circulator pri
     '서큘레이터',
   ]);
   await expect(page.locator('.optimizer-strategy').first()).toHaveClass(/best/);
+  const firstA = cheap.strategies.find((strategy) => strategy.id === 'lower-1')!;
+  await expect(page.locator('.optimizer-strategy').filter({ hasText: firstA.name })).toContainText(
+    '첫 보조 줄은 A를 2·3번째 줄에 확보합니다.',
+  );
+  const firstAB = cheap.strategies.find((strategy) => strategy.id === 'lower-3')!;
+  await expect(page.locator('.optimizer-strategy').filter({ hasText: firstAB.name })).toContainText(
+    '첫 보조 줄은 A·B 중 하나를 2·3번째 줄에 확보합니다.',
+  );
   await prices(page, '500000', '1000000000000000');
   await expect(page.locator('.optimizer-best')).toHaveCount(0);
   await expect(page.locator('.optimizer-comparison')).toHaveCount(0);
