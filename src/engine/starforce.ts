@@ -106,6 +106,8 @@ export interface StarforceQuote {
   maintainProbability: number;
   decreaseProbability: number;
   destroyProbability: number;
+  /** Event-adjusted destruction mass transferred into maintained outcomes by safeguard. */
+  preventedDestroyProbability: number;
   successStar: number;
   decreaseStar: number;
   restoration?: StarforceRestoration;
@@ -118,6 +120,7 @@ export interface StarforceRollResult {
   mesoCost: bigint;
   probability: number;
   safeguard: boolean;
+  safeguardPrevented?: boolean;
   restoration?: StarforceRestoration;
   restored?: boolean;
 }
@@ -338,6 +341,7 @@ export function quoteStarforce(
     maintainProbability,
     decreaseProbability,
     destroyProbability,
+    preventedDestroyProbability: Number((eventDestroy - probabilities[3]).toFixed(12)),
     successStar: transition.successStar,
     decreaseStar: transition.decreaseStar ?? Math.max(0, state.stars - 1),
     ...(destroyProbability > 0
@@ -394,7 +398,8 @@ export function rollStarforce(
     { outcome: 'down' as const, probability: quote.decreaseProbability, stars: quote.decreaseStar },
     { outcome: 'destroy' as const, probability: quote.destroyProbability, stars: state.stars },
   ];
-  let draw = random * branches.reduce((sum, branch) => sum + branch.probability, 0);
+  const pickedWeight = random * branches.reduce((sum, branch) => sum + branch.probability, 0);
+  let draw = pickedWeight;
   let selected = branches[branches.length - 1];
   for (const branch of branches) {
     if (draw < branch.probability) {
@@ -404,6 +409,14 @@ export function rollStarforce(
     draw -= branch.probability;
   }
   const destroyed = selected.outcome === 'destroy';
+  // The ordinary maintained interval comes first, followed by the destruction
+  // probability transferred by safeguard. Reuse this roll's original random value;
+  // identifying a protected result never draws again or changes the actual outcome.
+  const safeguardPrevented =
+    selected.outcome === 'stay' &&
+    quote.preventedDestroyProbability > 0 &&
+    pickedWeight >=
+      quote.successProbability + quote.maintainProbability - quote.preventedDestroyProbability;
   const result: StarforceRollResult = {
     sequence: state.attempts + 1n,
     fromStars: state.stars,
@@ -412,6 +425,7 @@ export function rollStarforce(
     mesoCost: quote.cost,
     probability: selected.probability,
     safeguard: quote.safeguardActive,
+    ...(safeguardPrevented ? { safeguardPrevented: true } : {}),
     ...(destroyed ? { restoration: quote.restoration!, restored: false } : {}),
   };
   return {

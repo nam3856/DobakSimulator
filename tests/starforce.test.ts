@@ -183,6 +183,94 @@ describe('starforce rule application and individual attempts', () => {
     expect(start.history).toEqual([]);
   });
 
+  it('marks only the destruction mass prevented at15–17 without drawing again or changing cost', () => {
+    for (const star of [15, 17])
+      for (const event of ['none', 'shiningNoGuarantee'] as const) {
+        const cfg = config({ startStars: star, targetStars: star + 1, safeguard: true, event });
+        const protectedQuote = quoteStarforce(official, cfg, { stars: star });
+        const exposed = quoteStarforce(official, { ...cfg, safeguard: false }, { stars: star });
+        expect(protectedQuote.preventedDestroyProbability).toBe(exposed.destroyProbability);
+        const boundary = 1 - exposed.destroyProbability;
+        for (const [random, protectedResult] of [
+          [0, false],
+          [boundary - 1e-10, false],
+          [boundary, true],
+          [0.999999, true],
+        ] as const) {
+          let draws = 0;
+          const result = rollStarforce(official, cfg, createStarforceState(official, cfg), () => {
+            draws++;
+            return random;
+          });
+          expect(draws).toBe(1);
+          expect(!!result.result.safeguardPrevented).toBe(protectedResult);
+          expect(result.state.spentMeso).toBe(protectedQuote.cost);
+          expect(result.state.destructions).toBe(0n);
+          if (protectedResult) {
+            expect(result.result.outcome).toBe('stay');
+            expect(result.result.probability).toBe(protectedQuote.maintainProbability);
+            expect(result.state.stars).toBe(star);
+            expect(result.state.history[0].safeguardPrevented).toBe(true);
+          }
+        }
+      }
+  });
+
+  it('uses the active stage policy and the safeguard eligibility boundary for protected-result flags', () => {
+    for (const stars of [14, 18]) {
+      const cfg = config({ startStars: stars, targetStars: stars + 1, safeguard: true });
+      const result = rollStarforce(
+        official,
+        cfg,
+        createStarforceState(official, cfg),
+        () => 0.999999,
+      );
+      expect(quoteStarforce(official, cfg, { stars }).preventedDestroyProbability).toBe(0);
+      expect(result.result.safeguardPrevented).toBeUndefined();
+      expect(result.result.outcome).toBe(stars === 18 ? 'destroy' : 'stay');
+    }
+    for (const enabled of [false, true]) {
+      const cfg = config({
+        startStars: 16,
+        targetStars: 17,
+        safeguard: !enabled,
+        event: 'shiningNoGuarantee',
+        policy: Array.from({ length: 17 }, (_, stars) => ({
+          stars,
+          safeguard: stars === 16 && enabled,
+          restoration: 'trace12',
+        })),
+      });
+      const result = rollStarforce(
+        official,
+        cfg,
+        createStarforceState(official, cfg),
+        () => 0.999999,
+      );
+      expect(!!result.result.safeguardPrevented).toBe(enabled);
+      expect(result.result.outcome).toBe(enabled ? 'stay' : 'destroy');
+    }
+  });
+
+  it('keeps transferred destruction inside the maintained interval when a small test model also has downgrade', () => {
+    const rules = fixture();
+    Object.assign(rules.transitions[1], {
+      successProbability: 0.25,
+      maintainProbability: 0.25,
+      decreaseProbability: 0.25,
+      destroyProbability: 0.25,
+    });
+    const cfg = config({ startStars: 1, targetStars: 2, safeguard: true });
+    const initial = createStarforceState(rules, cfg);
+    expect(rollStarforce(rules, cfg, initial, () => 0.6).result).toMatchObject({
+      outcome: 'stay',
+      safeguardPrevented: true,
+    });
+    const down = rollStarforce(rules, cfg, initial, () => 0.9).result;
+    expect(down.outcome).toBe('down');
+    expect(down.safeguardPrevented).toBeUndefined();
+  });
+
   it('caps original-stage traces at 22 and charges the configured restoration meso and all replacement copies', () => {
     const cfg = config({
       level: 200,

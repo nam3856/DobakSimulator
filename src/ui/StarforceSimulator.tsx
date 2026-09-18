@@ -29,19 +29,16 @@ import { evaluateLuck } from '../engine/benchmark';
 import { formatAmount, formatPercent } from './format';
 import { deserialize, serialize } from './storage';
 import type { StarforceOptimization } from '../engine/starforce-optimizer';
+import type { StarforceRunResponse } from '../engine/starforce-runner';
 import './starforce.css';
 
 type Phase = 'idle' | 'charging' | 'result' | 'restoring' | 'restored';
-const pacing = (state: StarforceState) =>
-  state.status !== 'destroyed' && state.stars <= 12
-    ? { charge: 300, result: 367 }
-    : { charge: 450, result: 550 };
-interface PendingPhase {
-  callback: () => void;
-  remaining: number;
-  startedAt: number;
-  speed: number;
-}
+const pacing = (state: StarforceState, config: StarforceConfig) =>
+  state.status !== 'destroyed' && state.stars === config.targetStars - 1
+    ? { charge: 450, result: 550 }
+    : state.status !== 'destroyed' && state.stars <= 12
+      ? { charge: 225, result: 275 }
+      : { charge: 300, result: 367 };
 const outcomeText = {
   success: '강화 성공',
   stay: '강화 실패 · 단계 유지',
@@ -185,8 +182,9 @@ function StarforceChallenge({
   const [state, setState] = useState(initial.state);
   const [phase, setPhase] = useState<Phase>('idle');
   const [auto, setAuto] = useState(false);
-  const [fast, setFast] = useState(false);
-  const [timing, setTiming] = useState(() => pacing(initial.state));
+  const [skipping, setSkipping] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  const [timing, setTiming] = useState(() => pacing(initial.state, initial.config));
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(true);
   const [benchmark, setBenchmark] = useState<StarforceBenchmark>();
@@ -201,11 +199,25 @@ function StarforceChallenge({
   const [optimization, setOptimization] = useState<StarforceOptimization>();
   const [optimizing, setOptimizing] = useState(false);
   const optimizeWorker = useRef<Worker | null>(null);
+  const runWorker = useRef<Worker | null>(null);
+  const runId = useRef('');
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const pendingPhase = useRef<PendingPhase | undefined>(undefined);
   const generation = useRef(0);
-  const live = useRef({ config, state, auto, fast });
-  live.current = { config, state, auto, fast };
+  const live = useRef({ config, state, auto });
+  live.current = { config, state, auto };
+  const persistProgress = useRef(() => {});
+  persistProgress.current = () =>
+    localStorage.setItem(
+      key,
+      serialize({
+        version: 1,
+        ruleId: rules.ruleId,
+        preset,
+        itemId,
+        config: live.current.config,
+        state: live.current.state,
+      }),
+    );
   const items = (character.equipmentPresets[preset] ?? []).filter(eligible);
   const item = items.find((candidate) => candidate.id === itemId);
   const maximum = maxStarforceStars(rules, config.level);
@@ -300,23 +312,50 @@ function StarforceChallenge({
       setSaved(false);
     }
   }, [key, rules.ruleId, preset, itemId, config, state]);
-  useEffect(
-    () => () => {
-      generation.current++;
-      clearTimeout(timer.current);
-      pendingPhase.current = undefined;
+  useEffect(() => {
+    const save = () => {
+      try {
+        persistProgress.current();
+      } catch {
+        /* The visible state remains usable. */
+      }
+    };
+    const leavePage = () => {
+      finishExecution();
+      save();
+    };
+    window.addEventListener('pagehide', leavePage);
+    return () => {
+      window.removeEventListener('pagehide', leavePage);
+      disposeExecution();
+      save();
       optimizeWorker.current?.terminate();
-    },
-    [],
-  );
+    };
+  }, []);
 
-  function stop() {
+  function disposeExecution() {
     generation.current++;
     clearTimeout(timer.current);
-    pendingPhase.current = undefined;
-    setAuto(false);
-    setPhase('idle');
+    if (runWorker.current) {
+      runWorker.current.onmessage = null;
+      runWorker.current.onerror = null;
+      runWorker.current.terminate();
+      runWorker.current = null;
+    }
     live.current.auto = false;
+  }
+  function finishExecution() {
+    disposeExecution();
+    setAuto(false);
+    setSkipping(false);
+    setStopping(false);
+    setPhase('idle');
+  }
+  function stop() {
+    if (runWorker.current) {
+      setStopping(true);
+      runWorker.current.postMessage({ type: 'stop', id: runId.current });
+    } else finishExecution();
   }
   function commit(next: StarforceState) {
     live.current.state = next;
@@ -324,28 +363,54 @@ function StarforceChallenge({
   }
   function queuePhase(callback: () => void, remaining: number) {
     clearTimeout(timer.current);
-    const pending: PendingPhase = {
-      callback,
-      remaining,
-      startedAt: performance.now(),
-      speed: live.current.fast ? 2 : 1,
-    };
-    pendingPhase.current = pending;
-    timer.current = setTimeout(() => {
-      if (pendingPhase.current !== pending) return;
-      pendingPhase.current = undefined;
-      callback();
-    }, remaining / pending.speed);
+    timer.current = setTimeout(callback, remaining);
   }
-  function toggleSpeed() {
-    const pending = pendingPhase.current;
-    live.current.fast = !live.current.fast;
-    setFast(live.current.fast);
-    if (pending)
-      queuePhase(
-        pending.callback,
-        Math.max(0, pending.remaining - (performance.now() - pending.startedAt) * pending.speed),
-      );
+  function skipAnimation() {
+    if (!live.current.auto || runWorker.current) return;
+    if (live.current.state.status === 'success') {
+      finishExecution();
+      return;
+    }
+    generation.current++;
+    clearTimeout(timer.current);
+    setPhase('idle');
+    setSkipping(true);
+    setError('');
+    const id = String(generation.current);
+    runId.current = id;
+    const worker = new Worker(new URL('../workers/starforce-run.worker.ts', import.meta.url), {
+      type: 'module',
+    });
+    runWorker.current = worker;
+    worker.onmessage = (event: MessageEvent<StarforceRunResponse>) => {
+      if (runWorker.current !== worker || event.data.id !== id) return;
+      const response = event.data;
+      if (response.state) {
+        commit(response.state);
+        try {
+          persistProgress.current();
+          setSaved(true);
+        } catch {
+          setSaved(false);
+        }
+      }
+      if (response.type === 'error') {
+        setError(response.message);
+        finishExecution();
+      } else if (response.done) finishExecution();
+    };
+    worker.onerror = () => {
+      if (runWorker.current !== worker) return;
+      setError('자동 강화를 실행하지 못했습니다. 저장된 진행에서 다시 시작해 주세요.');
+      finishExecution();
+    };
+    worker.postMessage({
+      type: 'run',
+      id,
+      rules,
+      config: live.current.config,
+      state: live.current.state,
+    });
   }
   function schedule(next: StarforceState, token: number, delay: number) {
     queuePhase(() => {
@@ -362,7 +427,7 @@ function StarforceChallenge({
     const token = generation.current;
     const current = live.current.state;
     if (current.status === 'success') return;
-    const duration = pacing(current);
+    const duration = pacing(current, live.current.config);
     setTiming(duration);
     setError('');
     setPhase(current.status === 'destroyed' ? 'restoring' : 'charging');
@@ -390,7 +455,7 @@ function StarforceChallenge({
     attempt();
   }
   function reset(nextConfig = config) {
-    stop();
+    finishExecution();
     setError('');
     try {
       const next = createStarforceState(rules, nextConfig);
@@ -476,7 +541,9 @@ function StarforceChallenge({
               : last?.restored
                 ? `${state.stars}성 복구 완료`
                 : last
-                  ? outcomeText[last.outcome]
+                  ? last.safeguardPrevented
+                    ? '파괴 방지 성공!'
+                    : outcomeText[last.outcome]
                   : '다음 별을 향해';
   return (
     <div className="workspace sf-workspace">
@@ -737,11 +804,11 @@ function StarforceChallenge({
             ))}
           </div>
           <div
-            className={`sf-stage phase-${phase} outcome-${last?.restored ? 'none' : (last?.outcome ?? 'none')}`}
+            className={`sf-stage phase-${phase}${skipping ? ' is-skipping' : ''} outcome-${last?.restored ? 'none' : last?.safeguardPrevented ? 'protected' : (last?.outcome ?? 'none')}`}
             style={
               {
-                '--sf-charge-duration': `${timing.charge / (fast ? 2 : 1)}ms`,
-                '--sf-result-duration': `${timing.result / (fast ? 2 : 1)}ms`,
+                '--sf-charge-duration': `${timing.charge}ms`,
+                '--sf-result-duration': `${timing.result}ms`,
               } as React.CSSProperties
             }
           >
@@ -750,6 +817,13 @@ function StarforceChallenge({
             <div className="sf-item">
               <EquipmentArt item={item} key={item?.imageUrl ?? 'manual'} />
             </div>
+            {phase === 'result' && last?.safeguardPrevented && !skipping && (
+              <div className="sf-protection" aria-label="파괴 방지 발동">
+                <div className="sf-protection-ring" />
+                <ShieldCheck size={98} strokeWidth={1.4} aria-hidden="true" />
+                <span>장비를 지켜냈습니다</span>
+              </div>
+            )}
             <div className="sf-sparks" aria-hidden="true">
               {Array.from({ length: 8 }, (_, i) => (
                 <span key={i} style={{ '--spark-angle': `${i * 45}deg` } as React.CSSProperties}>
@@ -769,11 +843,11 @@ function StarforceChallenge({
           <div className="sf-outcome" role="status" aria-live="polite">
             <strong>{resultText}</strong>
             <span>
-              {auto
-                ? `자동 강화 중 · ${fast ? '2배 속도 · ' : ''}약 ${((timing.charge + timing.result) / (fast ? 2 : 1) / 1000).toFixed(2)}초 간격`
-                : fast
-                  ? '2배 속도 · 0~12성은 약 0.33초, 13성부터는 0.5초'
-                  : '0~12성은 약 0.67초, 13성부터는 1초 · 연출과 함께 강화합니다'}
+              {stopping
+                ? '강화를 중단하고 있어요.'
+                : auto
+                  ? '자동 강화 중'
+                  : '원하는 별까지 도전해 보세요.'}
             </span>
           </div>
           <div className="sf-quote">
@@ -819,28 +893,29 @@ function StarforceChallenge({
             <button
               className="button primary roll-button"
               disabled={
-                busy ||
-                auto ||
-                optimizing ||
-                state.status === 'success' ||
-                !benchmark ||
-                !!benchmarkError
+                auto
+                  ? skipping || stopping
+                  : busy ||
+                    optimizing ||
+                    state.status === 'success' ||
+                    !benchmark ||
+                    !!benchmarkError
               }
-              onClick={attempt}
+              onClick={auto ? skipAnimation : attempt}
             >
-              <Hammer size={18} />
-              {!auto && state.status === 'destroyed' ? '장비 복구하기' : '강화하기'}
+              {auto ? <FastForward size={18} /> : <Hammer size={18} />}
+              {auto
+                ? skipping
+                  ? '연출 스킵 중'
+                  : '연출 스킵'
+                : state.status === 'destroyed'
+                  ? '장비 복구하기'
+                  : '강화하기'}
             </button>
-            {auto && (
-              <button className="button sf-speed-button" aria-pressed={fast} onClick={toggleSpeed}>
-                <FastForward size={18} />
-                {fast ? '기본 속도로' : '2배 빠르게'}
-              </button>
-            )}
             {busy || auto ? (
-              <button className="button auto-button stop" onClick={stop}>
+              <button className="button auto-button stop" onClick={stop} disabled={stopping}>
                 <Pause size={18} />
-                중단
+                {stopping ? '중단 중' : '중단'}
               </button>
             ) : (
               <button
@@ -859,7 +934,11 @@ function StarforceChallenge({
             )}
           </div>
           <div className="sf-reset">
-            <button className="text-button" disabled={optimizing} onClick={() => reset()}>
+            <button
+              className="text-button"
+              disabled={optimizing || skipping || stopping}
+              onClick={() => reset()}
+            >
               <RotateCcw size={14} />
               처음부터 다시
             </button>
@@ -949,8 +1028,8 @@ function StarforceChallenge({
             ],
             happy: [
               state.attempts % 2n === 0n
-                ? '이 정도면 내가 이긴 거지!'
-                : '좋아, 오늘은 손맛 좀 보네!',
+                ? '어? 생각보다 얼마 안 썼네?'
+                : '이 정도면 꽤 싸게 먹혔다!',
               `${config.targetStars}성 달성! 기댓값보다 가볍게 끝냈어요.`,
             ],
             neutral: [
@@ -988,7 +1067,7 @@ function StarforceChallenge({
                     {String(row.sequence)}회 · {row.fromStars}성
                   </span>
                   <b className={`sf-history-${row.outcome}`}>
-                    {outcomeText[row.outcome]}
+                    {row.safeguardPrevented ? '파괴 방지 · 단계 유지' : outcomeText[row.outcome]}
                     {row.toStars !== null && ` → ${row.toStars}성`}
                     {row.restored && ` · ${row.restoration?.toStars}성 복구`}
                   </b>
