@@ -247,17 +247,33 @@ describe('ability acquisition and circulator strategy optimizer', () => {
     const result = optimizeAbilityCost(rules, cfg);
     const keeper = result.strategies.find((row) => row.id === 'keep-first-max')!;
     const attempts = 3 / (1 - (1 - 3 / 11) ** 3);
-    expect(result.strategies).toHaveLength(22);
+    expect(result.strategies).toHaveLength(16);
     expect(keeper.expectedResets).toBeCloseTo(attempts, 10);
     expect(keeper.expectedMeso).toBeCloseTo(attempts * 15, 10);
     expect(keeper.expectedHonor).toBeCloseTo(attempts * 40, 10);
     expect(keeper.expectedCirculators).toBe(0);
-    const expensive = optimizeAbilityCost(rules, { ...cfg, circulatorPrice: 1e15 });
+    const inexpensive = optimizeAbilityCost(rules, { ...cfg, circulatorPrice: 1 });
+    expect(inexpensive.bestStrategyId).toBe('current-types-circulator');
+    const circulator = inexpensive.strategies[0];
+    // Even a maximum a/b value must be drawn again, and the entire current tuple is excluded.
+    const expectedCirculators = (1 - 0.5 * 0.25 * 0.25) / (0.5 * 0.25 * 0.75);
+    expect(circulator.expectedCirculators).toBeCloseTo(expectedCirculators, 12);
+    expect(circulator.totalCost).toBeCloseTo(expectedCirculators, 12);
+    const expensive = optimizeAbilityCost(rules, {
+      ...cfg,
+      medalPrice: 25000,
+      circulatorPrice: 1e15,
+    });
     expect(expensive.strategies[0].expectedCirculators).toBe(0);
     for (const row of expensive.strategies) {
       const original = result.strategies.find((old) => old.id === row.id)!;
       expect(row.expectedResets).toBe(original.expectedResets);
+      expect(row.expectedMeso).toBe(original.expectedMeso);
+      expect(row.expectedHonor).toBe(original.expectedHonor);
       expect(row.expectedCirculators).toBe(original.expectedCirculators);
+      expect(row.totalCost).toBe(
+        row.expectedMeso + (row.expectedHonor / 5000) * 25000 + row.expectedCirculators * 1e15,
+      );
     }
   });
 
@@ -296,18 +312,69 @@ describe('ability acquisition and circulator strategy optimizer', () => {
     },
   );
 
-  it('starts circulation immediately when all three types already exist, preserving value weights and complete-repeat exclusion', () => {
-    const result = optimizeAbilityCost(
-      fixture(true),
-      input(['a', 'b', 'c'].map((type) => line(type))),
-    );
-    const expected = (1 - 0.5 * 0.75 * 0.25) / (0.5 * 0.25 * 0.75);
-    for (const row of result.strategies.filter((row) => row.id.startsWith('all-'))) {
-      expect(row.expectedResets).toBe(0);
-      expect(row.expectedHonor).toBe(0);
-      expect(row.expectedCirculators).toBeCloseTo(expected, 12);
-      expect(row.totalCost).toBeCloseTo(expected * 10, 12);
+  it.each([1, 3] as const)(
+    'offers one circulation-only path for current types in any order, independent of %i-reset comparisons',
+    (batchSize) => {
+      const rules = fixture(true);
+      const expected = (1 - 0.5 * 0.75 * 0.25) / (0.5 * 0.25 * 0.75);
+      for (const types of [
+        ['a', 'b', 'c'],
+        ['c', 'a', 'b'],
+      ]) {
+        const result = optimizeAbilityCost(
+          rules,
+          input(
+            types.map((type) => line(type)),
+            batchSize,
+          ),
+        );
+        expect(result.strategies).toHaveLength(15);
+        expect(result.strategies.filter((row) => row.id.startsWith('all-'))).toHaveLength(0);
+        expect(result.strategies.filter((row) => row.id.startsWith('direct-'))).toHaveLength(7);
+        expect(result.strategies.filter((row) => row.id.startsWith('lower-'))).toHaveLength(7);
+        const rows = result.strategies.filter((row) => row.id === 'current-types-circulator');
+        expect(rows).toHaveLength(1);
+        const row = rows[0];
+        expect(row.status).toBe('ready');
+        expect(row.expectedResets).toBe(0);
+        expect(row.expectedHonor).toBe(0);
+        expect(row.expectedMeso).toBe(0);
+        expect(row.expectedCirculators).toBeCloseTo(expected, 12);
+        expect(row.totalCost).toBeCloseTo(expected * 10, 12);
+      }
+    },
+  );
+
+  it('requires every current target type to be legendary before offering circulation alone', () => {
+    const rules = fixture(true);
+    rules.ability.grades.unique = structuredClone(rules.ability.grades.legendary!);
+    rules.ability.advancedLineGrades = [
+      { legendary: 1 },
+      { legendary: 0.5, unique: 0.5 },
+      { legendary: 0.5, unique: 0.5 },
+    ];
+    for (const start of [
+      [line('a'), line('b'), { ...line('c'), grade: 'unique' as const }],
+      [line('a'), line('b'), line('d')],
+    ]) {
+      const result = optimizeAbilityCost(rules, input(start));
+      expect(result.strategies.some((row) => row.id === 'current-types-circulator')).toBe(false);
+      expect(result.strategies.filter((row) => row.id.startsWith('all-'))).toHaveLength(7);
     }
+  });
+
+  it('uses the best value direction for a lower-is-better target without charging completed starts', () => {
+    const rules = fixture(true);
+    rules.ability.grades.legendary!.options[0].valueDirection = 'lower';
+    const result = optimizeAbilityCost(rules, input(['a', 'b', 'c'].map((type) => line(type, 2))));
+    const row = result.strategies.find((row) => row.id === 'current-types-circulator')!;
+    expect(row.expectedResets).toBe(0);
+    expect(row.expectedCirculators).toBeCloseTo((1 - 0.5 * 0.25 * 0.75) / (0.5 * 0.25 * 0.75), 12);
+    const completed = optimizeAbilityCost(rules, input([line('a'), line('b', 2), line('c', 2)]));
+    expect(completed.strategies.some((row) => row.id === 'current-types-circulator')).toBe(false);
+    expect(
+      completed.strategies.every((row) => row.status === 'already' && row.totalCost === 0),
+    ).toBe(true);
   });
 
   it.each([1, 3] as const)(
@@ -334,6 +401,8 @@ describe('ability acquisition and circulator strategy optimizer', () => {
   it('recognizes free completion in any order, validates target and prices, and ranks only its explicit comparisons', () => {
     const rules = fixture(true);
     const result = optimizeAbilityCost(rules, input(['c', 'a', 'b'].map((type) => line(type, 2))));
+    expect(result.strategies).toHaveLength(22);
+    expect(result.strategies.some((row) => row.id === 'current-types-circulator')).toBe(false);
     expect(result.strategies.every((row) => row.status === 'already' && row.totalCost === 0)).toBe(
       true,
     );

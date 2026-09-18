@@ -337,7 +337,31 @@ export function optimizeAbilityCost(
     return probability;
   };
   const outputs: AbilityOptimizerStrategyResult[] = [];
+  const currentTypesNeedCirculation = allTypes(start) && !complete(start);
+  if (currentTypesNeedCirculation) {
+    const expectedCirculators = circulation(start, [0, 1, 2]);
+    outputs.push({
+      id: 'current-types-circulator',
+      name: '현재 세 종류 유지 · 서큘레이터로 최대치',
+      description:
+        '현재 레전드리 목표 세 종류를 유지하고 심연의 서큘레이터만 사용합니다. 이미 최대치인 줄도 함께 다시 뽑으며, 미달 결과는 채택하지 않고 기존 전체 옵션을 보관합니다.',
+      expectedMeso: 0,
+      expectedHonor: 0,
+      expectedResets: 0,
+      expectedCirculators,
+      totalCost: 0,
+      status: Number.isFinite(expectedCirculators) ? 'ready' : 'impossible',
+      steps: [
+        '현재 레전드리 세 종류 유지',
+        '심연의 서큘레이터로 세 줄 수치를 함께 재설정 · 이미 최대치인 줄도 함께 변경',
+        '미달 결과는 채택하지 않고 기존 전체 옵션 보관',
+        '세 줄 모두 최대치인 결과 채택',
+      ],
+    });
+  }
   for (const timing of ['direct', 'lower', 'all'] as const) {
+    // Once every type exists, the initial acceptance subset no longer matters.
+    if (timing === 'all' && currentTypesNeedCirculation) continue;
     const phases = new Map<string, Phase>();
     const terminalCache = new Map<string, Cost>();
     let initialGroups: Map<number, Group[]> | undefined;
@@ -507,8 +531,6 @@ export function optimizeAbilityCost(
     for (const mask of [7, 6, 4, 3, 5, 1, 2]) {
       let expected: Cost;
       if (complete(start)) expected = zero();
-      else if (timing === 'all' && allTypes(start))
-        expected = { ...zero(), circulators: circulation(start, [0, 1, 2]) };
       else {
         const initial = phaseFor(start, [], mask);
         const progress = classify(start, initial);

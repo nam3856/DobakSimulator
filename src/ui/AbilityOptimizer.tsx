@@ -114,6 +114,21 @@ export function AbilityOptimizer({
   const requestId = useRef('');
   const start = character.abilityPresets[preset];
   const selected = targetTypes.map((type) => options.find((option) => option.type === type));
+  const acquired = start?.lines.map((line) =>
+    line.grade === 'legendary'
+      ? selected.find(
+          (option) => option && (option.type === line.type || option.id === line.abilityTypeId),
+        )
+      : undefined,
+  );
+  const allTypesAcquired =
+    start?.grade === 'legendary' &&
+    acquired?.length === 3 &&
+    acquired.every(Boolean) &&
+    new Set(acquired.map((option) => option!.id)).size === 3;
+  const allValuesComplete =
+    allTypesAcquired &&
+    start.lines.every((line, slot) => line.value === maximum(acquired![slot]!).value);
   const medal = price(medalPrice),
     circulator = price(circulatorPrice);
   const validation =
@@ -267,6 +282,22 @@ export function AbilityOptimizer({
               이미 보유한 목표 옵션은 각 전략의 킵 기준에 맞게 반영합니다. 조회 시점의 프리셋에서
               시작합니다.
             </p>
+            {allTypesAcquired && (
+              <div className="optimizer-start-status" role="status">
+                <strong>
+                  <Check size={15} aria-hidden="true" />
+                  {allValuesComplete ? '세 줄 모두 최대치입니다.' : '목표 세 종류 확보 완료'}
+                </strong>
+                <p>
+                  {allValuesComplete
+                    ? '추가 재설정 없이 목표를 달성한 상태예요.'
+                    : '수치만 최대치로 맞추는 방법도 함께 비교합니다.'}
+                </p>
+                {!allValuesComplete && (
+                  <p>서큘레이터는 이미 최대치인 줄도 수치를 함께 다시 뽑습니다.</p>
+                )}
+              </div>
+            )}
           </section>
           <section className="panel">
             <div className="panel-heading">
@@ -426,6 +457,7 @@ export function AbilityOptimizer({
                 <li>C가 나올 때까지 스킵</li>
                 <li>다른 킵 순서와 서큘레이터 없이 직접 최대치 뽑기</li>
                 <li>이미 완성된 첫 줄을 유지하고 보조 줄만 뽑기</li>
+                <li>이미 확보한 세 종류를 유지하고 서큘레이터로 수치만 최대치 맞추기</li>
               </ul>
             </section>
           )}
@@ -504,6 +536,10 @@ export function AbilityOptimizer({
               <li>
                 기본 비교는 둘째·셋째 줄에서 두 목표를 확보한 뒤 첫째 줄을 완성하는 방식입니다. 첫째
                 줄이 이미 목표 최대치라면 그 줄을 유지하는 전략도 함께 비교합니다.
+              </li>
+              <li>
+                세 목표 종류를 모두 레전드리로 보유했다면, 재설정 없이 바로 서큘레이터를 사용하는
+                방법도 비교합니다. 이미 세 종류를 확보했으므로 같은 획득 순서는 하나로 합칩니다.
               </li>
               <li>
                 심연의 서큘레이터는 세 줄의 등급·종류를 유지하고 수치를 함께 바꿉니다. 필요한 수치가

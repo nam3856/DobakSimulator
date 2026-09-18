@@ -232,12 +232,56 @@ test('real worker results include every cost and rerank after the circulator pri
   page,
 }) => {
   test.setTimeout(150_000);
-  await boot(page, characterFixture('전략계산테스트'));
+  const character = characterFixture('전략계산테스트');
+  const original = character.abilityPresets['3'];
+  character.abilityPresets['1'] = {
+    ...original,
+    lines: [original.lines[2], original.lines[0], original.lines[1]],
+  };
+  const uniqueCritical = ability.grades.unique.options.find(
+    (option: { type: string }) => option.type === 'criticalRatePercent',
+  );
+  character.abilityPresets['2'] = {
+    ...original,
+    lines: [
+      ...original.lines.slice(0, 2),
+      {
+        ...original.lines[2],
+        id: uniqueCritical.id,
+        abilityTypeId: uniqueCritical.id,
+        grade: 'unique',
+        value: uniqueCritical.values[0].value,
+        text: uniqueCritical.values[0].label,
+      },
+    ],
+  };
+  await boot(page, character);
   await expect(page.getByLabel('최적화 어빌리티 프리셋', { exact: true })).toHaveValue('3');
   await targets(page, ['passiveSkillLevel', 'bossDamagePercent', 'criticalRatePercent']);
+  await expect(page.locator('.optimizer-start-status')).toHaveAttribute('role', 'status');
+  await expect(page.locator('.optimizer-start-status')).toContainText('목표 세 종류 확보 완료');
+  await expect(page.locator('.optimizer-start-status')).toContainText(
+    '수치만 최대치로 맞추는 방법도 함께 비교합니다.',
+  );
   await prices(page, '500000', '1');
   const cheap = await calculate(page);
   expect(cheap.strategies.length).toBeGreaterThan(3);
+  const currentTypes = cheap.strategies.filter(
+    (strategy) => strategy.id === 'current-types-circulator',
+  );
+  expect(currentTypes).toHaveLength(1);
+  const current = currentTypes[0];
+  expect(current.name).toBe('현재 세 종류 유지 · 서큘레이터로 최대치');
+  expect(current.status).toBe('ready');
+  expect(current.expectedResets).toBe(0);
+  expect(current.expectedHonor).toBe(0);
+  expect(current.expectedMeso).toBe(0);
+  expect(current.expectedCirculators).toBeGreaterThan(0);
+  expect(current.totalCost).toBe(current.expectedCirculators);
+  expect(cheap.strategies.some((strategy) => strategy.id.startsWith('all-'))).toBe(false);
+  expect(cheap.strategies.filter((strategy) => strategy.id.startsWith('direct-'))).toHaveLength(7);
+  expect(cheap.strategies.filter((strategy) => strategy.id.startsWith('lower-'))).toHaveLength(7);
+  expect(cheap.strategies.some((strategy) => strategy.id === 'keep-first-max')).toBe(true);
   const cheapBest = cheap.strategies.find((strategy) => strategy.id === cheap.bestStrategyId)!;
   expect(cheapBest.expectedCirculators).toBeGreaterThan(0);
   for (const strategy of cheap.strategies.filter((row) => Number.isFinite(row.totalCost))) {
@@ -262,6 +306,13 @@ test('real worker results include every cost and rerank after the circulator pri
   await expect(page.locator('.optimizer-strategy').filter({ hasText: firstAB.name })).toContainText(
     '첫 보조 줄은 A·B 중 하나를 2·3번째 줄에 확보합니다.',
   );
+  await page.getByLabel('최적화 재설정 실행 단위', { exact: true }).selectOption('1');
+  const single = await calculate(page);
+  expect(single.strategies.find((strategy) => strategy.id === current.id)).toEqual(current);
+  await page.getByLabel('최적화 어빌리티 프리셋', { exact: true }).selectOption('1');
+  await expect(page.locator('.optimizer-start-status')).toContainText('목표 세 종류 확보 완료');
+  const reordered = await calculate(page);
+  expect(reordered.strategies.find((strategy) => strategy.id === current.id)).toEqual(current);
   await prices(page, '500000', '1000000000000000');
   await expect(page.locator('.optimizer-best')).toHaveCount(0);
   await expect(page.locator('.optimizer-comparison')).toHaveCount(0);
@@ -271,12 +322,22 @@ test('real worker results include every cost and rerank after the circulator pri
   )!;
   expect(expensiveBest.expectedCirculators).toBe(0);
   expect(expensive.bestStrategyId).not.toBe(cheap.bestStrategyId);
+  const expensiveCurrent = expensive.strategies.find((strategy) => strategy.id === current.id)!;
+  expect(expensiveCurrent.expectedCirculators).toBe(current.expectedCirculators);
+  expect(expensiveCurrent.totalCost).toBe(current.expectedCirculators * 1000000000000000);
   await expect(page.locator('.optimizer-best h3')).toHaveText(expensiveBest.name);
+  await page.getByLabel('최적화 어빌리티 프리셋', { exact: true }).selectOption('2');
+  await expect(page.locator('.optimizer-start-status')).toHaveCount(0);
+  await expect(page.locator('.optimizer-comparison')).toHaveCount(0);
+  const unique = await calculate(page);
+  expect(unique.strategies.some((strategy) => strategy.id === current.id)).toBe(false);
+  await page.getByLabel('최적화 어빌리티 프리셋', { exact: true }).selectOption('3');
+  await expect(page.locator('.optimizer-start-status')).toContainText('목표 세 종류 확보 완료');
   await page
     .getByLabel('최적화 목표 C', { exact: true })
     .selectOption('statusAilmentDamagePercent');
   await expect(page.locator('.optimizer-comparison')).toHaveCount(0);
-  await page.getByLabel('최적화 어빌리티 프리셋', { exact: true }).selectOption('1');
+  await expect(page.locator('.optimizer-start-status')).toHaveCount(0);
   await expect(page.locator('.optimizer-best')).toHaveCount(0);
 });
 
@@ -367,6 +428,7 @@ test('already complete results and all six tabs remain readable at 360px in both
   await page.setViewportSize({ width: 360, height: 900 });
   await boot(page, characterFixture('완성어빌테스트', true));
   await targets(page, ['passiveSkillLevel', 'bossDamagePercent', 'criticalRatePercent']);
+  await expect(page.locator('.optimizer-start-status')).toContainText('세 줄 모두 최대치입니다');
   await prices(page, '0', '0');
   const result = await calculate(page);
   expect(

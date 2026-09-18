@@ -55,6 +55,28 @@
 .optimizer-start .option-lines {
   margin-top: 10px;
 }
+.optimizer-start-status {
+  margin-top: 14px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--accent-wash);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.optimizer-start-status strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+}
+.optimizer-start-status strong svg {
+  flex-shrink: 0;
+}
+.optimizer-start-status p {
+  margin: 5px 0 0;
+  color: var(--muted);
+}
 .optimizer-help {
   font-size: 12px;
   color: var(--muted);
