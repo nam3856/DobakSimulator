@@ -1,0 +1,524 @@
+.amplification-display.soul-amplification {
+  display: block;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.soul-amplification .soul-scene {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  height: 182px;
+  overflow: hidden;
+  border: 1px solid #365258;
+  border-radius: 7px;
+  background:
+    radial-gradient(ellipse at 50% 74%, #36667730, transparent 58%),
+    linear-gradient(180deg, #1b2c35, #14232a);
+}
+
+.soul-amplification .soul-scene::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(circle, #94dee51c 1px, transparent 1px);
+  background-size: 19px 19px;
+  mask-image: radial-gradient(ellipse, black, transparent 70%);
+  content: '';
+}
+
+.soul-amplification .soul-scene-label {
+  position: absolute;
+  top: 12px;
+  left: 15px;
+  color: #b2c9cd;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 1.7px;
+}
+
+.soul-amplification .soul-energy-field {
+  position: relative;
+  width: 180px;
+  height: 150px;
+  margin-top: -9px;
+  display: grid;
+  place-items: center;
+}
+
+.soul-amplification .soul-item-frame {
+  position: absolute;
+  width: 77px;
+  height: 77px;
+  border: 1px dashed #c0e2dd79;
+  border-radius: 4px;
+  background: #ffffff03;
+  box-shadow:
+    inset 0 0 16px #70dde80a,
+    0 0 24px #77dbe90c;
+}
+
+.soul-amplification .soul-ground-glow {
+  position: absolute;
+  top: calc(50% + 43px);
+  width: 80px;
+  height: 5px;
+  border-radius: 50%;
+  background: #74dbe268;
+  box-shadow: 0 0 10px 3px #66dbe528;
+  filter: blur(2px);
+}
+
+.soul-amplification .soul-orb {
+  position: relative;
+  width: 73px;
+  height: 73px;
+  filter: drop-shadow(0 0 8px #c59bfa45);
+}
+
+.soul-amplification .soul-scene-caption {
+  position: absolute;
+  bottom: 12px;
+  color: #b0c9cf;
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.2px;
+}
+
+.soul-amplification .soul-scene--success .soul-scene-caption {
+  color: #a1fff1;
+}
+
+.soul-amplification .soul-stage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 9px 5px;
+}
+
+.soul-amplification .amp-stage {
+  gap: 8px;
+  font-size: 35px;
+}
+
+.soul-amplification .amp-stage > span {
+  font-size: 28px;
+}
+
+.soul-amplification .amp-stage small {
+  margin-left: 0;
+  font-size: 12px;
+}
+
+.soul-amplification .amp-stage > span small {
+  margin-left: 4px;
+}
+
+.soul-amplification .amp-steps {
+  gap: 6px;
+}
+
+.soul-amplification .soul-charge,
+.soul-amplification .soul-success,
+.soul-amplification .soul-failure {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.soul-amplification .soul-charge-ring,
+.soul-amplification .soul-success-ring {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 142px;
+  height: 142px;
+  margin: -71px 0 0 -71px;
+  border: 1px solid #a1ffff;
+  border-radius: 50%;
+  box-shadow:
+    0 0 9px #69f4ff68,
+    inset 0 0 9px #69f4ff45;
+}
+
+.soul-amplification .soul-charge-ring {
+  animation: soul-ring-gather var(--soul-charge-ms) ease-in both;
+}
+
+.soul-amplification .soul-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 180px;
+  height: 180px;
+  margin: -90px 0 0 -90px;
+  color: #82fcff;
+  filter: drop-shadow(0 0 4px #24dbff) drop-shadow(0 0 9px #61eaff);
+  animation: soul-orbit-gather var(--soul-charge-ms) cubic-bezier(0.25, 0.1, 0.6, 1) both;
+}
+
+.soul-amplification .soul-orbit--inner {
+  color: #d1ffff;
+  animation-name: soul-orbit-counter;
+}
+
+.soul-amplification .soul-charge-spark {
+  position: absolute;
+  top: calc(50% - 1px);
+  left: 50%;
+  width: 22px;
+  height: 2px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #ecffff, #4beeff00);
+  box-shadow: -2px 0 6px #5beeff;
+  transform-origin: 0 50%;
+  animation: soul-spark-gather calc(var(--soul-charge-ms) * 0.75) ease-in both;
+  animation-delay: var(--spark-delay);
+}
+
+.soul-amplification .soul-charge-flash,
+.soul-amplification .soul-success-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  margin: -70px 0 0 -70px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #fff 0 12%,
+    #edffff 22%,
+    #a5eaffbb 31%,
+    #92acff55 46%,
+    transparent 67%
+  );
+  animation: soul-charge-flash var(--soul-charge-ms) ease-in both;
+}
+
+.soul-amplification .soul-scene--charging .soul-orb {
+  animation: soul-orb-charge var(--soul-charge-ms) ease-in both;
+}
+
+.soul-amplification .soul-success-burst {
+  animation: soul-success-burst var(--soul-result-ms) ease-out both;
+}
+
+.soul-amplification .soul-success-ring {
+  animation: soul-success-ring var(--soul-result-ms) ease-out both;
+}
+
+.soul-amplification .soul-success-ray {
+  position: absolute;
+  top: calc(50% + var(--ray-y));
+  left: 50%;
+  width: var(--ray-width);
+  height: 2px;
+  margin-left: calc(var(--ray-width) / -2);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #70f6fa 15%,
+    #f0ffff 50%,
+    #70f6fa 85%,
+    transparent
+  );
+  box-shadow:
+    0 0 6px #80faff,
+    0 0 13px #66f6ff;
+  animation: soul-success-rays var(--soul-result-ms) ease-out both;
+}
+
+.soul-amplification .soul-outcome {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  display: block;
+  white-space: nowrap;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 37px;
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -1.5px;
+  transform: translate(-50%, -50%);
+  animation: soul-outcome-in var(--soul-result-ms) ease-out both;
+}
+
+.soul-amplification .soul-outcome--success {
+  color: #e6ffff;
+  text-shadow:
+    0 2px 0 #286568,
+    0 0 7px #66ffee,
+    0 0 21px #32e8ef;
+}
+
+.soul-amplification .soul-outcome--failure {
+  color: #e1e8e9;
+  text-shadow:
+    0 2px 0 #4c5960,
+    0 0 7px #d5e8e85c,
+    0 3px 10px #0c151d;
+}
+
+.soul-amplification .soul-smoke {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 49px;
+  height: 39px;
+  margin: -20px 0 0 -24px;
+  border-radius: 48% 61% 42% 55%;
+  background: radial-gradient(ellipse at 35% 30%, #e1e9e6bc, #88969aaa 38%, #55657100 74%);
+  filter: blur(3px);
+  animation: soul-failure-smoke var(--soul-result-ms) ease-out both;
+}
+
+.soul-amplification .soul-scene--failure .soul-orb {
+  animation: soul-orb-failure var(--soul-result-ms) ease-out both;
+}
+
+@keyframes soul-ring-gather {
+  0% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+  20% {
+    opacity: 0.65;
+  }
+  82% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+}
+
+@keyframes soul-orbit-gather {
+  0% {
+    opacity: 0;
+    transform: rotate(-45deg) scale(1.02);
+  }
+  15% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(290deg) scale(0.12);
+  }
+}
+
+@keyframes soul-orbit-counter {
+  0% {
+    opacity: 0;
+    transform: rotate(120deg) scale(1.12);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(-240deg) scale(0.1);
+  }
+}
+
+@keyframes soul-spark-gather {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--spark-angle)) translateX(97px) scaleX(0.3);
+  }
+  30% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--spark-angle)) translateX(7px) scaleX(0.1);
+  }
+}
+
+@keyframes soul-charge-flash {
+  0%,
+  54% {
+    opacity: 0;
+    transform: scale(0.15);
+  }
+  87% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.9;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes soul-orb-charge {
+  0%,
+  35% {
+    filter: drop-shadow(0 0 8px #c59bfa45);
+  }
+  100% {
+    filter: brightness(2.1) drop-shadow(0 0 17px #a7f5ff);
+  }
+}
+
+@keyframes soul-success-burst {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.85);
+  }
+  45% {
+    opacity: 0.5;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+@keyframes soul-success-ring {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.25);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+@keyframes soul-success-rays {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.1);
+  }
+  23% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  75% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1.15);
+  }
+}
+
+@keyframes soul-outcome-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  24%,
+  85% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes soul-failure-smoke {
+  0% {
+    opacity: 0;
+    transform: translate(0, 2px) scale(0.35) rotate(var(--smoke-turn));
+  }
+  24% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--smoke-x), var(--smoke-y)) scale(1.4) rotate(var(--smoke-turn));
+  }
+}
+
+@keyframes soul-orb-failure {
+  0% {
+    opacity: 0.6;
+    filter: grayscale(0.5) brightness(1.4);
+  }
+  25% {
+    opacity: 0.25;
+    transform: translateX(-2px);
+  }
+  45% {
+    transform: translateX(2px);
+  }
+  100% {
+    opacity: 0.65;
+    filter: grayscale(0.5);
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .amplification-display.soul-amplification {
+    padding: 9px;
+  }
+  .soul-amplification .soul-scene {
+    height: 174px;
+  }
+  .soul-amplification .soul-stage-row {
+    padding: 12px 3px 3px;
+    gap: 8px;
+  }
+  .soul-amplification .amp-stage {
+    font-size: 32px;
+    gap: 6px;
+  }
+  .soul-amplification .amp-stage > span {
+    font-size: 26px;
+  }
+  .soul-amplification .amp-steps {
+    gap: 4px;
+  }
+  .soul-amplification .amp-steps > span {
+    width: 23px;
+    height: 23px;
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soul-amplification .soul-energy-field * {
+    animation: none !important;
+  }
+  .soul-amplification .soul-charge {
+    opacity: 0.4;
+  }
+  .soul-amplification .soul-charge-ring {
+    transform: scale(0.7);
+  }
+  .soul-amplification .soul-orbit {
+    opacity: 0.3;
+  }
+  .soul-amplification .soul-charge-spark,
+  .soul-amplification .soul-charge-flash,
+  .soul-amplification .soul-success-burst,
+  .soul-amplification .soul-success-ring,
+  .soul-amplification .soul-smoke {
+    display: none;
+  }
+  .soul-amplification .soul-success-ray {
+    opacity: 0.2;
+  }
+  .soul-amplification .soul-scene--success .soul-orb,
+  .soul-amplification .soul-scene--failure .soul-orb {
+    opacity: 0.35;
+  }
+}

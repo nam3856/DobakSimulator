@@ -99,6 +99,8 @@ import { AbilityOptimizer } from './ui/AbilityOptimizer';
 import { StarforceSimulator } from './ui/StarforceSimulator';
 import { paidBenchmarkCost } from './engine/soul-cost';
 import { getLinkedCharacter, replaceCharacterLink } from './ui/character-link';
+import { SoulAmplificationDisplay } from './ui/SoulAmplificationDisplay';
+import { useSoulAmplificationAnimation } from './ui/use-soul-amplification-animation';
 
 const baseUrl = new URL(import.meta.env.BASE_URL, document.baseURI).href;
 const forMode = (items: EquipmentSnapshot[], mode: SimulatorMode) =>
@@ -129,6 +131,12 @@ export default function App() {
   const [bootError, setBootError] = useState('');
   const [message, setMessage] = useState('');
   const [auto, setAuto] = useState(false);
+  const {
+    animation: soulAnimation,
+    busy: soulAnimationBusy,
+    play: playSoulAnimation,
+    clear: clearSoulAnimation,
+  } = useSoulAmplificationAnimation();
   const [benchmarkBusy, setBenchmarkBusy] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [name, setName] = useState('');
@@ -296,14 +304,16 @@ export default function App() {
     }
   }, [theme]);
   const stop = useCallback(() => {
+    clearSoulAnimation();
     if (runWorker.current) {
       runWorker.current.postMessage({ type: 'stop', id: runId.current });
     }
     setAuto(false);
     setState((x) => (x && x.status === 'running' ? { ...x, status: 'paused' } : x));
-  }, []);
+  }, [clearSoulAnimation]);
   const begin = useCallback(
     (draft: SimulationConfig, ruleData: RuleData = data!, preserve = true) => {
+      clearSoulAnimation();
       runWorker.current?.terminate();
       runWorker.current = null;
       runId.current = '';
@@ -333,7 +343,7 @@ export default function App() {
         setMessage(e instanceof Error ? e.message : '시작 설정을 확인해 주세요.');
       }
     },
-    [data],
+    [data, clearSoulAnimation],
   );
 
   useEffect(() => {
@@ -823,16 +833,19 @@ export default function App() {
     }
   }
   function oneRoll() {
-    if (!canRun || !config || !state || !data) return;
+    if (!canRun || !config || !state || !data || auto || soulAnimationBusy.current) return;
     try {
       setMessage('');
-      setState(rollBatch(data, config, state));
+      const next = rollBatch(data, config, state);
+      // Persist the paid result immediately; the animation only delays its visual reveal.
+      setState(next);
+      if (config.mode === 'soulAmplification') playSoulAnimation(next);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : '재설정에 실패했습니다.');
     }
   }
   function startAuto() {
-    if ((!canAutoRun && !canRestartAuto) || !config || !state) return;
+    if ((!canAutoRun && !canRestartAuto) || !config || !state || soulAnimationBusy.current) return;
     setMessage('');
     let runConfig = config;
     let runState = state;
@@ -874,6 +887,13 @@ export default function App() {
       if (response.type === 'state') {
         setState(response.state);
         if (response.done) {
+          if (
+            runConfig.mode === 'soulAmplification' &&
+            response.state.status !== 'paused' &&
+            !isStandaloneTab(getTabFromHash()) &&
+            response.state.attempts > runState.attempts
+          )
+            playSoulAnimation(response.state);
           setAuto(false);
           if (response.state.status !== 'success' && response.state.status !== 'impossible')
             setMessage('자동 실행을 중지했어요. 이어서 도전할 수 있습니다.');
@@ -1544,46 +1564,34 @@ export default function App() {
                 </div>
                 <div className="status-line">
                   <span
-                    className={`status-badge ${state?.status === 'success' ? 'is-success' : auto ? 'is-running' : ''}`}
+                    className={`status-badge ${soulAnimation?.phase === 'charging' ? 'is-running' : state?.status === 'success' ? 'is-success' : auto ? 'is-running' : ''}`}
                   >
                     <i />
-                    {state?.status === 'success'
-                      ? '목표 달성'
-                      : auto
-                        ? '다른 세계에서 도전 중'
-                        : state?.attempts
-                          ? '다음 도전을 기다리는 중'
-                          : '준비 완료'}
+                    {soulAnimation?.phase === 'charging'
+                      ? '소울 증폭 중'
+                      : state?.status === 'success'
+                        ? '목표 달성'
+                        : auto
+                          ? '다른 세계에서 도전 중'
+                          : state?.attempts
+                            ? '다음 도전을 기다리는 중'
+                            : '준비 완료'}
                   </span>
                   <span className="source-stamp">
                     <ShieldCheck size={12} /> 공식 확률 적용
                   </span>
                 </div>
                 {config.mode === 'soulAmplification' ? (
-                  <div className="amplification-display">
-                    <span className="amp-orb">
-                      <Orbit size={54} />
-                    </span>
-                    <div>
-                      <span className="small-label">현재 소울 증폭</span>
-                      <div className="amp-stage">
-                        {state?.stage ?? config.start.stage}
-                        <small>단계</small>
-                        <ArrowRight size={22} />
-                        <span>
-                          {config.target.stage}
-                          <small>단계</small>
-                        </span>
-                      </div>
-                    </div>
-                    <div className="amp-steps">
-                      {[1, 2, 3, 4].map((x) => (
-                        <span key={x} className={x <= (state?.stage ?? 0) ? 'complete' : ''}>
-                          {x <= (state?.stage ?? 0) ? <Check size={16} /> : x}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                  <SoulAmplificationDisplay
+                    stage={
+                      soulAnimation?.phase === 'charging'
+                        ? soulAnimation.fromStage
+                        : (state?.stage ?? config.start.stage)
+                    }
+                    targetStage={config.target.stage}
+                    phase={soulAnimation?.phase ?? 'idle'}
+                    attemptKey={soulAnimation?.attemptKey ?? ''}
+                  />
                 ) : (
                   <div className="current-result">
                     <div className="card-title">
@@ -1811,7 +1819,7 @@ export default function App() {
                   <div className="roll-button-row">
                     <button
                       className="button primary roll-button"
-                      disabled={!canRun || auto}
+                      disabled={!canRun || auto || !!soulAnimation}
                       onClick={oneRoll}
                     >
                       <Boxes size={18} />
@@ -1822,7 +1830,7 @@ export default function App() {
                     </button>
                     <button
                       className={`button auto-button ${auto ? 'stop' : ''}`}
-                      disabled={!auto && !canAutoRun && !canRestartAuto}
+                      disabled={!!soulAnimation || (!auto && !canAutoRun && !canRestartAuto)}
                       onClick={auto ? stop : startAuto}
                     >
                       {auto ? (
