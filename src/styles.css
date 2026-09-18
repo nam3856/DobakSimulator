@@ -283,6 +283,15 @@ small {
   height: auto;
   object-fit: contain;
 }
+.fake-ad-link {
+  position: absolute;
+}
+.fake-ad-link:hover {
+  background: #ffffff20;
+}
+.fake-ad-link:focus-visible {
+  outline-offset: -3px;
+}
 .fake-ad-fallback {
   position: absolute;
   inset: 0;

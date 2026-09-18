@@ -46,11 +46,13 @@ async function simulationSnapshot(page: Page) {
   };
 }
 
-test('each equal random half loads an enabled banner under the Pages subpath', async ({ page }) => {
+test('each equal random third loads an enabled banner under the Pages subpath', async ({
+  page,
+}) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  for (let index = 0; index < 2; index++) {
-    await openBanner(page, (index + 0.5) / 2);
+  for (let index = 0; index < 3; index++) {
+    await openBanner(page, (index + 0.5) / 3);
     const image = page.locator('.fake-ad-banner img');
     await expect(image).toHaveAttribute(
       'src',
@@ -73,7 +75,7 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
   await pauseClock(page);
   await openBanner(page, 0, '#soulAmplification', true);
   const image = page.locator('.fake-ad-banner img');
-  await expect(image).toHaveAttribute('src', /banners\/ad-[23]\.png(?:\?|$)/);
+  await expect(image).toHaveAttribute('src', /banners\/ad-[234]\.png(?:\?|$)/);
   const first = await image.getAttribute('src');
   await page.clock.fastForward(29700);
   await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
@@ -89,12 +91,12 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
   await expect(image).toHaveAttribute('src', first!);
   await page.clock.fastForward(1);
   await expect(image).not.toHaveAttribute('src', first!);
-  await expect(image).toHaveAttribute('src', /banners\/ad-[23]\.png(?:\?|$)/);
+  await expect(image).toHaveAttribute('src', /banners\/ad-[234]\.png(?:\?|$)/);
   let previous = await image.getAttribute('src');
   for (let index = 0; index < 3; index++) {
     await page.clock.fastForward(60000);
     await expect(image).not.toHaveAttribute('src', previous!);
-    await expect(image).toHaveAttribute('src', /banners\/ad-[23]\.png(?:\?|$)/);
+    await expect(image).toHaveAttribute('src', /banners\/ad-[234]\.png(?:\?|$)/);
     previous = await image.getAttribute('src');
   }
   expect(await simulationSnapshot(page)).toEqual(state);
@@ -111,7 +113,7 @@ test('the event banner warns before leaving and opens an isolated new tab only a
       body: '<!doctype html><title>공식 메이플스토리 이벤트</title><h1>외부 이벤트</h1>',
     }),
   );
-  await openBanner(page, 0.75, '#soulAmplification', true);
+  await openBanner(page, 0.5, '#soulAmplification', true);
   await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
   await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
   const state = await simulationSnapshot(page);
@@ -155,7 +157,7 @@ test('the event banner warns before leaving and opens an isolated new tab only a
 test('banners preserve their full image and layout in both themes, on mobile and on image failure', async ({
   page,
 }) => {
-  await openBanner(page, 0.75);
+  await openBanner(page, 0.5);
   const banner = page.locator('.fake-ad-banner');
   const image = banner.locator('img');
   for (const width of [1440, 360]) {
