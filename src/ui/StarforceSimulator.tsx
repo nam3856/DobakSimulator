@@ -35,10 +35,10 @@ import './starforce.css';
 type Phase = 'idle' | 'charging' | 'result' | 'restoring' | 'restored';
 const pacing = (state: StarforceState, config: StarforceConfig) =>
   state.status !== 'destroyed' && state.stars === config.targetStars - 1
-    ? { charge: 450, result: 550 }
+    ? { charge: 600, result: 733 }
     : state.status !== 'destroyed' && state.stars <= 12
-      ? { charge: 225, result: 275 }
-      : { charge: 300, result: 367 };
+      ? { charge: 150, result: 183 }
+      : { charge: 225, result: 275 };
 const outcomeText = {
   success: '강화 성공',
   stay: '강화 실패 · 단계 유지',
@@ -438,9 +438,15 @@ function StarforceChallenge({
           current.status === 'destroyed'
             ? restoreStarforce(rules, live.current.config, current)
             : rollStarforce(rules, live.current.config, current).state;
+        // Let the shield result linger; the slower final step still takes precedence.
+        const resultDuration =
+          current.status !== 'destroyed' && next.history.at(-1)?.safeguardPrevented
+            ? Math.max(duration.result, 550)
+            : duration.result;
+        setTiming({ ...duration, result: resultDuration });
         commit(next);
         setPhase(current.status === 'destroyed' ? 'restored' : 'result');
-        schedule(next, token, duration.result);
+        schedule(next, token, resultDuration);
       } catch (error) {
         setError(error instanceof Error ? error.message : '강화에 실패했습니다.');
         stop();

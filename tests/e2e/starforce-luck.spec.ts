@@ -59,7 +59,7 @@ for (const scenario of [
     await expect(page.locator('.sf-distribution')).toContainText('50만 표본 · 추정 분포');
     await expect(page.locator('.chart-actual')).toHaveCount(0);
     await page.getByRole('button', { name: '자동 강화', exact: true }).click();
-    await page.clock.runFor(1000 * scenario.attempts);
+    await page.clock.runFor(1333 * scenario.attempts);
     await expect(page.locator('.reaction-stage')).toHaveClass(
       new RegExp(`is-${scenario.reaction}`),
     );
@@ -91,7 +91,7 @@ test('paused and already complete runs have no verdict; mobile reactions respect
     (window as unknown as { failures: number }).failures = 1;
   });
   await page.getByRole('button', { name: '자동 강화', exact: true }).click();
-  await page.clock.runFor(450);
+  await page.clock.runFor(600);
   await page.getByRole('button', { name: '중단', exact: true }).click();
   await expect(page.locator('.luck-badge')).toHaveCount(0);
   await expect(page.locator('.chart-actual')).toHaveCount(0);
@@ -99,7 +99,7 @@ test('paused and already complete runs have no verdict; mobile reactions respect
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.route('**/character/*.png', (route) => route.abort());
   await page.getByRole('button', { name: '자동 강화', exact: true }).click();
-  await page.clock.runFor(1000);
+  await page.clock.runFor(1333);
   await expect(page.locator('.reaction-stage')).toHaveClass(/is-jackpot/);
   await expect(page.locator('.stage-sprite')).not.toHaveAttribute(
     'src',

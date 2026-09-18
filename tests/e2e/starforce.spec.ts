@@ -139,7 +139,7 @@ test('automatic enhancement is paced, resumes paid progress and restarts from th
   await page.getByRole('button', { name: '자동 강화', exact: true }).click();
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-charging/);
   await expect(page.getByRole('combobox', { name: '시작 스타포스', exact: true })).toBeDisabled();
-  await page.clock.fastForward(224);
+  await page.clock.fastForward(149);
   await expectAttempts(page, 0n);
   await page.clock.fastForward(1);
   await expectAttempts(page, 1n);
@@ -151,10 +151,10 @@ test('automatic enhancement is paced, resumes paid progress and restarts from th
   expect((await saved(page)).state).toEqual(paid.state);
   await expect(page.getByRole('button', { name: '자동 강화', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: '자동 강화', exact: true }).click();
-  await page.clock.fastForward(450);
+  await page.clock.fastForward(600);
   await expectAttempts(page, 2n);
   await expect(page.locator('.sf-outcome')).toContainText('목표 강화 달성!');
-  await page.clock.fastForward(550);
+  await page.clock.fastForward(733);
   await expect(page.getByRole('button', { name: '다시 자동 강화', exact: true })).toBeEnabled();
   const completed = await saved(page);
   expect(completed.config).toEqual(initial.config);
@@ -168,17 +168,17 @@ test('automatic enhancement is paced, resumes paid progress and restarts from th
   await expectAttempts(page, 0n);
   expect((await saved(page)).state.stars).toBe(initial.config.startStars);
   expect((await saved(page)).state.spentMeso).toBe(0n);
-  await page.clock.fastForward(225);
+  await page.clock.fastForward(150);
   await expectAttempts(page, 1n);
-  await page.clock.fastForward(274);
+  await page.clock.fastForward(182);
   await expectAttempts(page, 1n);
   await page.clock.fastForward(1);
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-charging/);
-  await page.clock.fastForward(449);
+  await page.clock.fastForward(599);
   await expectAttempts(page, 1n);
   await page.clock.fastForward(1);
   await expectAttempts(page, 2n);
-  await page.clock.fastForward(550);
+  await page.clock.fastForward(733);
   const restarted = await saved(page);
   expect(restarted.config).toEqual(initial.config);
   expect(restarted.state).toEqual(completed.state);
@@ -211,46 +211,110 @@ test('early, high-star and final-stage pacing use distinct boundaries without ex
     }
   }
 
-  // 12→13 uses the early-stage 225/275ms cadence.
-  await page.clock.fastForward(224);
+  // 12→13 uses the early-stage 150/183ms cadence.
+  await page.clock.fastForward(149);
   await expectAttempts(page, 0n);
   await page.clock.fastForward(1);
   await expectAttempts(page, 1n);
   await expect(page.locator('.sf-stars')).toHaveAttribute('aria-label', '현재 13성 / 목표 15성');
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-result/);
 
-  await page.clock.fastForward(274);
+  await page.clock.fastForward(182);
   await expectAttempts(page, 1n);
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-result/);
   await page.clock.fastForward(1);
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-charging/);
-  // At 13 stars the next attempt switches to the 300/367ms cadence.
-  await page.clock.fastForward(299);
+  // At 13 stars the next attempt switches to the 225/275ms cadence.
+  await page.clock.fastForward(224);
   await expectAttempts(page, 1n);
   await page.clock.fastForward(1);
   await expectAttempts(page, 2n);
   await expect(page.locator('.sf-stars')).toHaveAttribute('aria-label', '현재 14성 / 목표 15성');
 
-  await page.clock.fastForward(366);
+  await page.clock.fastForward(274);
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-result/);
   await expectAttempts(page, 2n);
   await page.clock.fastForward(1);
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-charging/);
-  // The final 14→15 attempt takes priority over the high-star cadence: 450/550ms.
-  await page.clock.fastForward(449);
+  // The final 14→15 attempt takes priority over the high-star cadence: 600/733ms.
+  await page.clock.fastForward(599);
   await expectAttempts(page, 2n);
   await page.clock.fastForward(1);
   await expectAttempts(page, 3n);
   const completed = await saved(page);
   expect(completed.state.history.map((row) => row.fromStars)).toEqual([12, 13, 14]);
   expect(completed.state.status).toBe('success');
-  await page.clock.fastForward(549);
+  await page.clock.fastForward(732);
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-result/);
   await page.clock.fastForward(1);
   await expect(page.getByRole('button', { name: '다시 자동 강화', exact: true })).toBeEnabled();
   await page.clock.fastForward(10000);
   expect((await saved(page)).state).toEqual(completed.state);
 });
+
+for (const finalAttempt of [false, true]) {
+  test(`safeguard protection ${finalAttempt ? 'preserves final-stage priority' : 'extends only its result phase and restores normal pacing'}`, async ({
+    page,
+  }) => {
+    await bootManual(page, 15, finalAttempt ? 16 : 17);
+    await page.getByRole('checkbox', { name: /^파괴 방지/ }).check();
+    await ready(page);
+    await page.evaluate(() => {
+      const draws = [0.999999, 0.5];
+      crypto.getRandomValues = <T extends ArrayBufferView | null>(array: T): T => {
+        (array as unknown as Uint32Array).fill(Math.floor((draws.shift() ?? 0.5) * 4294967296));
+        return array;
+      };
+    });
+    const charge = finalAttempt ? 600 : 225;
+    const protectedResult = finalAttempt ? 733 : 550;
+    const ordinaryResult = finalAttempt ? 733 : 275;
+    await page.getByRole('button', { name: '자동 강화', exact: true }).click();
+    await page.clock.fastForward(charge - 1);
+    await expectAttempts(page, 0n);
+    await page.clock.fastForward(1);
+    await expectAttempts(page, 1n);
+    const protectedState = (await saved(page)).state;
+    expect(protectedState.history[0].safeguardPrevented).toBe(true);
+    expect(protectedState.stars).toBe(15);
+    await expect(page.locator('.sf-stage')).toHaveClass(/phase-result.*outcome-protected/);
+    await expect(page.locator('.sf-outcome')).toContainText('파괴 방지 성공!');
+    await expect(page.locator('.sf-protection')).toBeVisible();
+    await expect(page.locator('.sf-stage')).toHaveCSS(
+      '--sf-result-duration',
+      `${protectedResult}ms`,
+    );
+
+    // Protection changes only this result's hold. A final-stage attempt retains its longer hold.
+    await page.clock.fastForward(protectedResult - 1);
+    await expect(page.locator('.sf-stage')).toHaveClass(/phase-result/);
+    await expectAttempts(page, 1n);
+    await page.clock.fastForward(1);
+    await expect(page.locator('.sf-stage')).toHaveClass(/phase-charging/);
+    await page.clock.fastForward(charge - 1);
+    await expectAttempts(page, 1n);
+    await page.clock.fastForward(1);
+    await expectAttempts(page, 2n);
+    const ordinaryState = (await saved(page)).state;
+    expect(ordinaryState.history[1].safeguardPrevented).not.toBe(true);
+    expect(ordinaryState.history[1].outcome).toBe('stay');
+    expect(ordinaryState.spentMeso).toBe(protectedState.spentMeso * 2n);
+    await expect(page.locator('.sf-stage')).not.toHaveClass(/outcome-protected/);
+    await expect(page.locator('.sf-outcome')).toContainText('강화 실패 · 단계 유지');
+    await expect(page.locator('.sf-stage')).toHaveCSS(
+      '--sf-result-duration',
+      `${ordinaryResult}ms`,
+    );
+    await page.clock.fastForward(ordinaryResult - 1);
+    await expect(page.locator('.sf-stage')).toHaveClass(/phase-result/);
+    await page.clock.fastForward(1);
+    await expect(page.locator('.sf-stage')).toHaveClass(/phase-charging/);
+    await expectAttempts(page, 2n);
+    await page.getByRole('button', { name: '중단', exact: true }).click();
+    await page.clock.fastForward(5000);
+    expect((await saved(page)).state).toEqual(ordinaryState);
+  });
+}
 
 test('destruction is saved before restoration and original-stage restoration charges four copies exactly once', async ({
   page,
@@ -262,7 +326,7 @@ test('destruction is saved before restoration and original-stage restoration cha
   await page.getByLabel('복구용 동일 장비 가격 (메소)', { exact: true }).fill('12345');
   await ready(page);
   await page.getByRole('button', { name: '강화하기', exact: true }).click();
-  await page.clock.fastForward(450);
+  await page.clock.fastForward(600);
   await expectAttempts(page, 1n);
   await expect(page.locator('.sf-outcome')).toContainText('장비 파괴 · 흔적 복구 대기');
   const destroyed = await saved(page);
@@ -283,7 +347,7 @@ test('destruction is saved before restoration and original-stage restoration cha
   await expect(page.locator('.sf-quote')).toContainText('동일 장비 4개');
   await page.getByRole('button', { name: '장비 복구하기', exact: true }).click();
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-restoring/);
-  await page.clock.fastForward(299);
+  await page.clock.fastForward(224);
   expect((await saved(page)).state).toEqual(destroyed.state);
   await page.clock.fastForward(1);
   await expect(page.locator('.sf-outcome')).toContainText('22성 복구 완료');
@@ -298,7 +362,7 @@ test('destruction is saved before restoration and original-stage restoration cha
   );
   expect(restored.state.history[0].restored).toBe(true);
   expect(restored.state.pendingRestoration).toBeUndefined();
-  await page.clock.fastForward(367);
+  await page.clock.fastForward(275);
   await expect(page.getByRole('button', { name: '강화하기', exact: true })).toBeEnabled();
   await expect(page.locator('.sf-stage')).not.toHaveClass(/outcome-destroy/);
   await expect(page.locator('.sf-outcome')).toContainText('22성 복구 완료');
@@ -317,11 +381,11 @@ test('shining uses discounted normal attempts without granting a guaranteed 15-t
   await expect(page.locator('.sf-quote')).toContainText('성공 31.50%');
   await expect(page.locator('.sf-quote')).toContainText('파괴 2.05%');
   await page.getByRole('button', { name: '강화하기', exact: true }).click();
-  await page.clock.fastForward(450);
+  await page.clock.fastForward(600);
   const normal = await saved(page);
   expect(normal.state.status).toBe('destroyed');
   expect(normal.state.destructions).toBe(1n);
-  await page.clock.fastForward(550);
+  await page.clock.fastForward(733);
 
   await page.getByRole('checkbox', { name: /샤이닝 스타포스/ }).check();
   await ready(page);
@@ -330,7 +394,7 @@ test('shining uses discounted normal attempts without granting a guaranteed 15-t
   await expect(page.locator('.sf-quote')).toContainText('성공 31.50%');
   await expect(page.locator('.sf-quote')).toContainText('파괴 1.44%');
   await page.getByRole('button', { name: '강화하기', exact: true }).click();
-  await page.clock.fastForward(450);
+  await page.clock.fastForward(600);
   const shining = await saved(page);
   expect(shining.state.status).toBe('ready');
   expect(shining.state.stars).toBe(15);
@@ -352,10 +416,10 @@ test('optimized routes apply real safeguard costs, survive retry and reload, and
   await page.getByLabel('복구용 동일 장비 가격 (메소)', { exact: true }).fill('1000000000000');
   await ready(page);
   await page.getByRole('button', { name: '강화하기', exact: true }).click();
-  await page.clock.fastForward(300);
+  await page.clock.fastForward(225);
   const normal = await saved(page);
   expect(normal.state.status).toBe('destroyed');
-  await page.clock.fastForward(367);
+  await page.clock.fastForward(275);
   await page.getByRole('checkbox', { name: /샤이닝 스타포스/ }).check();
   await ready(page);
   const optimized = await optimize(page);
@@ -374,7 +438,7 @@ test('optimized routes apply real safeguard costs, survive retry and reload, and
     page.locator('.sf-route-details tbody tr').filter({ hasText: '16→17성' }),
   ).toContainText('사용');
   await page.getByRole('button', { name: '강화하기', exact: true }).click();
-  await page.clock.fastForward(300);
+  await page.clock.fastForward(225);
   const paid = await saved(page);
   expect(paid.state.attempts).toBe(1n);
   expect(paid.state.stars).toBe(16);
@@ -385,7 +449,7 @@ test('optimized routes apply real safeguard costs, survive retry and reload, and
   expect(paid.state.enhancementMeso).toBe(
     ((normal.state.enhancementMeso * 27n + 500n) / 1000n) * 100n,
   );
-  await page.clock.fastForward(367);
+  await page.clock.fastForward(550);
   await page.reload();
   await ready(page);
   expect((await saved(page)).config.policy).toEqual(optimized.steps);
@@ -436,7 +500,7 @@ test('stopping a charging attempt and leaving the tab cancel timers without hidd
   await page.clock.fastForward(5000);
   expect((await saved(page)).state).toEqual(initial.state);
   await page.getByRole('button', { name: '자동 강화', exact: true }).click();
-  await page.clock.fastForward(225);
+  await page.clock.fastForward(150);
   await expectAttempts(page, 1n);
   const paid = await saved(page);
   const navigation = page.getByRole('navigation');
@@ -476,12 +540,12 @@ test('the 360px layout stays within both themes and reduced motion preserves out
   expect(
     await page.locator('.sf-item').evaluate((element) => getComputedStyle(element).animationName),
   ).toBe('none');
-  await page.clock.fastForward(449);
+  await page.clock.fastForward(599);
   await expectAttempts(page, 0n);
   await page.clock.fastForward(1);
   await expect(page.locator('.sf-outcome')).toContainText('목표 강화 달성!');
   await expectAttempts(page, 1n);
-  await page.clock.fastForward(550);
+  await page.clock.fastForward(733);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
   await page.getByRole('combobox', { name: '시작 스타포스', exact: true }).selectOption('1');
   await ready(page);

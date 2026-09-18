@@ -107,7 +107,7 @@ for (const phase of ['charging', 'result'] as const) {
     await boot(page);
     const initial = await saved(page);
     await page.getByRole('button', { name: '자동 강화', exact: true }).click();
-    await page.clock.fastForward(phase === 'charging' ? 100 : 225);
+    await page.clock.fastForward(phase === 'charging' ? 100 : 150);
     await expect(page.locator('.sf-stage')).toHaveClass(new RegExp(`phase-${phase}`));
     await page.getByRole('button', { name: '연출 스킵', exact: true }).click();
     await expect(page.getByRole('button', { name: '연출 스킵 중', exact: true })).toBeDisabled();
@@ -132,7 +132,7 @@ for (const phase of ['charging', 'result'] as const) {
     await expect(page.locator('.sf-stage')).toHaveClass(/phase-charging/);
     await expect(page.getByRole('button', { name: '연출 스킵', exact: true })).toBeEnabled();
     expect((await saved(page)).state.attempts).toBe(0n);
-    await page.clock.fastForward(224);
+    await page.clock.fastForward(149);
     expect((await saved(page)).state.attempts).toBe(0n);
     await page.clock.fastForward(1);
     expect((await saved(page)).state.attempts).toBe(1n);
@@ -183,7 +183,7 @@ test('stopping a real skipped run waits for its final paid snapshot and resumes 
     .toBe(1);
   await page.getByRole('button', { name: '자동 강화', exact: true }).click();
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-charging/);
-  await page.clock.fastForward(224);
+  await page.clock.fastForward(149);
   expect((await saved(page)).state).toEqual(paused.state);
   await page.clock.fastForward(1);
   expect((await saved(page)).state.attempts).toBe(paused.state.attempts + 1n);
