@@ -2,9 +2,10 @@ import { useId, type CSSProperties } from 'react';
 import { ArrowRight, Check } from 'lucide-react';
 import './soul-amplification.css';
 
-// Compress the reference's roughly three-second effect to one second.
+// Failure runs at roughly 3x the reference; success keeps its full sequence at 1.5x.
 export const SOUL_CHARGE_MS = 550;
 export const SOUL_RESULT_MS = 450;
+export const SOUL_SUCCESS_RESULT_MS = 1450;
 
 type SoulAmplificationDisplayProps = {
   stage: number;
@@ -43,7 +44,7 @@ export function SoulAmplificationDisplay({
           : '소울 증폭 준비 완료';
   const timing = {
     '--soul-charge-ms': `${SOUL_CHARGE_MS}ms`,
-    '--soul-result-ms': `${SOUL_RESULT_MS}ms`,
+    '--soul-result-ms': `${phase === 'success' ? SOUL_SUCCESS_RESULT_MS : SOUL_RESULT_MS}ms`,
   } as CSSProperties;
 
   return (
@@ -162,6 +163,47 @@ export function SoulAmplificationDisplay({
           )}
           {phase === 'success' && (
             <div className="soul-success">
+              <svg className="soul-fusion-orbits" viewBox="0 0 200 200" fill="none">
+                <defs>
+                  <linearGradient
+                    id={`${id}-trail`}
+                    x1="100"
+                    y1="24"
+                    x2="166"
+                    y2="138"
+                    gradientUnits="userSpaceOnUse"
+                  >
+                    <stop stopColor="#f0ffff" />
+                    <stop offset=".2" stopColor="#83ffff" />
+                    <stop offset=".65" stopColor="#23dcff" stopOpacity=".65" />
+                    <stop offset="1" stopColor="#23dcff" stopOpacity="0" />
+                  </linearGradient>
+                  <radialGradient id={`${id}-comet`}>
+                    <stop stopColor="#fff" />
+                    <stop offset=".2" stopColor="#e2ffff" />
+                    <stop offset=".45" stopColor="#58f8ff" stopOpacity=".9" />
+                    <stop offset="1" stopColor="#26dfff" stopOpacity="0" />
+                  </radialGradient>
+                </defs>
+                {[0, 180].map((angle) => (
+                  <g key={angle} transform={`rotate(${angle} 100 100)`}>
+                    <path
+                      d="M100 24A76 76 0 0 1 165.82 138"
+                      stroke={`url(#${id}-trail)`}
+                      strokeWidth="9"
+                      opacity=".28"
+                    />
+                    <path
+                      d="M100 24A76 76 0 0 1 165.82 138"
+                      stroke={`url(#${id}-trail)`}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                    />
+                    <circle cx="100" cy="24" r="19" fill={`url(#${id}-comet)`} />
+                    <circle cx="100" cy="24" r="3.5" fill="#f5ffff" />
+                  </g>
+                ))}
+              </svg>
               <span className="soul-success-burst" />
               <span className="soul-success-ring" />
               {[-2, -1, 0, 1, 2].map((line) => (

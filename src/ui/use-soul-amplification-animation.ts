@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SimulationState } from '../types';
-import { SOUL_CHARGE_MS, SOUL_RESULT_MS } from './SoulAmplificationDisplay';
+import { SOUL_CHARGE_MS, SOUL_RESULT_MS, SOUL_SUCCESS_RESULT_MS } from './SoulAmplificationDisplay';
 
 interface AmplificationAnimation {
   phase: 'charging' | 'success' | 'failure';
@@ -25,17 +25,21 @@ export function useSoulAmplificationAnimation() {
     if (!result) return;
     clearTimeout(timer.current);
     busy.current = true;
+    const outcome = result.amplified ? 'success' : 'failure';
     const attempt = {
       fromStage: result.stage - (result.amplified ? 1 : 0),
       attemptKey: `${next.startedAt}:${result.sequence}`,
     };
     setAnimation({ ...attempt, phase: 'charging' });
     timer.current = setTimeout(() => {
-      setAnimation({ ...attempt, phase: result.amplified ? 'success' : 'failure' });
-      timer.current = setTimeout(() => {
-        busy.current = false;
-        setAnimation(undefined);
-      }, SOUL_RESULT_MS);
+      setAnimation({ ...attempt, phase: outcome });
+      timer.current = setTimeout(
+        () => {
+          busy.current = false;
+          setAnimation(undefined);
+        },
+        outcome === 'success' ? SOUL_SUCCESS_RESULT_MS : SOUL_RESULT_MS,
+      );
     }, SOUL_CHARGE_MS);
   }, []);
 

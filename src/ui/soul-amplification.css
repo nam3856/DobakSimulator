@@ -89,6 +89,7 @@
 
 .soul-amplification .soul-scene--success .soul-scene-caption {
   color: #a1fff1;
+  animation: soul-success-caption var(--soul-result-ms) linear both;
 }
 
 .soul-amplification .soul-stage-row {
@@ -204,11 +205,42 @@
 }
 
 .soul-amplification .soul-success-burst {
-  animation: soul-success-burst var(--soul-result-ms) ease-out both;
+  width: 176px;
+  height: 176px;
+  margin: -88px 0 0 -88px;
+  background: radial-gradient(
+    circle,
+    #fff 0 29%,
+    #f4ffff 33%,
+    #bdf9ff 36%,
+    #96b7ffb8 42%,
+    #9d65ff73 50%,
+    #7245f521 61%,
+    transparent 70%
+  );
+  animation: soul-success-burst var(--soul-result-ms) linear both;
+}
+
+.soul-amplification .soul-fusion-orbits {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  margin: -130px 0 0 -130px;
+  overflow: visible;
+  filter: drop-shadow(0 0 5px #61ffff) drop-shadow(0 0 12px #1ae2ff);
+  animation: soul-fusion-orbits var(--soul-result-ms) linear both;
 }
 
 .soul-amplification .soul-success-ring {
-  animation: soul-success-ring var(--soul-result-ms) ease-out both;
+  width: 88px;
+  height: 88px;
+  margin: -44px 0 0 -44px;
+  border-width: 3px;
+  border-color: #b5eaff transparent #b29bff #fff;
+  box-shadow: -4px 0 12px #d1ffffb3;
+  animation: soul-success-ring var(--soul-result-ms) linear both;
 }
 
 .soul-amplification .soul-success-ray {
@@ -255,6 +287,7 @@
     0 2px 0 #286568,
     0 0 7px #66ffee,
     0 0 21px #32e8ef;
+  animation-name: soul-success-title;
 }
 
 .soul-amplification .soul-outcome--failure {
@@ -373,47 +406,131 @@
   }
 }
 
-@keyframes soul-success-burst {
+@keyframes soul-fusion-orbits {
   0% {
-    opacity: 0.95;
-    transform: scale(0.85);
+    opacity: 0;
+    transform: rotate(45deg) scale(1.05);
   }
-  45% {
-    opacity: 0.5;
-    transform: scale(1.15);
+  4% {
+    opacity: 1;
+    transform: rotate(15deg) scale(1.02);
   }
+  11% {
+    opacity: 1;
+    transform: rotate(-45deg) scale(0.92);
+  }
+  17% {
+    opacity: 1;
+    transform: rotate(-105deg) scale(0.6);
+  }
+  23% {
+    opacity: 1;
+    transform: rotate(-175deg) scale(0.13);
+  }
+  27%,
   100% {
     opacity: 0;
-    transform: scale(1.35);
+    transform: rotate(-205deg) scale(0.02);
+  }
+}
+
+@keyframes soul-success-burst {
+  0%,
+  17% {
+    opacity: 0;
+    transform: scale(0.15);
+  }
+  26% {
+    opacity: 1;
+    transform: scale(1.06);
+    filter: hue-rotate(0deg) brightness(1.15);
+  }
+  37% {
+    opacity: 1;
+    transform: scale(0.96);
+    filter: hue-rotate(18deg) brightness(1.05);
+  }
+  53% {
+    opacity: 1;
+    transform: scale(0.91);
+    filter: hue-rotate(35deg) brightness(1);
+  }
+  61% {
+    opacity: 0.85;
+    transform: scale(0.4);
+  }
+  68%,
+  100% {
+    opacity: 0;
+    transform: scale(0.08);
   }
 }
 
 @keyframes soul-success-ring {
-  0% {
-    opacity: 0.85;
-    transform: scale(0.25);
+  0%,
+  55% {
+    opacity: 0;
+    transform: rotate(-100deg) scale(0.2);
   }
+  61% {
+    opacity: 1;
+    transform: rotate(-40deg) scale(0.95);
+  }
+  69% {
+    opacity: 0.9;
+    transform: rotate(170deg) scale(1);
+  }
+  76%,
   100% {
     opacity: 0;
-    transform: scale(1.3);
+    transform: rotate(240deg) scale(0.7);
   }
 }
 
 @keyframes soul-success-rays {
-  0% {
+  0%,
+  70% {
     opacity: 0;
     transform: scaleX(0.1);
   }
-  23% {
+  78% {
     opacity: 1;
     transform: scaleX(1);
   }
-  75% {
+  90% {
     opacity: 0.5;
   }
   100% {
     opacity: 0;
     transform: scaleX(1.15);
+  }
+}
+
+@keyframes soul-success-title {
+  0%,
+  73% {
+    opacity: 0;
+    transform: translate(-65%, -50%) skewX(-8deg) scale(1.12);
+  }
+  80%,
+  96% {
+    opacity: 1;
+    transform: translate(-50%, -50%) skewX(-8deg) scale(1);
+  }
+  100% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) skewX(-8deg) scale(1);
+  }
+}
+
+@keyframes soul-success-caption {
+  0%,
+  73% {
+    opacity: 0;
+  }
+  80%,
+  100% {
+    opacity: 1;
   }
 }
 
@@ -509,6 +626,7 @@
   }
   .soul-amplification .soul-charge-spark,
   .soul-amplification .soul-charge-flash,
+  .soul-amplification .soul-fusion-orbits,
   .soul-amplification .soul-success-burst,
   .soul-amplification .soul-success-ring,
   .soul-amplification .soul-smoke {

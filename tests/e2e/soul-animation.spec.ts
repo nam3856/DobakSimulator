@@ -38,7 +38,7 @@ async function stored(page: Page) {
   );
 }
 
-test('manual misses and successes reveal in one second and rapid clicks pay only once', async ({
+test('manual misses finish in one second, successes in two, and rapid clicks pay only once', async ({
   page,
 }) => {
   await boot(page, [0.99, 0]);
@@ -87,7 +87,11 @@ test('manual misses and successes reveal in one second and rapid clicks pay only
   await page.clock.fastForward(550);
   await expect(display).toHaveAttribute('data-phase', 'success');
   await expect(display.locator('.amp-stage')).toHaveText(/^1\s*단계/);
-  await page.clock.fastForward(450);
+  await page.clock.fastForward(1449);
+  await expect(display).toHaveAttribute('data-phase', 'success');
+  await expect(roll).toBeDisabled();
+  await expect(auto).toBeDisabled();
+  await page.clock.fastForward(1);
   await expect(display).toHaveAttribute('data-phase', 'idle');
   await expect(roll).toBeEnabled();
   expect((await stored(page)).state).toEqual(success);
@@ -120,7 +124,7 @@ test('a new challenge cancels old timers without changing the next paid attempt'
   expect(next.failures).toBe(1);
   expect(next.spent.meso).toBe(500_000_000n);
   expect(next.spent.ethers).toEqual([1n, 0n, 0n, 0n]);
-  // Cross both deadlines of the canceled success while the new miss is active.
+  // Cross the canceled charge deadline while the new miss is still charging.
   await page.clock.fastForward(350);
   await expect(display).toHaveAttribute('data-phase', 'charging');
   await page.clock.fastForward(200);
@@ -129,6 +133,10 @@ test('a new challenge cancels old timers without changing the next paid attempt'
   await expect(display).toHaveAttribute('data-phase', 'failure');
   await expect(roll).toBeDisabled();
   await page.clock.fastForward(200);
+  await expect(display).toHaveAttribute('data-phase', 'idle');
+  await expect(roll).toBeEnabled();
+  // The canceled success would have ended at 2000 ms; it must not replay or mutate state.
+  await page.clock.fastForward(800);
   await expect(display).toHaveAttribute('data-phase', 'idle');
   await expect(roll).toBeEnabled();
   expect((await stored(page)).state).toEqual(next);
@@ -153,7 +161,7 @@ test('reduced motion unlocks on mobile and reload keeps the result without repla
       ),
     ),
   ).toBe(true);
-  await page.clock.fastForward(450);
+  await page.clock.fastForward(1450);
   await expect(display).toHaveAttribute('data-phase', 'idle');
   await expect(roll).toBeEnabled();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
