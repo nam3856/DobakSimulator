@@ -415,6 +415,18 @@ describe('Nexon client', () => {
 });
 
 describe('default avatar and snapshot', () => {
+  it('preserves an imported character while replacing its pose with the official ghost action', () => {
+    const base = `${basic.character_image}?action=A06.0&emotion=E02.0&wmotion=W02`;
+    const ghost = new URL(buildAvatarUrl(base, 'ghost'));
+    expect(ghost.pathname).toBe(new URL(base).pathname);
+    expect(ghost.searchParams.getAll('action')).toEqual(['A35.0']);
+    expect(ghost.searchParams.getAll('emotion')).toEqual(['E00.0']);
+    expect(ghost.searchParams.get('wmotion')).toBe('W02');
+    expect(getDefaultAvatarPath('ghost', '/DobakSimulator/')).toBe(
+      '/DobakSimulator/character/ghost.png',
+    );
+  });
+
   it('replaces existing image query parameters for the official cry/jump poses', () => {
     const base = `${basic.character_image}?action=A01&emotion=E04`;
     const cry = new URL(buildAvatarUrl(base, 'cry'));
@@ -445,9 +457,12 @@ describe('default avatar and snapshot', () => {
     }
     expect(snapshot.sourceUrl).toContain('openapi.nexon.com');
     expect(snapshotText.toLowerCase()).not.toMatch(/ocid|api_key|apikey|x-nxopen/);
-    for (const reaction of ['cry', 'neutral', 'happy', 'jackpot']) {
+    const neutralPng = readFileSync(new URL('../public/character/neutral.png', import.meta.url));
+    for (const reaction of ['cry', 'neutral', 'happy', 'jackpot', 'ghost']) {
       const png = readFileSync(new URL(`../public/character/${reaction}.png`, import.meta.url));
       expect([...png.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+      expect(png.readUInt32BE(16)).toBe(neutralPng.readUInt32BE(16));
+      expect(png.readUInt32BE(20)).toBe(neutralPng.readUInt32BE(20));
     }
   });
 });

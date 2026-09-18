@@ -127,12 +127,30 @@ describe('benchmark probability and distributions', () => {
     expect(n).toBeLessThan(7e11);
     expect(geometricCdf(1e-12, n)).toBeCloseTo(0.5, 10);
   });
-  it('prioritizes lower-cost top ten percent, then mean ±10%', () => {
+  it('keeps top-ten-percent and mean-based reactions below P95', () => {
     const b = computeBenchmark(fixture(), config());
     expect(evaluateLuck({ ...b, cdfAtActual: 0.1 }, 260)).toBe('jackpot');
     expect(evaluateLuck({ ...b, cdfAtActual: 0.2 }, 250)).toBe('happy');
-    expect(evaluateLuck({ ...b, cdfAtActual: 0.5 }, 280)).toBe('neutral');
-    expect(evaluateLuck({ ...b, cdfAtActual: 0.9 }, 310)).toBe('cry');
+    expect(evaluateLuck({ ...b, cdfAtActual: 0.5 }, b.expectedCost * 0.9)).toBe('neutral');
+    expect(evaluateLuck({ ...b, cdfAtActual: 0.5 }, b.expectedCost)).toBe('neutral');
+    expect(evaluateLuck({ ...b, cdfAtActual: 0.9 }, b.expectedCost * 1.1)).toBe('neutral');
+    expect(evaluateLuck({ ...b, cdfAtActual: 0.949999 }, b.expectedCost * 2)).toBe('cry');
+    expect(evaluateLuck({ ...b, cdfAtActual: undefined }, b.expectedCost * 2)).toBe('cry');
+  });
+  it('turns P95 and higher into a ghost regardless of the expected-cost ratio', () => {
+    const b = computeBenchmark(fixture(), config());
+    expect(evaluateLuck({ ...b, cdfAtActual: 0.95 }, b.expectedCost * 2)).toBe('ghost');
+    expect(evaluateLuck({ ...b, cdfAtActual: 0.99 }, b.expectedCost * 2)).toBe('ghost');
+    expect(evaluateLuck({ ...b, cdfAtActual: 1 }, b.expectedCost * 2)).toBe('ghost');
+    expect(evaluateLuck({ ...b, cdfAtActual: 0.95 }, b.expectedCost * 0.8)).toBe('ghost');
+    expect(evaluateLuck({ ...b, cdfAtActual: 1 }, b.expectedCost)).toBe('ghost');
+  });
+  it('does not judge already completed, impossible, partial, or invalid benchmarks', () => {
+    const b = { ...computeBenchmark(fixture(), config()), cdfAtActual: 1 };
     expect(evaluateLuck({ ...b, status: 'already' }, 0)).toBeUndefined();
+    expect(evaluateLuck({ ...b, status: 'impossible' }, b.expectedCost * 2)).toBeUndefined();
+    expect(evaluateLuck({ ...b, status: 'partial' }, b.expectedCost * 2)).toBeUndefined();
+    expect(evaluateLuck({ ...b, expectedCost: Infinity }, 1000)).toBeUndefined();
+    expect(evaluateLuck({ ...b, expectedCost: 0 }, 1)).toBeUndefined();
   });
 });

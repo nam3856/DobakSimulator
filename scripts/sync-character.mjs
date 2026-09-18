@@ -26,7 +26,7 @@ if (!key) {
       await writeFile(new URL(`../public/character/${reaction}.png`, import.meta.url), bytes);
     }
     await writeFile(new URL('../public/character/snapshot.json', import.meta.url), `${JSON.stringify(snapshot, null, 2)}\n`);
-    console.log(`${snapshot.name}: 캐릭터 프리셋과 표정 이미지 4종을 갱신했습니다. (${snapshot.fetchedAt})`);
+    console.log(`${snapshot.name}: 캐릭터 프리셋과 표정 이미지 ${Object.keys(AVATAR_POSES).length}종을 갱신했습니다. (${snapshot.fetchedAt})`);
   } catch (error) {
     // Never print request headers, HTTP bodies, stack traces or identifiers.
     console.error(error instanceof Error ? error.message : '캐릭터 갱신에 실패했습니다.');

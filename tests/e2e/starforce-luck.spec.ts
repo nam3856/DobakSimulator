@@ -46,6 +46,7 @@ for (const scenario of [
   { attempts: 10, reaction: 'happy', message: '어? 생각보다 얼마 안 썼네?', ratio: '50.0%' },
   { attempts: 20, reaction: 'neutral', message: '그래, 이 정도면 잘했다.', ratio: '100.0%' },
   { attempts: 30, reaction: 'cry', message: '아무튼 내가 이긴거야..', ratio: '150.0%' },
+  { attempts: 60, reaction: 'ghost', message: '이세계여서 다행이다…', ratio: '300.0%' },
 ]) {
   test(`${scenario.reaction} at ${scenario.attempts} attempts: completed cost, inclusive percentile, reaction and graph agree and restore`, async ({
     page,
@@ -65,6 +66,19 @@ for (const scenario of [
     );
     await expect(page.locator('.reaction-stage h3')).toHaveText(scenario.message);
     await expect(page.locator('.ratio-copy')).toContainText(scenario.ratio);
+    if (scenario.reaction === 'ghost') {
+      await expect(page.locator('.stage-sprite')).toHaveAttribute(
+        'src',
+        /\/character\/ghost\.png$/,
+      );
+      await expect(page.locator('.reaction-tombstone')).toBeVisible();
+      expect(
+        await page.locator('.stage-sprite').evaluate((element) => {
+          const style = getComputedStyle(element);
+          return { name: style.animationName, repetitions: style.animationIterationCount };
+        }),
+      ).toEqual({ name: 'ghost-hover', repetitions: 'infinite' });
+    }
     const percentile = Number(
       (await page.locator('.luck-badge').innerText()).match(/P([\d.]+)/)![1],
     );
@@ -77,9 +91,12 @@ for (const scenario of [
     );
     await expect(page.locator('.reaction-stage h3')).toHaveText(scenario.message);
     await expect(page.locator('.ratio-copy')).toContainText(scenario.ratio);
+    if (scenario.reaction === 'ghost')
+      await expect(page.locator('.reaction-tombstone')).toBeVisible();
     await page.getByRole('button', { name: '다시 자동 강화', exact: true }).click();
     await expect(page.locator('.luck-badge')).toHaveCount(0);
     await expect(page.locator('.chart-actual')).toHaveCount(0);
+    await expect(page.locator('.reaction-tombstone')).toHaveCount(0);
     await page.getByRole('button', { name: '중단', exact: true }).click();
   });
 }

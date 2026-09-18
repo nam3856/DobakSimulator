@@ -1,6 +1,6 @@
 import type { LuckReaction } from '../types.ts';
 
-/** Nexon's character_image action/emotion parameters, documented 2025-01-16. */
+/** Nexon's character_image poses: https://openapi.nexon.com/ko/support/notice/2715682/ */
 export type AvatarReaction = LuckReaction;
 
 export const AVATAR_POSES: Record<AvatarReaction, { action: string; emotion: string }> = {
@@ -8,6 +8,7 @@ export const AVATAR_POSES: Record<AvatarReaction, { action: string; emotion: str
   neutral: { action: 'A00.0', emotion: 'E00.0' },
   happy: { action: 'A00.0', emotion: 'E02.0' },
   jackpot: { action: 'A06.0', emotion: 'E02.0' },
+  ghost: { action: 'A35.0', emotion: 'E00.0' },
 };
 
 export function buildAvatarUrl(baseUrl: string, reaction: AvatarReaction): string {
@@ -30,4 +31,5 @@ export const AVATAR_REACTION_LABELS: Record<AvatarReaction, string> = {
   neutral: '기댓값 근처에서 담담하게 서 있는 캐릭터',
   happy: '기댓값보다 적게 써서 웃고 있는 캐릭터',
   jackpot: '행운의 상위 10% 결과에 신나게 점프하는 캐릭터',
+  ghost: '행운 P95 이상에서 유령이 된 캐릭터',
 };

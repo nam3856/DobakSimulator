@@ -96,7 +96,7 @@ export interface BenchmarkResult {
   cdfAtActual?: number;
   note?: string;
 }
-export type LuckReaction = 'jackpot' | 'happy' | 'neutral' | 'cry';
+export type LuckReaction = 'jackpot' | 'happy' | 'neutral' | 'cry' | 'ghost';
 export interface EquipmentSnapshot {
   id: string;
   name: string;

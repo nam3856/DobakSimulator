@@ -691,6 +691,7 @@ export function evaluateLuck(
     benchmark.expectedCost <= 0
   )
     return undefined;
+  if (benchmark.cdfAtActual !== undefined && benchmark.cdfAtActual >= 0.95) return 'ghost';
   if (benchmark.cdfAtActual !== undefined && benchmark.cdfAtActual <= 0.1) return 'jackpot';
   if (actualCost < benchmark.expectedCost * 0.9) return 'happy';
   if (actualCost <= benchmark.expectedCost * 1.1) return 'neutral';

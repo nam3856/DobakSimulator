@@ -22,6 +22,7 @@ import type {
 import { GRADE_NAMES, GRADES, METRIC_LABELS } from './constants';
 import { formatAmount, formatPercent } from './format';
 import { buildAvatarUrl } from '../character/avatar';
+import { ReactionTombstone } from './ReactionTombstone';
 import {
   abilityConditionBounds,
   boundAbilityCondition,
@@ -543,16 +544,16 @@ export function Avatar({
   }
   return fallbackFailed ? (
     <div
-      className={`avatar-fallback ${className}`}
+      className={`avatar-fallback reaction-${reaction} ${className}`}
       aria-label={`${character.name} 캐릭터 이미지 없음`}
     >
       {character.name.slice(0, 1)}
     </div>
   ) : (
     <img
-      className={`character-sprite reaction-${reaction} ${className}`}
+      className={`character-sprite reaction-${reaction} ${failed ? 'avatar-image-fallback' : ''} ${className}`}
       src={failed ? character.imageUrl : imageUrl}
-      alt={`${character.name} · ${{ neutral: '기본 자세', happy: '웃는 모습', cry: '울면서 엎드린 모습', jackpot: '웃으며 점프하는 모습' }[reaction]}`}
+      alt={`${character.name} · ${{ neutral: '기본 자세', happy: '웃는 모습', cry: '울면서 엎드린 모습', jackpot: '웃으며 점프하는 모습', ghost: '둥둥 떠 있는 유령 모습' }[reaction]}`}
       onError={() => (failed ? setFallbackFailed(true) : setFailed(true))}
     />
   );
@@ -579,6 +580,7 @@ export function ReactionStage({
     happy: ['이번 세계의 나는, 꽤 운이 좋다.', '기댓값보다 가볍게 목표에 도착했어요.'],
     neutral: ['어느 세계나, 이 정도는 쓰는구나.', '기댓값 언저리에서 무난하게 목표를 달성했어요.'],
     cry: ['다른 세계의 나도… 울고 있다.', '기댓값보다 조금 더 먼 길을 돌아왔어요.'],
+    ghost: ['이세계여서 다행이다…', '현실에서 돌렸으면 나도 같이 증발했겠다.'],
   };
   const text = judged
     ? (messages?.[reaction] ?? copy[reaction])
@@ -617,6 +619,7 @@ export function ReactionStage({
         <div className="star star-one">✦</div>
         <div className="star star-two">✧</div>
         <div className="character-ground" />
+        {judged && reaction === 'ghost' && <ReactionTombstone />}
         <Avatar
           character={character}
           reaction={judged ? reaction : 'neutral'}
