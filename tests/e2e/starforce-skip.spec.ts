@@ -23,6 +23,7 @@ interface Observed {
   runRequests: StarforceRunRequest[];
   runResponses: StarforceRunResponse[];
   runTerminations: number;
+  releaseRunTerminals: (() => void)[];
 }
 
 test.beforeEach(async ({ page }) => {
@@ -34,6 +35,7 @@ test.beforeEach(async ({ page }) => {
     observed.runRequests = [];
     observed.runResponses = [];
     observed.runTerminations = 0;
+    observed.releaseRunTerminals = [];
     crypto.getRandomValues = <T extends ArrayBufferView | null>(array: T): T => {
       (array as unknown as Uint32Array).fill(0);
       return array;
@@ -44,8 +46,25 @@ test.beforeEach(async ({ page }) => {
       constructor(url: string | URL, options?: WorkerOptions) {
         super(url, options);
         this.isRunWorker = String(url).includes('starforce-run.worker-');
-        if (this.isRunWorker)
+        if (this.isRunWorker) {
+          // Keep the real Worker and all progress messages. Hold only its final
+          // acknowledgement until the test has inspected the transitional UI.
+          let released = false;
+          const pending: StarforceRunResponse[] = [];
+          this.addEventListener('message', (event) => {
+            const response = event.data as StarforceRunResponse;
+            if (!released && response.type === 'state' && response.done) {
+              pending.push(response);
+              event.stopImmediatePropagation();
+            }
+          });
+          observed.releaseRunTerminals.push(() => {
+            released = true;
+            for (const response of pending.splice(0))
+              this.dispatchEvent(new MessageEvent('message', { data: response }));
+          });
           this.addEventListener('message', ({ data }) => observed.runResponses.push(data));
+        }
       }
       postMessage(message: unknown) {
         if (this.isRunWorker)
@@ -84,15 +103,16 @@ async function runRequest(page: Page): Promise<Run> {
     () => (window as unknown as Observed).runRequests.find((row) => row.type === 'run') as Run,
   );
 }
-async function deterministicWorker(page: Page, random: number, delay = 150) {
+async function releaseTerminal(page: Page) {
+  await page.evaluate(() => (window as unknown as Observed).releaseRunTerminals.at(-1)!());
+}
+async function deterministicWorker(page: Page, random: number) {
   await page.route('**/assets/starforce-run.worker-*.js', async (route) => {
     const response = await route.fetch();
     await route.fulfill({
       response,
       body: `
       self.crypto.getRandomValues = array => { array.fill(${Math.floor(random * 4294967296)}); return array; };
-      const send = self.postMessage.bind(self);
-      self.postMessage = (...args) => setTimeout(() => send(...args), ${delay});
       ${await response.text()}
     `,
     });
@@ -112,6 +132,7 @@ for (const phase of ['charging', 'result'] as const) {
     await page.getByRole('button', { name: '연출 스킵', exact: true }).click();
     await expect(page.getByRole('button', { name: '연출 스킵 중', exact: true })).toBeDisabled();
     await expect(page.getByRole('button', { name: '중단', exact: true })).toBeEnabled();
+    await releaseTerminal(page);
     await expect(page.getByRole('button', { name: '다시 자동 강화', exact: true })).toBeEnabled();
     const request = await runRequest(page);
     expect(request.state.attempts).toBe(phase === 'charging' ? 0n : 1n);
@@ -150,7 +171,7 @@ test('stopping a real skipped run waits for its final paid snapshot and resumes 
     maintainProbability: 0.999999,
   };
   await page.route('**/rules/starforce.json', (route) => route.fulfill({ json: slow }));
-  await deterministicWorker(page, 0.5, 250);
+  await deterministicWorker(page, 0.5);
   await boot(page);
   const initial = await saved(page);
   await page.getByRole('button', { name: '자동 강화', exact: true }).click();
@@ -160,6 +181,7 @@ test('stopping a real skipped run waits for its final paid snapshot and resumes 
   await page.getByRole('button', { name: '중단', exact: true }).click();
   await expect(page.getByRole('button', { name: '중단 중', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: '연출 스킵 중', exact: true })).toBeDisabled();
+  await releaseTerminal(page);
   await expect(page.getByRole('button', { name: '자동 강화', exact: true })).toBeEnabled();
   const paused = await saved(page);
   expect(paused.state.attempts).toBeGreaterThanOrEqual(observedBeforeStop.state.attempts);
