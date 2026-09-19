@@ -1,6 +1,6 @@
 # 공용 키로 캐릭터 검색
 
-방문자는 닉네임만 입력하고, Nexon 키는 운영자의 서버에서 사용합니다. 화면·시뮬레이션은 기존 GitHub Pages에서 실행하며, 검색 요청만 Cloudflare Worker로 보냅니다.
+방문자는 닉네임만 입력하고, Nexon 키는 운영자의 서버에서 사용합니다. 화면·시뮬레이션은 기존 GitHub Pages에서 실행하며, 캐릭터 검색과 공유 미리보기는 Cloudflare Worker가 제공합니다.
 
 ```text
 브라우저 → 공용 Worker /api/character?name=닉네임 → Nexon Open API
@@ -53,6 +53,12 @@ Pages 워크플로는 먼저 Actions의 주소 변수를 주입하지 않고 빌
 
 연결된 사이트의 캐릭터 검색창에는 `공용 검색 · 닉네임만 입력하세요`가 표시됩니다. 호출 한도에 걸리거나 공용 서버에 문제가 있으면 안내를 표시하고 `개인 키로 전환`을 선택할 수 있습니다. 캐릭터는 성공적으로 조회된 경우에만 교체합니다.
 
+## 닉네임 공유 미리보기
+
+캐릭터의 **캐릭터 링크 복사** 버튼은 API와 같은 출처의 `/share?character=닉네임&mode=탭`을 복사합니다. 이 경로는 Nexon API를 호출하지 않고 닉네임을 포함한 Open Graph/Twitter HTML을 반환합니다. 링크 방문자는 JavaScript로 Pages의 캐릭터·탭 주소로 이동하며, JavaScript가 꺼져 있으면 이동 링크가 보입니다. 검색용 대표 주소는 Pages 루트로 고정하고 공유 중간 페이지는 `noindex`로 둡니다.
+
+서버 변경은 `npm run api:check` 후 `npm run api:deploy`로 따로 배포합니다. Pages Actions만으로 Worker가 업데이트되지는 않습니다. 공유 카드 이미지는 Pages의 `social-preview.png`를 사용합니다. 도메인을 이전하면 `index.html`, `public/sitemap.xml`, `server/share-page.ts`, `src/ui/page-metadata.ts`의 대표 URL과 `src/ui/character-link.ts`의 기본 공유 서버 주소도 함께 변경하세요.
+
 ## 로컬 개발
 
 `.env.example`을 참고해 Git에서 제외된 `.env.local`에 `NEXON_API_KEY`와 `VITE_CHARACTER_API_URL=http://127.0.0.1:5173/api`를 설정하고 `npm run dev`를 실행합니다. 개발 서버의 포트를 바꾸면 주소의 포트도 맞춥니다. 공개 설정 파일에 배포 서버 주소가 있으므로 이 주소 재정의가 로컬 Vite API를 선택합니다. 공개 서버 주소가 없는 경우에는 `/api/health`로 로컬 API를 자동 연결합니다. `NEXON_API_KEY`는 개발 서버에서만 읽고, `VITE_` 접두사는 공개 서버 주소에만 사용합니다. 최초 설정이나 값 변경 후에는 개발 서버를 다시 실행합니다.
@@ -63,6 +69,7 @@ Cloudflare 런타임을 로컬에서 직접 확인하려면 별도의 `.dev.vars
 
 - `GET /api/health` → `{ "configured": true }`. 키 값은 반환하지 않습니다.
 - `GET /api/character?name=깽미니` → `CharacterSnapshot`.
+- `GET /share?character=깽미니&mode=cube` → 닉네임 공유 미리보기 HTML. `HEAD`도 지원합니다.
 - 검색당 ID, 기본 정보, 장비, 어빌리티의 고정된 Nexon API 4개를 조회합니다. 다른 URL을 지정하는 범용 프록시가 아닙니다.
 - 성공 응답은 `no-store`이며 매 검색마다 최신 데이터를 요청합니다. 기존 캐릭터 스냅샷에는 실제 `fetchedAt`이 남습니다.
 - 서버 시간 제한은 20초입니다. 잘못된 입력·없는 캐릭터·호출 제한·설정 누락·조회 실패를 처리하며 공급자 원문 오류·키·OCID를 응답에 넣지 않습니다.

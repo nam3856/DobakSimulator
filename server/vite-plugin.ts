@@ -1,5 +1,6 @@
 import type { Plugin } from 'vite';
 import { handleCharacterRequest, type CharacterApiEnv } from './character-api';
+import { handleShareRequest } from './share-page';
 
 /** Local development only. This module is never imported by the browser bundle. */
 export function characterApiPlugin(
@@ -22,7 +23,9 @@ export function characterApiPlugin(
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url?.startsWith('/api/')) return next();
+        if (!req.url) return next();
+        const isShareRequest = req.url.split('?')[0] === '/share';
+        if (!isShareRequest && !req.url.startsWith('/api/')) return next();
         const controller = new AbortController();
         const abort = () => {
           if (!res.writableEnded) controller.abort();
@@ -36,11 +39,13 @@ export function characterApiPlugin(
             new URL(req.url, `http://${req.headers.host ?? '127.0.0.1:5173'}`),
             { method: req.method, headers, signal: controller.signal },
           );
-          const result = await handleCharacterRequest(
-            request,
-            { ...settings, CHAR_SEARCH_LIMITER: limiter },
-            { rateLimitKey: req.socket.remoteAddress ?? 'local' },
-          );
+          const result = isShareRequest
+            ? handleShareRequest(request)
+            : await handleCharacterRequest(
+                request,
+                { ...settings, CHAR_SEARCH_LIMITER: limiter },
+                { rateLimitKey: req.socket.remoteAddress ?? 'local' },
+              );
           if (res.destroyed) return;
           res.writeHead(result.status, Object.fromEntries(result.headers));
           res.end(Buffer.from(await result.arrayBuffer()));

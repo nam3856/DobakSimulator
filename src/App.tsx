@@ -98,7 +98,13 @@ import { FakeAdBanner } from './ui/FakeAdBanner';
 import { AbilityOptimizer } from './ui/AbilityOptimizer';
 import { StarforceSimulator } from './ui/StarforceSimulator';
 import { paidBenchmarkCost } from './engine/soul-cost';
-import { getLinkedCharacter, replaceCharacterLink } from './ui/character-link';
+import {
+  buildCharacterShareLink,
+  getLinkedCharacter,
+  replaceCharacterLink,
+} from './ui/character-link';
+import { CharacterShareButton } from './ui/CharacterShareButton';
+import { updateCharacterMetadata } from './ui/page-metadata';
 import { SoulAmplificationDisplay } from './ui/SoulAmplificationDisplay';
 import { useSoulAmplificationAnimation } from './ui/use-soul-amplification-animation';
 
@@ -145,6 +151,14 @@ export default function App() {
   const [searchReady, setSearchReady] = useState(false);
   const [personalSearch, setPersonalSearch] = useState(false);
   const sharedSearch = !!sharedApiBase && !personalSearch;
+  useEffect(() => {
+    if (!character) return;
+    const linkedName = getLinkedCharacter();
+    updateCharacterMetadata(
+      linkedName === character.name ? character.name : undefined,
+      buildCharacterShareLink(character.name, activeTab, sharedApiBase),
+    );
+  }, [character?.name, activeTab, sharedApiBase]);
   const [searchBusy, setSearchBusy] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [theme, setTheme] = useState(() => {
@@ -997,24 +1011,27 @@ export default function App() {
         </div>
       </header>
       <main>
-        <h1 className="sr-only">이세계 직작 시뮬레이터</h1>
+        <h1 className="sr-only">메이플스토리 통합 강화 시뮬레이터 — 이세계 직작</h1>
         <section className="hero">
           <FakeAdBanner onStarforce={() => switchTab('starforce')} />
-          <button className="character-card" onClick={openSearch} aria-label="캐릭터 검색 열기">
-            <div className="portrait-frame">
-              <Avatar character={character} />
-            </div>
-            <div>
-              <span className="small-label">함께 도전할 캐릭터</span>
-              <strong>
-                {character.name} <Search size={14} />
-              </strong>
-              <small>
-                {character.world} · Lv.{character.level} {character.job}
-              </small>
-            </div>
-            <ArrowRight size={17} />
-          </button>
+          <div className="character-tools">
+            <button className="character-card" onClick={openSearch} aria-label="캐릭터 검색 열기">
+              <div className="portrait-frame">
+                <Avatar character={character} />
+              </div>
+              <div>
+                <span className="small-label">함께 도전할 캐릭터</span>
+                <strong>
+                  {character.name} <Search size={14} />
+                </strong>
+                <small>
+                  {character.world} · Lv.{character.level} {character.job}
+                </small>
+              </div>
+              <ArrowRight size={17} />
+            </button>
+            <CharacterShareButton name={character.name} mode={activeTab} apiBase={sharedApiBase} />
+          </div>
         </section>
         <nav className="sim-tabs" aria-label="시뮬레이터">
           {TABS.map((tab) => {
@@ -2055,7 +2072,7 @@ export default function App() {
         <div className="footer-brand">
           <InfinityIcon size={18} />
           <span>이세계 직작</span>
-          <small>또 다른 나의 가능성</small>
+          <small>메이플스토리 통합 강화 시뮬레이터</small>
         </div>
         <div>
           <span>
