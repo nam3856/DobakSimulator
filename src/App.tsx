@@ -158,7 +158,7 @@ export default function App() {
       linkedName === character.name ? character.name : undefined,
       buildCharacterShareLink(character.name, activeTab, sharedApiBase),
     );
-  }, [character?.name, activeTab, sharedApiBase]);
+  }, [character, activeTab, sharedApiBase]);
   const [searchBusy, setSearchBusy] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [theme, setTheme] = useState(() => {

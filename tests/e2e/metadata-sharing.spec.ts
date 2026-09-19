@@ -131,6 +131,21 @@ test('loaded character metadata and copied links use the returned nickname and c
   }
 });
 
+test('searching the displayed default character updates the new nickname URL metadata', async ({
+  page,
+}) => {
+  await configureCharacter(page, '깽미니');
+  await page.goto('./');
+  await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toContainText('깽미니');
+  await expect(page).toHaveTitle(SITE_TITLE);
+  await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
+  await page.getByRole('dialog').getByRole('textbox').first().fill('깽미니');
+  await page.getByRole('button', { name: '캐릭터 불러오기', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page).toHaveTitle('이세계의 깽미니로 강화하기 | 이세계 직작');
+  expect(new URL(page.url()).searchParams.get('character')).toBe('깽미니');
+});
+
 test('clipboard denial leaves a selectable character share link with the current mode', async ({
   page,
 }) => {
