@@ -39,7 +39,7 @@ import type {
   WorkerResponse,
 } from './types';
 import { getCharacter, loadDefaultCharacter, mergeMissingBundledBonusMetadata } from './character';
-import { getSharedCharacter, resolveSharedApiBase } from './character/shared';
+import { getSharedCharacter, resolveSharedApiBase, seedSharedCharacter } from './character/shared';
 import {
   ABILITY_JOB_PRESETS,
   makeAbilityPresetGoal,
@@ -393,7 +393,16 @@ export default function App() {
             : null;
         const linkedName = getLinkedCharacter();
         let linkError = '';
-        if (linkedName && stored?.character.name !== linkedName) {
+        if (stored && apiBasePromise) {
+          void apiBasePromise.then((apiBase) => {
+            if (apiBase && !disposed) seedSharedCharacter(stored.character, apiBase);
+          });
+        }
+        if (
+          linkedName &&
+          getTabFromHash() !== 'abilityOptimizer' &&
+          stored?.character.name !== linkedName
+        ) {
           setName(linkedName);
           try {
             const apiBase = await apiBasePromise;
@@ -404,7 +413,7 @@ export default function App() {
             if (disposed) return;
             if (stored) archiveSession(stored.config, stored.state);
             adoptCharacter(next, rules, getModeFromHash(), 'black', false);
-            setMessage(`${next.name}의 최신 장비와 어빌리티를 불러왔어요.`);
+            setMessage(`${next.name}의 장비와 어빌리티를 불러왔어요.`);
             return;
           } catch (error) {
             if (disposed) return;
@@ -834,8 +843,8 @@ export default function App() {
     );
     replaceCharacterLink(next.name, isStandaloneTab(activeTab) ? activeTab : mode);
   }
-  async function searchCharacter(event: React.FormEvent) {
-    event.preventDefault();
+  async function searchCharacter(event?: React.FormEvent, refresh = false) {
+    event?.preventDefault();
     if (!searchReady || !name.trim() || (!sharedSearch && !apiKey.trim())) return;
     searchAbort.current?.abort();
     const controller = new AbortController();
@@ -844,12 +853,14 @@ export default function App() {
     setSearchError('');
     try {
       const next = sharedSearch
-        ? await getSharedCharacter(name.trim(), sharedApiBase!, controller.signal)
-        : await getCharacter(name.trim(), apiKey.trim(), controller.signal);
+        ? await getSharedCharacter(name.trim(), sharedApiBase!, controller.signal, { refresh })
+        : await getCharacter(name.trim(), apiKey.trim(), controller.signal, { refresh });
       if (controller.signal.aborted) return;
       adoptCharacter(next, data!, config!.mode, config!.cubeType);
       setSearchOpen(false);
-      setMessage(`${next.name}의 최신 장비와 어빌리티를 불러왔어요.`);
+      setMessage(
+        `${next.name}의 장비와 어빌리티를 불러왔어요. ${new Date(next.fetchedAt).toLocaleString('ko-KR')} 조회`,
+      );
     } catch (e) {
       if (!controller.signal.aborted)
         setSearchError(e instanceof Error ? e.message : '캐릭터를 불러오지 못했습니다.');
@@ -983,7 +994,7 @@ export default function App() {
     : 0n;
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${activeTab === 'abilityOptimizer' ? ' optimizer-shell' : ''}`}>
       <header className="site-header">
         <a
           className="brand"
@@ -1023,30 +1034,44 @@ export default function App() {
       </header>
       <main>
         <h1 className="sr-only">메이플스토리 통합 강화 시뮬레이터 — 이세계 직작</h1>
-        <section className="hero">
-          <FakeAdBanner onStarforce={() => switchTab('starforce')} />
-          <div className="character-tools">
-            <button className="character-card" onClick={openSearch} aria-label="캐릭터 검색 열기">
-              <div className="portrait-frame">
-                <Avatar character={character} />
-              </div>
-              <div>
-                <span className="small-label">함께 도전할 캐릭터</span>
-                <strong>
-                  {character.name} <Search size={14} />
-                </strong>
-                <small>
-                  {character.world} · Lv.{character.level} {character.job}
-                </small>
-              </div>
-              <ArrowRight size={17} />
-            </button>
-            <CharacterShareButton name={character.name} mode={activeTab} apiBase={sharedApiBase} />
-          </div>
-        </section>
+        {activeTab !== 'abilityOptimizer' && (
+          <section className="hero">
+            <FakeAdBanner onStarforce={() => switchTab('starforce')} />
+            <div className="character-tools">
+              <button className="character-card" onClick={openSearch} aria-label="캐릭터 검색 열기">
+                <div className="portrait-frame">
+                  <Avatar character={character} />
+                </div>
+                <div>
+                  <span className="small-label">함께 도전할 캐릭터</span>
+                  <strong>
+                    {character.name} <Search size={14} />
+                  </strong>
+                  <small>
+                    {character.world} · Lv.{character.level} {character.job}
+                  </small>
+                </div>
+                <ArrowRight size={17} />
+              </button>
+              <CharacterShareButton
+                name={character.name}
+                mode={activeTab}
+                apiBase={sharedApiBase}
+              />
+            </div>
+          </section>
+        )}
         <SimulatorNavigation activeTab={activeTab} onSelect={switchTab} />
         {activeTab === 'abilityOptimizer' ? (
-          <AbilityOptimizer key={character.name} character={character} data={data} />
+          <AbilityOptimizer
+            key={character.name}
+            character={character}
+            data={data}
+            apiBase={sharedApiBase}
+            searchReady={searchReady}
+            personalApiKey={apiKey}
+            linkedName={getLinkedCharacter()}
+          />
         ) : activeTab === 'bonusOptions' ? (
           <BonusOptionSimulator key={character.name} character={character} />
         ) : activeTab === 'starforce' ? (
@@ -2076,7 +2101,7 @@ export default function App() {
             </div>
           </div>
         )}
-        <Sources fetchedAt={character.fetchedAt} />
+        {activeTab !== 'abilityOptimizer' && <Sources fetchedAt={character.fetchedAt} />}
       </main>
       <footer className="site-footer">
         <div className="footer-brand">
@@ -2236,11 +2261,22 @@ export default function App() {
                   </>
                 )}
               </button>
+              <button
+                type="button"
+                className="text-button search-refresh"
+                disabled={
+                  !searchReady || searchBusy || !name.trim() || (!sharedSearch && !apiKey.trim())
+                }
+                onClick={() => void searchCharacter(undefined, true)}
+              >
+                최신 정보로 조회
+              </button>
             </form>
             <small className="modal-note">
-              최신 API 정보는 게임 반영까지 시간이 걸릴 수 있습니다.
+              같은 캐릭터는 5분간 조회 정보를 재사용해요. 변경했다면 최신 정보로 조회해 주세요.
               <br />
-              불러온 뒤에도 모든 시작 상태와 목표를 직접 수정할 수 있어요.
+              현재 정보: {new Date(character.fetchedAt).toLocaleString('ko-KR')} 조회 · API 반영에는
+              시간이 걸릴 수 있어요.
             </small>
           </section>
         </div>

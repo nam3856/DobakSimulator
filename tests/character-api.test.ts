@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { handleCharacterRequest, type CharacterApiEnv } from '../server/character-api.ts';
+import {
+  clearCharacterApiCache,
+  handleCharacterRequest,
+  type CharacterApiEnv,
+} from '../server/character-api.ts';
 import worker from '../server/worker.ts';
 
 const API_ORIGIN = 'https://character.example.workers.dev';
@@ -46,6 +50,7 @@ function mockNexon() {
 }
 
 afterEach(() => {
+  clearCharacterApiCache();
   vi.unstubAllGlobals();
   vi.useRealTimers();
 });
@@ -88,7 +93,59 @@ describe('shared character API', () => {
       '/maplestory/v1/character/ability',
     ]);
     await handleCharacterRequest(request(), environment());
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('reuses concurrent and recent lookups, preserving timestamps and independently setting CORS', async () => {
+    vi.useFakeTimers();
+    const fetchMock = mockNexon();
+    const env = { ...environment(), ALLOWED_ORIGINS: `${SITE_ORIGIN},https://other.example` };
+    const [first, second] = await Promise.all([
+      handleCharacterRequest(request(), env),
+      handleCharacterRequest(
+        request(undefined, { headers: { Origin: 'https://other.example' } }),
+        env,
+      ),
+    ]);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(first.headers.get('Access-Control-Allow-Origin')).toBe(SITE_ORIGIN);
+    expect(second.headers.get('Access-Control-Allow-Origin')).toBe('https://other.example');
+    const snapshot = await first.json();
+    expect(await second.json()).toEqual(snapshot);
+    await vi.advanceTimersByTimeAsync(299_999);
+    expect(await (await handleCharacterRequest(request(), env)).json()).toEqual(snapshot);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    await vi.advanceTimersByTimeAsync(1);
+    await handleCharacterRequest(request(), env);
     expect(fetchMock).toHaveBeenCalledTimes(8);
+    expect(env.CHAR_SEARCH_LIMITER?.limit).toHaveBeenCalledTimes(4);
+  });
+
+  it('bypasses completed cache explicitly, shares concurrent refreshes and invalidates a changed key', async () => {
+    const fetchMock = mockNexon();
+    await handleCharacterRequest(request(), environment());
+    await Promise.all([
+      handleCharacterRequest(request('/api/character?name=테스트&refresh=1'), environment()),
+      handleCharacterRequest(request('/api/character?name=테스트&refresh=1'), environment()),
+    ]);
+    expect(fetchMock).toHaveBeenCalledTimes(8);
+    await handleCharacterRequest(request(), { ...environment(), NEXON_API_KEY: 'changed-key' });
+    expect(fetchMock).toHaveBeenCalledTimes(12);
+    expect(fetchMock.mock.calls[8][1]?.headers).toEqual({ 'x-nxopen-api-key': 'changed-key' });
+  });
+
+  it('keeps origin checks and rate limits ahead of an existing cache hit', async () => {
+    const fetchMock = mockNexon();
+    await handleCharacterRequest(request(), environment());
+    const blocked = await handleCharacterRequest(
+      request(undefined, { headers: { Origin: 'https://evil.example' } }),
+      environment(),
+    );
+    expect(blocked.status).toBe(403);
+    const env = environment();
+    env.CHAR_SEARCH_LIMITER!.limit = vi.fn(async () => ({ success: false }));
+    expect((await handleCharacterRequest(request(), env)).status).toBe(429);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
   it('reports readiness without disclosing credentials or contacting Nexon', async () => {
@@ -112,6 +169,8 @@ describe('shared character API', () => {
     '?name=%20',
     '?name=테스트&name=다른이름',
     '?name=테스트&url=https://attacker.example',
+    '?name=테스트&refresh=0',
+    '?name=테스트&refresh=1&refresh=1',
     '?name=https://evil.test',
     '?name=../basic',
     '?name=테%00스트',

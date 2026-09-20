@@ -286,12 +286,79 @@ describe('ability acquisition and circulator strategy optimizer', () => {
       { ...line('a'), grade: 'unique' },
       { ...line('e'), grade: 'unique' },
     ]);
-    const result = optimizeAbilityCost(rules, { ...cfg, medalPrice: 0, circulatorPrice: 0 });
+    const result = optimizeAbilityCost(rules, {
+      ...cfg,
+      medalPrice: 0,
+      circulatorPrice: 0,
+      availableHonor: 999999999,
+    });
     expect(
-      result.strategies.every((row) => row.status === 'impossible' && row.totalCost === Infinity),
+      result.strategies.every(
+        (row) =>
+          row.status === 'impossible' &&
+          row.totalCost === Infinity &&
+          row.estimatedAdditionalHonor === Infinity &&
+          row.estimatedHonorPurchaseCost === Infinity,
+      ),
     ).toBe(true);
     expect(result.bestStrategyId).toBeUndefined();
   });
+
+  it('prices zero, partial, and sufficient available honor while retaining cached resource means', () => {
+    const rules = fixture(true);
+    const cfg = input([line('a', 2), line('b', 2), line('c')], 3);
+    const original = optimizeAbilityCost(rules, cfg);
+    expect(optimizeAbilityCost(rules, { ...cfg, availableHonor: 0 })).toEqual(original);
+    const attempts = 3 / (1 - (1 - 3 / 11) ** 3);
+    const partial = optimizeAbilityCost(rules, { ...cfg, availableHonor: 20 });
+    const keeper = partial.strategies.find((row) => row.id === 'keep-first-max')!;
+    expect(keeper.expectedHonor).toBeCloseTo(attempts * 40, 10);
+    expect(keeper.estimatedAdditionalHonor).toBeCloseTo(attempts * 40 - 20, 10);
+    expect(keeper.estimatedHonorPurchaseCost).toBeCloseTo(attempts * 40 - 20, 10);
+    expect(keeper.totalCost).toBeCloseTo(attempts * 55 - 20, 10);
+    const enough = optimizeAbilityCost(rules, { ...cfg, availableHonor: 999999999 });
+    for (const result of [partial, enough]) {
+      for (const row of result.strategies) {
+        const old = original.strategies.find((previous) => previous.id === row.id)!;
+        expect(row.expectedHonor).toBe(old.expectedHonor);
+        expect(row.expectedMeso).toBe(old.expectedMeso);
+        expect(row.expectedResets).toBe(old.expectedResets);
+        expect(row.expectedCirculators).toBe(old.expectedCirculators);
+      }
+    }
+    for (const row of enough.strategies) {
+      expect(row.estimatedAdditionalHonor).toBe(0);
+      expect(row.estimatedHonorPurchaseCost).toBe(0);
+      expect(row.totalCost).toBe(row.expectedMeso + row.expectedCirculators * cfg.circulatorPrice);
+    }
+    // Repricing does not change the stored zero-balance result or pollute later calls.
+    expect(optimizeAbilityCost(rules, cfg)).toEqual(original);
+  });
+
+  it('can prefer a reset strategy over circulation after accounting for existing honor', () => {
+    const rules = fixture(true);
+    const cfg = input([line('a', 2), line('b', 2), line('c')]);
+    const buyingHonor = optimizeAbilityCost(rules, cfg);
+    const usingHonor = optimizeAbilityCost(rules, { ...cfg, availableHonor: 999999999 });
+    expect(buyingHonor.bestStrategyId).toBe('current-types-circulator');
+    expect(usingHonor.bestStrategyId).not.toBe(buyingHonor.bestStrategyId);
+    expect(usingHonor.strategies[0].expectedCirculators).toBe(0);
+    expect(usingHonor.strategies[0].totalCost).toBeLessThan(
+      usingHonor.strategies.find((row) => row.id === 'current-types-circulator')!.totalCost,
+    );
+  });
+
+  it.each([-1, 0.5, 1000000000, NaN, Infinity, -Infinity, null, '5000'])(
+    'rejects invalid available honor %s before reusing a cached calculation',
+    (availableHonor) => {
+      const rules = fixture();
+      const cfg = input();
+      optimizeAbilityCost(rules, cfg);
+      expect(() =>
+        optimizeAbilityCost(rules, { ...cfg, availableHonor: availableHonor as number }),
+      ).toThrow('보유 명성치');
+    },
+  );
 
   it.each([1, 3] as const)(
     'matches an independent ordered reset model with %i comparisons and each first-acceptance subset',
@@ -412,6 +479,72 @@ describe('ability acquisition and circulator strategy optimizer', () => {
     expect(() => optimizeAbilityCost(rules, { ...input(), circulatorPrice: -1 })).toThrow('가격');
     expect(() => optimizeAbilityCost(rules, { ...input(), targetTypes: ['a', 'a', 'c'] })).toThrow(
       '서로 다른',
+    );
+  });
+
+  it('describes first-lock alternatives with actual option names and explicit acquisition policies', () => {
+    const rules = fixture(true);
+    const labels = ['공격력 증가', '보스 데미지 증가', '상태 이상 데미지 증가'];
+    for (const [index, label] of labels.entries())
+      rules.ability.grades.legendary!.options[index].label = label;
+    const result = optimizeAbilityCost(rules, input([line('d'), line('e', 2), line('a')]));
+    expect(result.strategies).toHaveLength(21);
+    const names = {
+      direct: '재설정만으로 세 줄 완성',
+      lower: '아랫줄 두 줄부터 서큘레이터로 완성',
+      all: '세 종류를 갖춘 뒤 서큘레이터로 완성',
+    };
+    for (const row of result.strategies) {
+      const timing = row.id.split('-')[0] as keyof typeof names;
+      const mask = Number(row.id.split('-')[1]);
+      const accepted = ['a', 'b', 'c'].filter((_, index) => mask & (1 << index));
+      expect(row.policy).toEqual({ kind: 'acquire', timing, firstAcceptedTargets: accepted });
+      expect(row.name).toBe(names[timing]);
+      expect([row.name, row.description, ...row.steps].join(' ')).not.toMatch(/[ABC]/);
+      if (accepted.length === 3) expect(row.steps[0]).toContain('목표 옵션 중 무엇이든');
+      else {
+        for (const [index, label] of labels.entries()) {
+          if (mask & (1 << index)) expect(row.steps[0]).toContain(label);
+          else expect(row.steps[0]).not.toContain(label);
+        }
+        if (accepted.length > 1) expect(row.steps[0]).toContain(' 또는 ');
+      }
+      if (timing === 'direct') expect(row.steps[0]).toContain('레전드리 최대치');
+      else {
+        expect(row.steps[0]).toContain('수치와 무관하게');
+        expect(row.steps[0]).not.toContain('최대치');
+        expect(row.steps.some((step) => step.includes('필요하면 심연의 서큘레이터'))).toBe(true);
+      }
+    }
+  });
+
+  it('distinguishes current-type and first-line policies without claiming a fixed passive value changes', () => {
+    const rules = fixture(true);
+    const passive = rules.ability.grades.legendary!.options[4];
+    passive.id = 'passive';
+    passive.type = 'passiveSkillLevel';
+    passive.label = '패시브 스킬 레벨 증가';
+    passive.values = [{ value: 1, label: '패시브 스킬 레벨 1 증가', weight: 1 }];
+    const result = optimizeAbilityCost(rules, {
+      ...input([line('passiveSkillLevel'), line('b'), line('c')]),
+      targetTypes: ['passiveSkillLevel', 'b', 'c'],
+    });
+    expect(result.strategies).toHaveLength(16);
+    const current = result.strategies.find((row) => row.id === 'current-types-circulator')!;
+    expect(current.policy).toEqual({ kind: 'current-types' });
+    expect(current.name).toBe('지금 옵션 그대로, 수치만 완성');
+    expect(current.description).toContain('이미 목표 세 종류가 모두 레전드리');
+    expect(current.steps.join(' ')).toContain('값이 하나뿐인 옵션은 그대로 유지');
+    expect(current.expectedResets).toBe(0);
+    expect(current.expectedCirculators).toBeCloseTo((1 - 0.75 * 0.25) / (0.25 * 0.75), 12);
+    const keeper = result.strategies.find((row) => row.id === 'keep-first-max')!;
+    expect(keeper.policy).toEqual({ kind: 'keep-first', targetType: 'passiveSkillLevel' });
+    expect(keeper.name).toBe('완성된 첫 줄을 잠그고 나머지 완성');
+    expect(keeper.description).toContain('패시브 스킬 레벨 1 증가');
+    expect(keeper.steps[0]).toContain('패시브 스킬 레벨 1 증가');
+    expect(keeper.expectedCirculators).toBe(0);
+    expect(result.notes.join(' ')).toContain(
+      '값이 하나뿐인 옵션은 서큘레이터를 사용해도 수치가 바뀌지 않습니다',
     );
   });
 

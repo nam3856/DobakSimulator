@@ -1,8 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { getSharedCharacter, resolveSharedApiBase, validateApiBase } from '../src/character/shared';
+import {
+  clearSharedCharacterCache,
+  getSharedCharacter,
+  resolveSharedApiBase,
+  seedSharedCharacter,
+  validateApiBase,
+} from '../src/character/shared';
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  clearSharedCharacterCache();
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
 describe('shared character search client', () => {
   it('uses only a nickname query and no key or credentials', async () => {
     const character = JSON.parse(
@@ -18,6 +28,46 @@ describe('shared character search client', () => {
     expect(url.searchParams.get('name')).toBe('깽미니');
     expect(request.credentials).toBe('omit');
     expect(request.headers).toBeUndefined();
+  });
+  it('reuses fresh snapshots across callers, isolates API servers and sends explicit refresh', async () => {
+    const character = JSON.parse(
+      readFileSync(new URL('../public/character/snapshot.json', import.meta.url), 'utf8'),
+    );
+    character.fetchedAt = new Date().toISOString();
+    const storage = new Map<string, string>();
+    vi.stubGlobal('sessionStorage', {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+    });
+    const fetchMock = vi.fn(async () => Response.json(character));
+    vi.stubGlobal('fetch', fetchMock);
+    const first = await getSharedCharacter('깽미니', 'https://one.example/api/');
+    first.abilityPresets['1'].lines = [];
+    const next = await getSharedCharacter(' 깽미니 ', 'https://one.example/api/');
+    expect(next.abilityPresets['1'].lines).toHaveLength(3);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect([...storage.values()].join()).toContain('깽미니');
+    await getSharedCharacter('깽미니', 'https://two.example/api/');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await getSharedCharacter('깽미니', 'https://one.example/api/', undefined, { refresh: true });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect((fetchMock.mock.calls[2] as unknown as [URL])[0].searchParams.get('refresh')).toBe('1');
+  });
+  it('seeds only recent imported characters and does not extend the original lookup timestamp', async () => {
+    vi.useFakeTimers();
+    const character = JSON.parse(
+      readFileSync(new URL('../public/character/snapshot.json', import.meta.url), 'utf8'),
+    );
+    character.fetchedAt = new Date(Date.now() - 290_000).toISOString();
+    character.bundledAvatars = false;
+    const fetchMock = vi.fn(async () => Response.json(character));
+    vi.stubGlobal('fetch', fetchMock);
+    seedSharedCharacter(character, 'https://one.example/api/');
+    await getSharedCharacter('깽미니', 'https://one.example/api/');
+    expect(fetchMock).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(10_000);
+    await getSharedCharacter('깽미니', 'https://one.example/api/');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
   it('supports a deploy address and local server detection without persisting secrets', async () => {
     vi.stubGlobal(

@@ -1,4 +1,13 @@
-import { CharacterApiError, getCharacter } from '../src/character/client.ts';
+import { CharacterApiError, fetchCharacter } from '../src/character/client.ts';
+import { CharacterLookupCache } from '../src/character/lookup-cache.ts';
+
+const characterCache = new CharacterLookupCache(100);
+let cacheCredential = '';
+
+export function clearCharacterApiCache() {
+  characterCache.clear();
+  cacheCredential = '';
+}
 
 export interface CharacterRateLimiter {
   limit(options: { key: string }): Promise<{ success: boolean }>;
@@ -88,10 +97,13 @@ export async function handleCharacterRequest(
   if (url.pathname === '/api/health') return json({ configured });
 
   const names = url.searchParams.getAll('name');
+  const refresh = url.searchParams.getAll('refresh');
   const nickname = names[0]?.trim() ?? '';
   if (
     names.length !== 1 ||
-    [...url.searchParams.keys()].some((name) => name !== 'name') ||
+    refresh.length > 1 ||
+    (refresh.length === 1 && refresh[0] !== '1') ||
+    [...url.searchParams.keys()].some((name) => !['name', 'refresh'].includes(name)) ||
     [...nickname].length > 20 ||
     !/^[\p{L}\p{N}]+$/u.test(nickname)
   )
@@ -124,9 +136,18 @@ export async function handleCharacterRequest(
   }
 
   try {
-    // getCharacter owns a 20-second timeout and calls only the four fixed Nexon endpoints.
-    // Each search fetches the newest available data; no server or browser cache is used.
-    const snapshot = await getCharacter(nickname, key, request.signal);
+    if (cacheCredential !== key) {
+      characterCache.clear();
+      cacheCredential = key;
+    }
+    // Cache normalized data only: response headers/CORS always belong to this request.
+    // The upstream lookup owns a 20-second timeout and four fixed Nexon endpoints.
+    const snapshot = await characterCache.get(
+      nickname,
+      (signal) => fetchCharacter(nickname, key, signal),
+      request.signal,
+      { refresh: refresh[0] === '1' },
+    );
     return json(snapshot);
   } catch (error) {
     if (request.signal.aborted)

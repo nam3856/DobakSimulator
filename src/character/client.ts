@@ -1,5 +1,6 @@
 import type { CharacterSnapshot } from '../types.ts';
 import { normalizeCharacter } from './normalize.ts';
+import { CharacterLookupCache, type CharacterLookupOptions } from './lookup-cache.ts';
 
 const BASE = 'https://open.api.nexon.com/maplestory/v1';
 const ERROR_MESSAGES: Record<string, string> = {
@@ -32,8 +33,33 @@ export class CharacterApiError extends Error {
   }
 }
 
-/** The key stays in this call's memory and is sent only in the Nexon header. */
+const personalCache = new CharacterLookupCache(5);
+
+/** Personal credentials and their bounded cache stay only in this process's memory. */
 export async function getCharacter(
+  name: string,
+  key: string,
+  signal?: AbortSignal,
+  options: CharacterLookupOptions = {},
+): Promise<CharacterSnapshot> {
+  const nickname = name.trim();
+  const apiKey = key.trim();
+  if (!nickname) throw new Error('캐릭터 닉네임을 입력해 주세요.');
+  if (!apiKey || /[^\x21-\x7e]/.test(apiKey)) throw new Error('API 키를 올바르게 입력해 주세요.');
+  return personalCache.get(
+    JSON.stringify([apiKey, nickname]),
+    (requestSignal) => fetchCharacter(nickname, apiKey, requestSignal),
+    signal,
+    options,
+  );
+}
+
+export function clearPersonalCharacterCache() {
+  personalCache.clear();
+}
+
+/** Uncached fixed-endpoint lookup; the server applies its own bounded cache around this. */
+export async function fetchCharacter(
   name: string,
   key: string,
   signal?: AbortSignal,

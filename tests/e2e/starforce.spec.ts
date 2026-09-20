@@ -16,7 +16,8 @@ test.beforeEach(async ({ page }) => {
     route.fulfill({ json: { characterApiBaseUrl: '' } }),
   );
   await page.addInitScript(() => {
-    Math.random = () => 0;
+    // The second equal quarter selects the Star Force banner; enhancement draws use crypto below.
+    Math.random = () => 0.375;
     const random = Number(new URL(location.href).searchParams.get('draw') ?? '0');
     crypto.getRandomValues = <T extends ArrayBufferView | null>(array: T): T => {
       (array as unknown as Uint32Array).fill(Math.floor(random * 4294967296));

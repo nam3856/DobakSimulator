@@ -1,4 +1,33 @@
 import type { CharacterSnapshot } from '../types';
+import {
+  CharacterLookupCache,
+  isCharacterSnapshot,
+  type CharacterLookupOptions,
+} from './lookup-cache';
+
+const CACHE_KEY = 'isekai:character-cache:v1';
+const sharedCache = new CharacterLookupCache(
+  5,
+  {
+    read: () => JSON.parse(sessionStorage.getItem(CACHE_KEY) ?? 'null'),
+    write: (entries) => sessionStorage.setItem(CACHE_KEY, JSON.stringify(entries)),
+  },
+  false,
+);
+
+function lookupKey(name: string, apiBase: string) {
+  return JSON.stringify([validateApiBase(apiBase, apiBase), name.trim()]);
+}
+
+/** Reuse an already loaded full snapshot without resetting any simulator's paid state. */
+export function seedSharedCharacter(character: CharacterSnapshot, apiBase: string) {
+  if (character.bundledAvatars) return;
+  sharedCache.seed(lookupKey(character.name, apiBase), character);
+}
+
+export function clearSharedCharacterCache() {
+  sharedCache.clear();
+}
 
 /** Public server address only. The shared Nexon key is never a browser input. */
 export function validateApiBase(value: string, pageBase: string): string {
@@ -57,9 +86,26 @@ export async function getSharedCharacter(
   name: string,
   apiBase: string,
   signal?: AbortSignal,
+  options: CharacterLookupOptions = {},
+): Promise<CharacterSnapshot> {
+  const base = validateApiBase(apiBase, apiBase);
+  return sharedCache.get(
+    lookupKey(name, base),
+    (requestSignal) => fetchSharedCharacter(name, base, requestSignal, options),
+    signal,
+    options,
+  );
+}
+
+async function fetchSharedCharacter(
+  name: string,
+  apiBase: string,
+  signal: AbortSignal,
+  options: CharacterLookupOptions,
 ): Promise<CharacterSnapshot> {
   const url = new URL('character', apiBase);
   url.searchParams.set('name', name.trim());
+  if (options.refresh) url.searchParams.set('refresh', '1');
   const timeout = AbortSignal.timeout(25_000);
   const requestSignal = signal ? AbortSignal.any([signal, timeout]) : timeout;
   let response: Response;
@@ -90,22 +136,8 @@ export async function getSharedCharacter(
       '공용 검색을 잠시 사용할 수 없습니다. 잠시 후 다시 시도하거나 개인 API 키를 사용해 주세요.',
     );
   }
-  const character = body as CharacterSnapshot | null;
-  if (
-    !character ||
-    typeof character.name !== 'string' ||
-    !character.name ||
-    !character.profile ||
-    !Array.isArray(character.profile.mainStats) ||
-    !character.equipmentPresets ||
-    !character.abilityPresets ||
-    !['1', '2', '3'].every(
-      (p) =>
-        Array.isArray(character.equipmentPresets[p]) &&
-        Array.isArray(character.abilityPresets[p]?.lines),
-    )
-  ) {
+  if (!isCharacterSnapshot(body)) {
     throw new Error('공용 검색에서 올바른 캐릭터 정보를 받지 못했습니다.');
   }
-  return { ...character, bundledAvatars: false };
+  return { ...body, bundledAvatars: false };
 }

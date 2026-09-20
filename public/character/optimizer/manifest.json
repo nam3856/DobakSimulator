@@ -1,0 +1,41 @@
+{
+  "fetchedAt": "2026-09-20T18:13:10.275Z",
+  "source": "https://openapi.nexon.com/ko/support/notice/2715682/",
+  "action": "walk1",
+  "imageSize": {
+    "width": 300,
+    "height": 300
+  },
+  "frameOrder": [
+    1,
+    2,
+    3,
+    2
+  ],
+  "characters": [
+    {
+      "name": "깽미니",
+      "frames": [
+        "kkangmini/walk-1.png",
+        "kkangmini/walk-2.png",
+        "kkangmini/walk-3.png"
+      ]
+    },
+    {
+      "name": "깽쿤",
+      "frames": [
+        "kkangkun/walk-1.png",
+        "kkangkun/walk-2.png",
+        "kkangkun/walk-3.png"
+      ]
+    },
+    {
+      "name": "렌내여친임",
+      "frames": [
+        "rennae/walk-1.png",
+        "rennae/walk-2.png",
+        "rennae/walk-3.png"
+      ]
+    }
+  ]
+}

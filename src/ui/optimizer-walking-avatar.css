@@ -1,0 +1,40 @@
+.optimizer-walking-avatar {
+  position: relative;
+  width: 240px;
+  height: 200px;
+  max-width: 100%;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+.optimizer-walk-frame,
+.optimizer-walk-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  max-width: none;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.optimizer-walk-frame {
+  visibility: hidden;
+}
+
+.optimizer-walk-frame[data-visible='true'] {
+  visibility: visible;
+}
+
+.optimizer-walk-placeholder {
+  position: absolute;
+  inset: 35px 55px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 36px;
+}

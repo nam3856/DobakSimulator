@@ -1,0 +1,180 @@
+.optimizer-wizard.optimizer-intro {
+  min-height: 0;
+  display: block;
+}
+
+.optimizer-wizard .optimizer-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+  padding: 20px 16px 28px;
+  text-align: center;
+}
+
+.optimizer-intro-portrait {
+  position: relative;
+  width: 128px;
+  height: 120px;
+  flex-shrink: 0;
+  overflow: hidden;
+  margin-bottom: 16px;
+  border-radius: 36px;
+  background: radial-gradient(ellipse at 50% 65%, var(--accent-wash), transparent 72%);
+}
+
+.optimizer-intro-portrait::after {
+  content: '';
+  position: absolute;
+  width: 66px;
+  height: 6px;
+  bottom: 14px;
+  left: calc(50% - 33px);
+  border-radius: 50%;
+  background: var(--accent-wash);
+}
+
+.optimizer-intro-portrait img {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  max-width: none;
+  transform: translate(-50%, -55%);
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.optimizer-intro-placeholder {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  font-size: 36px;
+  color: var(--accent);
+}
+
+.optimizer-wizard .optimizer-intro-title {
+  margin: 0;
+  font-size: 31px;
+  line-height: 1.35;
+  letter-spacing: -0.045em;
+  font-weight: 750;
+}
+
+.optimizer-intro-title > span {
+  display: block;
+}
+
+.optimizer-intro-description {
+  max-width: 350px;
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+.optimizer-intro-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  list-style: none;
+  margin: 25px 0 0;
+  padding: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.optimizer-intro-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.optimizer-intro-steps svg {
+  flex-shrink: 0;
+  color: var(--faint);
+}
+
+.optimizer-intro-action {
+  width: min(100%, 320px);
+  margin-top: 28px;
+}
+
+.optimizer-wizard .optimizer-intro .optimizer-start-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  justify-content: center;
+  font-size: 17px;
+}
+
+.optimizer-intro-portrait,
+.optimizer-intro-title,
+.optimizer-intro-description,
+.optimizer-intro-steps,
+.optimizer-intro-action {
+  animation: optimizer-content-in 280ms var(--optimizer-motion-ease) both;
+}
+
+.optimizer-intro-portrait {
+  animation-delay: 25ms;
+}
+
+.optimizer-intro-title {
+  animation-delay: 50ms;
+}
+
+.optimizer-intro-description {
+  animation-delay: 75ms;
+}
+
+.optimizer-intro-steps {
+  animation-delay: 100ms;
+}
+
+.optimizer-intro-action {
+  animation-delay: 125ms;
+}
+
+@media (max-width: 640px) {
+  .optimizer-wizard .optimizer-intro {
+    padding: 6px 12px 20px;
+  }
+
+  .optimizer-intro-portrait {
+    margin-bottom: 12px;
+  }
+
+  .optimizer-wizard .optimizer-intro-title {
+    font-size: 27px;
+  }
+
+  .optimizer-intro-description {
+    margin-top: 14px;
+    font-size: 13px;
+  }
+
+  .optimizer-intro-steps {
+    margin-top: 21px;
+    font-size: 11px;
+  }
+
+  .optimizer-intro-action {
+    margin-top: 24px;
+  }
+
+  .optimizer-wizard .optimizer-intro .optimizer-start-button {
+    min-height: 52px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .optimizer-wizard .optimizer-intro > * {
+    animation: none;
+  }
+}

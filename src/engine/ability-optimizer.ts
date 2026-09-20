@@ -1,4 +1,5 @@
 import type { OptionLine, SimulationConfig } from '../types';
+import { abilityKindLabel } from './ability-labels';
 import {
   allCandidates,
   eligibleCandidates,
@@ -15,14 +16,26 @@ export interface AbilityOptimizerInput {
   targetTypes: [string, string, string];
   medalPrice: number;
   circulatorPrice: number;
+  availableHonor?: number;
   batchSize: 1 | 3;
 }
+export type AbilityOptimizerPolicy =
+  | {
+      kind: 'acquire';
+      timing: 'direct' | 'lower' | 'all';
+      firstAcceptedTargets: string[];
+    }
+  | { kind: 'current-types' }
+  | { kind: 'keep-first'; targetType: string };
 export interface AbilityOptimizerStrategyResult {
   id: string;
+  policy: AbilityOptimizerPolicy;
   name: string;
   description: string;
   expectedMeso: number;
   expectedHonor: number;
+  estimatedAdditionalHonor: number;
+  estimatedHonorPurchaseCost: number;
   expectedResets: number;
   expectedCirculators: number;
   totalCost: number;
@@ -35,6 +48,10 @@ export interface AbilityOptimizerResult {
   notes: string[];
 }
 type Timing = 'direct' | 'lower' | 'all';
+type UnpricedStrategy = Omit<
+  AbilityOptimizerStrategyResult,
+  'estimatedAdditionalHonor' | 'estimatedHonorPurchaseCost'
+>;
 interface Cost {
   resets: number;
   honor: number;
@@ -55,7 +72,7 @@ interface Phase {
   groups?: Group[];
   means: Map<number, Cost>;
 }
-const calculationCache = new WeakMap<RuleData, Map<string, AbilityOptimizerStrategyResult[]>>();
+const calculationCache = new WeakMap<RuleData, Map<string, UnpricedStrategy[]>>();
 const zero = (): Cost => ({ resets: 0, honor: 0, meso: 0, circulators: 0 });
 const impossible = (): Cost => ({
   resets: Infinity,
@@ -70,9 +87,10 @@ function add(target: Cost, value: Cost, weight = 1) {
 }
 
 function pricedResult(
-  rows: AbilityOptimizerStrategyResult[],
+  rows: UnpricedStrategy[],
   input: AbilityOptimizerInput,
 ): AbilityOptimizerResult {
+  const availableHonor = input.availableHonor ?? 0;
   const strategies = rows
     .map((row) => {
       const finite = [
@@ -81,13 +99,19 @@ function pricedResult(
         row.expectedResets,
         row.expectedCirculators,
       ].every(Number.isFinite);
+      const estimatedAdditionalHonor = Math.max(0, row.expectedHonor - availableHonor);
+      const estimatedHonorPurchaseCost = Number.isFinite(estimatedAdditionalHonor)
+        ? (estimatedAdditionalHonor / 5000) * input.medalPrice
+        : Infinity;
       const totalCost = finite
         ? row.expectedMeso +
-          (row.expectedHonor / 5000) * input.medalPrice +
+          estimatedHonorPurchaseCost +
           row.expectedCirculators * input.circulatorPrice
         : Infinity;
       return {
         ...row,
+        estimatedAdditionalHonor,
+        estimatedHonorPurchaseCost,
         totalCost,
         status:
           row.status === 'already'
@@ -106,7 +130,9 @@ function pricedResult(
       '목표는 세 옵션 모두 레전드리 최대치이며 최종 줄 순서는 무관합니다. 목표 전체를 완성한 결과는 먼저 채택합니다.',
       '3회 비교는 같은 잠금에서 세 번 모두 과금합니다. 성공 또는 다음 단계 우선, 같은 단계는 먼저 나온 결과를 채택합니다.',
       '심연의 서큘레이터는 등급·종류를 유지하고 세 줄 수치를 함께 다시 뽑으며, 전체 동일 결과를 제외하고 미달 결과는 보관하지 않습니다.',
-      '명성치는 필요한 기댓값을 5,000으로 나눈 훈장 환산 수량으로 계산합니다. 이미 확보한 시작 옵션의 준비 비용은 포함하지 않습니다.',
+      '패시브 스킬 레벨 +1처럼 나올 수 있는 값이 하나뿐인 옵션은 서큘레이터를 사용해도 수치가 바뀌지 않습니다. 이미 필요한 수치가 완성된 단계는 건너뜁니다.',
+      '명성치 구매비는 평균 필요 명성치에서 보유 명성치를 뺀 부족분을 5,000당 훈장 단가로 환산한 추정치입니다. 보유량이 평균 이상이어도 실제 도전에서 추가 구매가 필요할 수 있습니다.',
+      '추정 구매비는 매 도전의 실제 부족분을 평균 낸 정확한 기댓값이 아닙니다. 이미 확보한 시작 옵션의 준비 비용은 포함하지 않습니다.',
     ],
   };
 }
@@ -128,6 +154,9 @@ export function optimizeAbilityCost(
     )
   )
     throw new Error('아이템 가격은 0 이상의 안전한 숫자로 입력해 주세요.');
+  const availableHonor = input.availableHonor === undefined ? 0 : input.availableHonor;
+  if (!Number.isInteger(availableHonor) || availableHonor < 0 || availableHonor > 999999999)
+    throw new Error('보유 명성치는 0부터 999,999,999까지의 정수로 입력해 주세요.');
   const cacheKey = JSON.stringify({
     start: input.start,
     targetTypes: input.targetTypes,
@@ -336,15 +365,16 @@ export function optimizeAbilityCost(
     repeatCache.set(key, probability);
     return probability;
   };
-  const outputs: AbilityOptimizerStrategyResult[] = [];
+  const outputs: UnpricedStrategy[] = [];
   const currentTypesNeedCirculation = allTypes(start) && !complete(start);
   if (currentTypesNeedCirculation) {
     const expectedCirculators = circulation(start, [0, 1, 2]);
     outputs.push({
       id: 'current-types-circulator',
-      name: '현재 세 종류 유지 · 서큘레이터로 최대치',
+      policy: { kind: 'current-types' },
+      name: '지금 옵션 그대로, 수치만 완성',
       description:
-        '현재 레전드리 목표 세 종류를 유지하고 심연의 서큘레이터만 사용합니다. 이미 최대치인 줄도 함께 다시 뽑으며, 미달 결과는 채택하지 않고 기존 전체 옵션을 보관합니다.',
+        '이미 목표 세 종류가 모두 레전드리이므로 종류를 다시 뽑지 않고, 심연의 서큘레이터로 수치만 완성합니다.',
       expectedMeso: 0,
       expectedHonor: 0,
       expectedResets: 0,
@@ -352,10 +382,10 @@ export function optimizeAbilityCost(
       totalCost: 0,
       status: Number.isFinite(expectedCirculators) ? 'ready' : 'impossible',
       steps: [
-        '현재 레전드리 세 종류 유지',
-        '심연의 서큘레이터로 세 줄 수치를 함께 재설정 · 이미 최대치인 줄도 함께 변경',
-        '미달 결과는 채택하지 않고 기존 전체 옵션 보관',
-        '세 줄 모두 최대치인 결과 채택',
+        '현재 레전드리 목표 세 종류를 그대로 유지합니다.',
+        '심연의 서큘레이터로 세 줄의 수치를 함께 다시 뽑습니다. 값이 하나뿐인 옵션은 그대로 유지됩니다.',
+        '목표에 못 미치는 결과는 채택하지 않고 기존 세 줄을 보관합니다.',
+        '세 줄 모두 목표 최대치인 결과를 채택합니다.',
       ],
     });
   }
@@ -536,13 +566,22 @@ export function optimizeAbilityCost(
         const progress = classify(start, initial);
         expected = progress ? progress.future() : mean(initial, repeatProbability(initial, start));
       }
-      const accepted = ['A', 'B', 'C'].filter((_, index) => mask & (1 << index)).join('·');
-      const timingLabel =
+      const accepted = targets.filter((_, index) => mask & (1 << index));
+      const firstOptions = accepted
+        .map((target) => abilityKindLabel(target.option.label))
+        .join(' 또는 ');
+      const name =
         timing === 'direct'
-          ? '처음부터 최대치'
+          ? '재설정만으로 세 줄 완성'
           : timing === 'lower'
-            ? '보조 두 줄 확보 후 서큘레이터'
-            : '세 종류 확보 후 서큘레이터';
+            ? '아랫줄 두 줄부터 서큘레이터로 완성'
+            : '세 종류를 갖춘 뒤 서큘레이터로 완성';
+      const description =
+        timing === 'direct'
+          ? '고급 재설정으로 둘째·셋째 줄을 목표 최대치로 하나씩 잠근 뒤, 첫 줄을 완성합니다.'
+          : timing === 'lower'
+            ? '레전드리 아랫줄 두 종류를 확보하고 서큘레이터로 수치를 맞춘 뒤, 두 줄을 잠그고 첫 줄을 완성합니다.'
+            : '레전드리 목표 세 종류를 먼저 갖춘 뒤, 심연의 서큘레이터로 세 줄의 수치를 함께 완성합니다.';
       const totalCost =
         expected.meso +
         (expected.honor / 5000) * input.medalPrice +
@@ -554,8 +593,13 @@ export function optimizeAbilityCost(
           : 'impossible';
       outputs.push({
         id: `${timing}-${mask}`,
-        name: `${accepted} 먼저 · ${timingLabel}`,
-        description: `첫 보조 줄은 ${accepted}${accepted.length === 1 ? '를' : ' 중 하나를'} 2·3번째 줄에 확보합니다. 이후 다른 목표를 보조 줄에 잠그고 남은 목표를 첫 줄에 완성합니다.`,
+        policy: {
+          kind: 'acquire',
+          timing,
+          firstAcceptedTargets: accepted.map((target) => target.type),
+        },
+        name,
+        description,
         expectedMeso: expected.meso,
         expectedHonor: expected.honor,
         expectedResets: expected.resets,
@@ -563,13 +607,21 @@ export function optimizeAbilityCost(
         totalCost,
         status,
         steps: [
-          `2·3번째 줄에서 ${accepted} 확보`,
-          '해당 줄 잠금 후 다른 목표 보조 줄 확보',
+          `둘째·셋째 줄에서 ${accepted.length === 3 ? '목표 옵션 중 무엇이든' : `${firstOptions}${accepted.length === 1 ? ' 옵션을' : ' 중 하나를'}`} ${timing === 'direct' ? '레전드리 최대치로 확보하고' : '레전드리로 확보하면 수치와 무관하게'} 잠급니다.`,
+          `잠근 줄을 유지하면서 다른 목표 아랫줄도 ${timing === 'direct' ? '레전드리 최대치로' : '레전드리로'} 확보합니다. 한 결과에 목표 아랫줄 두 개가 있으면 함께 확보할 수 있습니다.`,
           ...(timing === 'lower'
-            ? ['서큘레이터로 보조 두 줄 최대치', '보조 두 줄 잠금 후 남은 첫 줄 최대치']
+            ? [
+                '필요하면 심연의 서큘레이터로 세 줄 수치를 함께 다시 뽑아, 두 아랫줄이 모두 최대치인 결과를 채택합니다.',
+                '완성된 아랫줄 두 개를 잠그고 고급 재설정으로 남은 첫 줄을 목표 최대치로 맞춥니다.',
+              ]
             : timing === 'all'
-              ? ['보조 두 줄 잠금 후 남은 첫 줄 종류 확보', '서큘레이터로 세 줄 최대치']
-              : ['처음부터 최대치만 채택·잠금', '보조 두 줄 잠금 후 남은 첫 줄 최대치']),
+              ? [
+                  '아랫줄 두 개를 잠그고 고급 재설정으로 첫 줄에 남은 목표 종류를 확보합니다. 이때도 수치는 무관합니다.',
+                  '필요하면 심연의 서큘레이터로 세 줄 수치를 함께 다시 뽑아, 세 줄 모두 최대치인 결과를 채택합니다.',
+                ]
+              : [
+                  '완성된 아랫줄 두 개를 잠그고 고급 재설정으로 남은 첫 줄을 목표 최대치로 맞춥니다.',
+                ]),
         ],
       });
     }
@@ -579,9 +631,9 @@ export function optimizeAbilityCost(
       const expected = complete(start) ? zero() : mean(phase, repeatProbability(phase, start));
       outputs.push({
         id: 'keep-first-max',
-        name: '현재 첫 줄 최대치 유지 · 보조 줄 직접 최대치',
-        description:
-          '이미 목표 최대치인 첫 줄을 유지하고 두 보조 목표를 최대치로 순서대로 확보합니다.',
+        policy: { kind: 'keep-first', targetType: targets[targetIndex(start[0])].type },
+        name: '완성된 첫 줄을 잠그고 나머지 완성',
+        description: `현재 첫 줄의 '${targets[targetIndex(start[0])].best.label}' 옵션을 잠그고, 고급 재설정으로 나머지 아랫줄을 목표 최대치로 완성합니다.`,
         expectedMeso: expected.meso,
         expectedHonor: expected.honor,
         expectedResets: expected.resets,
@@ -589,9 +641,9 @@ export function optimizeAbilityCost(
         totalCost: 0,
         status: complete(start) ? 'already' : 'ready',
         steps: [
-          '현재 첫 줄 최대치 잠금',
-          '목표 보조 줄 하나를 최대치로 확보·추가 잠금',
-          '남은 보조 줄 최대치 완성',
+          `이미 완성된 첫 줄의 '${targets[targetIndex(start[0])].best.label}' 옵션을 잠급니다.`,
+          '목표 아랫줄 하나를 최대치로 확보해 함께 잠급니다. 이미 완성된 목표 아랫줄이 있다면 그대로 잠급니다.',
+          '고급 재설정으로 남은 아랫줄을 목표 최대치로 완성합니다.',
         ],
       });
     }

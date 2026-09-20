@@ -120,15 +120,30 @@ test('loaded character metadata and copied links use the returned nickname and c
     ['starforce', '스타포스'],
     ['bonusOptions', '추가옵션'],
     ['abilityOptimizer', '어빌리티 최적화'],
+    ['ability', '어빌리티'],
+    ['soulAmplification', '소울 증폭'],
+    ['soulPotential', '소울 잠재'],
   ]) {
     if (mode !== 'cube') await selectSimulator(page, label);
     const share = page.getByRole('button', { name: '캐릭터 공유 링크 복사', exact: true });
-    await expect(share).toBeVisible();
-    await share.click();
-    await expect.poll(() => lastCopiedLink(page)).toBe(expectedShareUrl(name, mode));
+    if (mode === 'abilityOptimizer') {
+      await expect(share).toHaveCount(0);
+      const optimizer = page.getByRole('region', { name: '어빌리티 최적화', exact: true });
+      await expect(optimizer.getByRole('button')).toHaveCount(1);
+      await expect(optimizer.getByRole('button', { name: '시작하기', exact: true })).toBeVisible();
+    } else {
+      await expect(share).toBeVisible();
+      await share.click();
+      await expect.poll(() => lastCopiedLink(page)).toBe(expectedShareUrl(name, mode));
+    }
     expect(new URL(page.url()).hash).toBe(`#${mode}`);
     expect(new URL(page.url()).searchParams.get('character')).toBe(name);
     await expect(page).toHaveTitle(`이세계의 ${name}으로 강화하기 | 이세계 직작`);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      'content',
+      new RegExp(`^이세계의 ${name}으로 강화하기`),
+    );
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', SITE_URL);
   }
 });
 

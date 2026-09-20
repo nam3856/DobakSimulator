@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 
 const EVENT_URL = 'https://maplestory.nexon.com/News/Event/Ongoing/1389';
+const AUCTION_URL = 'https://auction.maplestory.nexon.com/';
 
 const BANNERS = [
+  { file: 'ad-1.png', name: '메이플스토리 경매장' },
   { file: 'ad-2.png', name: '스타포스 지금 누르러 가기' },
   { file: 'ad-3.png', name: '메이플스토리 헬스장' },
   { file: 'ad-4.png', name: '메이플스토리 연애 시뮬레이터' },
@@ -36,7 +38,17 @@ const YOUTUBE_LINKS = [
   },
 ];
 
-function BannerImage({ src, name }: { src: string; name: string }) {
+function BannerImage({
+  src,
+  name,
+  width = 1028,
+  height = 382,
+}: {
+  src: string;
+  name: string;
+  width?: number;
+  height?: number;
+}) {
   const [failed, setFailed] = useState(false);
   return failed ? (
     <span className="fake-ad-fallback">배너 이미지를 불러오지 못했어요.</span>
@@ -44,8 +56,8 @@ function BannerImage({ src, name }: { src: string; name: string }) {
     <img
       src={src}
       alt={`${name} 패러디 광고`}
-      width={1028}
-      height={382}
+      width={width}
+      height={height}
       onError={() => setFailed(true)}
     />
   );
@@ -75,14 +87,26 @@ export function FakeAdBanner({ onStarforce }: { onStarforce: () => void }) {
   const bannerImage = (
     <BannerImage
       key={banner.file}
-      src={`${import.meta.env.BASE_URL}banners/${banner.file}`}
+      src={`${import.meta.env.BASE_URL}banners/${banner.file}${banner.file === 'ad-1.png' ? '?v=2' : ''}`}
       name={banner.name}
+      width={banner.file === 'ad-1.png' ? 2057 : 1028}
+      height={banner.file === 'ad-1.png' ? 764 : 382}
     />
   );
 
   return (
     <div className="hero-banner">
-      {banner.file === 'ad-4.png' ? (
+      {banner.file === 'ad-1.png' ? (
+        <a
+          className="fake-ad-banner"
+          href={AUCTION_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="메이플스토리 경매장 열기 (외부 링크, 새 탭)"
+        >
+          {bannerImage}
+        </a>
+      ) : banner.file === 'ad-4.png' ? (
         <div className="fake-ad-banner" role="group" aria-label={banner.name}>
           {bannerImage}
           {YOUTUBE_LINKS.map((link) => (

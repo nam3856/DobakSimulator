@@ -1,0 +1,200 @@
+/* Motion stays on transforms/opacity so every step keeps its settled geometry. */
+.optimizer-wizard {
+  --optimizer-enter-x: 12px;
+  --optimizer-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  animation: optimizer-step-in 240ms var(--optimizer-motion-ease) both;
+}
+
+.optimizer-wizard[data-direction='back'] {
+  --optimizer-enter-x: -12px;
+}
+
+.optimizer-wizard-heading,
+.optimizer-step-panel {
+  animation: optimizer-content-in 240ms var(--optimizer-motion-ease) both;
+}
+
+.optimizer-wizard-heading {
+  animation-delay: 20ms;
+}
+
+.optimizer-step-panel {
+  animation-delay: 45ms;
+}
+
+.optimizer-step-panel > .field,
+.optimizer-step-panel > form > .field,
+.optimizer-target-lines > .field,
+.optimizer-manual,
+.optimizer-start,
+.optimizer-start-status {
+  animation: optimizer-content-in 220ms var(--optimizer-motion-ease) 65ms both;
+}
+
+.optimizer-step-panel > .field:nth-child(2),
+.optimizer-target-lines > .field:nth-child(2) {
+  animation-delay: 95ms;
+}
+
+.optimizer-step-panel > .field:nth-child(3),
+.optimizer-target-lines > .field:nth-child(3) {
+  animation-delay: 125ms;
+}
+
+.optimizer-wizard .button,
+.optimizer-wizard .text-button,
+.optimizer-wizard summary {
+  transition:
+    transform 120ms var(--optimizer-motion-ease),
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease;
+}
+
+.optimizer-wizard .button:not(:disabled):active,
+.optimizer-wizard .text-button:not(:disabled):active,
+.optimizer-wizard summary:active {
+  transform: scale(0.985);
+}
+
+.optimizer-wizard .button:focus-visible,
+.optimizer-wizard .text-button:focus-visible,
+.optimizer-wizard summary:focus-visible {
+  box-shadow: 0 0 0 4px var(--accent-wash);
+}
+
+.optimizer-wizard .button .lucide-arrow-right,
+.optimizer-wizard .optimizer-back .lucide-arrow-left {
+  transition: transform 180ms var(--optimizer-motion-ease);
+}
+
+@media (hover: hover) {
+  .optimizer-wizard .button:not(:disabled):hover {
+    box-shadow: 0 3px 12px var(--accent-wash);
+  }
+
+  .optimizer-wizard .button:not(:disabled):hover .lucide-arrow-right {
+    transform: translateX(2px);
+  }
+
+  .optimizer-wizard .optimizer-back:hover .lucide-arrow-left {
+    transform: translateX(-2px);
+  }
+}
+
+.optimizer-wizard input,
+.optimizer-wizard select {
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.optimizer-wizard input:focus,
+.optimizer-wizard select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+
+.optimizer-wizard details[open] > .optimizer-strategy-detail,
+.optimizer-wizard details[open] > .optimizer-strategy-list,
+.optimizer-wizard details[open] > .field,
+.optimizer-wizard details[open] > ul,
+.optimizer-wizard details[open] > .optimizer-sources {
+  animation: optimizer-content-in 200ms var(--optimizer-motion-ease) both;
+}
+
+.optimizer-calculation > p,
+.optimizer-calculation > .optimizer-tip {
+  animation: optimizer-content-in 280ms var(--optimizer-motion-ease) 70ms both;
+}
+
+.optimizer-calculation > .optimizer-tip {
+  animation-delay: 110ms;
+}
+
+.optimizer-results > .optimizer-best {
+  animation: optimizer-result-in 350ms var(--optimizer-motion-ease) 35ms both;
+}
+
+.optimizer-results > .optimizer-comparison,
+.optimizer-results > .optimizer-notes {
+  animation: optimizer-content-in 280ms var(--optimizer-motion-ease) 90ms both;
+}
+
+.optimizer-strategy-list > .optimizer-strategy:nth-child(-n + 6) {
+  animation: optimizer-content-in 250ms var(--optimizer-motion-ease) both;
+}
+
+.optimizer-strategy-list > .optimizer-strategy:nth-child(2) {
+  animation-delay: 25ms;
+}
+
+.optimizer-strategy-list > .optimizer-strategy:nth-child(3) {
+  animation-delay: 50ms;
+}
+
+.optimizer-strategy-list > .optimizer-strategy:nth-child(4) {
+  animation-delay: 75ms;
+}
+
+.optimizer-strategy-list > .optimizer-strategy:nth-child(5) {
+  animation-delay: 100ms;
+}
+
+.optimizer-strategy-list > .optimizer-strategy:nth-child(6) {
+  animation-delay: 125ms;
+}
+
+@keyframes optimizer-step-in {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--optimizer-enter-x), 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes optimizer-content-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 5px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes optimizer-result-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 9px, 0) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .optimizer-wizard,
+  .optimizer-wizard *,
+  .optimizer-wizard *::before,
+  .optimizer-wizard *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  .optimizer-wizard .button:not(:disabled):active,
+  .optimizer-wizard .text-button:not(:disabled):active,
+  .optimizer-wizard summary:active,
+  .optimizer-wizard .button .lucide-arrow-right,
+  .optimizer-wizard .optimizer-back .lucide-arrow-left {
+    transform: none !important;
+  }
+}

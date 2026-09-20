@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { selectSimulator } from './helpers/navigation';
 
 const EXTERNAL_EVENT_URL = 'https://maplestory.nexon.com/News/Event/Ongoing/1389';
+const AUCTION_URL = 'https://auction.maplestory.nexon.com/';
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/app-config.json', (route) =>
@@ -47,23 +48,26 @@ async function simulationSnapshot(page: Page) {
   };
 }
 
-test('each equal random third loads an enabled banner under the Pages subpath', async ({
+test('each equal random quarter loads an enabled banner under the Pages subpath', async ({
   page,
 }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  for (let index = 0; index < 3; index++) {
-    await openBanner(page, (index + 0.5) / 3);
+  for (let index = 0; index < 4; index++) {
+    await openBanner(page, (index + 0.5) / 4);
     const image = page.locator('.fake-ad-banner img');
     await expect(image).toHaveAttribute(
       'src',
-      new RegExp(`banners/ad-${index + 2}\\.png(?:\\?|$)`),
+      new RegExp(`banners/ad-${index + 1}\\.png(?:\\?|$)`),
     );
-    await expect(image).toHaveJSProperty('naturalWidth', 1028);
-    await expect(image).toHaveJSProperty('naturalHeight', 382);
+    await expect(image).toHaveJSProperty('naturalWidth', index === 0 ? 2057 : 1028);
+    await expect(image).toHaveJSProperty('naturalHeight', index === 0 ? 764 : 382);
+    await expect(image).toHaveAttribute('width', index === 0 ? '2057' : '1028');
+    await expect(image).toHaveAttribute('height', index === 0 ? '764' : '382');
     await expect(image).toHaveAttribute('alt', /\S/);
     const resource = await image.evaluate((element: HTMLImageElement) => element.currentSrc);
-    expect(new URL(resource).pathname).toBe(`/DobakSimulator/banners/ad-${index + 2}.png`);
+    expect(new URL(resource).pathname).toBe(`/DobakSimulator/banners/ad-${index + 1}.png`);
+    if (index === 0) expect(new URL(resource).searchParams.get('v')).toBe('2');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/이세계 직작/);
     await expect(page.getByRole('heading', { name: '같은 목표, 다른 세계의 나.' })).toHaveCount(0);
   }
@@ -76,7 +80,7 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
   await pauseClock(page);
   await openBanner(page, 0, '#soulAmplification', true);
   const image = page.locator('.fake-ad-banner img');
-  await expect(image).toHaveAttribute('src', /banners\/ad-[234]\.png(?:\?|$)/);
+  await expect(image).toHaveAttribute('src', /banners\/ad-[1234]\.png(?:\?|$)/);
   const first = await image.getAttribute('src');
   await page.clock.fastForward(29700);
   await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
@@ -92,15 +96,62 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
   await expect(image).toHaveAttribute('src', first!);
   await page.clock.fastForward(1);
   await expect(image).not.toHaveAttribute('src', first!);
-  await expect(image).toHaveAttribute('src', /banners\/ad-[234]\.png(?:\?|$)/);
+  await expect(image).toHaveAttribute('src', /banners\/ad-[1234]\.png(?:\?|$)/);
   let previous = await image.getAttribute('src');
   for (let index = 0; index < 3; index++) {
     await page.clock.fastForward(60000);
     await expect(image).not.toHaveAttribute('src', previous!);
-    await expect(image).toHaveAttribute('src', /banners\/ad-[234]\.png(?:\?|$)/);
+    await expect(image).toHaveAttribute('src', /banners\/ad-[1234]\.png(?:\?|$)/);
     previous = await image.getAttribute('src');
   }
   expect(await simulationSnapshot(page)).toEqual(state);
+});
+
+test('the auction banner opens its isolated external tab by mouse and Enter without changing paid progress', async ({
+  page,
+  context,
+}) => {
+  await pauseClock(page);
+  await context.route(AUCTION_URL, (route) =>
+    route.fulfill({
+      contentType: 'text/html; charset=utf-8',
+      body: '<!doctype html><title>메이플스토리 경매장</title><h1>메이플 경매장</h1>',
+    }),
+  );
+  await openBanner(page, 0.125, '#soulAmplification', true);
+  await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
+  await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
+  const state = await simulationSnapshot(page);
+  const url = page.url();
+  const banner = page.getByRole('link', {
+    name: '메이플스토리 경매장 열기 (외부 링크, 새 탭)',
+    exact: true,
+  });
+  await expect(banner).toHaveAttribute('href', AUCTION_URL);
+  await expect(banner).toHaveAttribute('target', '_blank');
+  await expect(banner).toHaveAttribute('rel', 'noopener noreferrer');
+  await expect(banner.locator('img')).toHaveAttribute('src', /banners\/ad-1\.png\?v=2$/);
+  const dialogs: string[] = [];
+  page.on('dialog', async (dialog) => {
+    dialogs.push(dialog.message());
+    await dialog.dismiss();
+  });
+  for (const action of ['click', 'Enter']) {
+    if (action === 'Enter') await banner.focus();
+    const popupPromise = context.waitForEvent('page');
+    if (action === 'click') await banner.click();
+    else await page.keyboard.press('Enter');
+    const popup = await popupPromise;
+    await expect(popup).toHaveURL(AUCTION_URL);
+    await expect(popup.getByRole('heading', { name: '메이플 경매장', exact: true })).toBeVisible();
+    expect(await popup.evaluate(() => window.opener)).toBeNull();
+    expect(await popup.evaluate(() => document.referrer)).toBe('');
+    expect(dialogs).toEqual([]);
+    expect(page.url()).toBe(url);
+    expect(await simulationSnapshot(page)).toEqual(state);
+    await popup.close();
+    expect(context.pages()).toHaveLength(1);
+  }
 });
 
 test('the event banner warns before leaving and opens an isolated new tab only after confirmation', async ({
@@ -158,35 +209,43 @@ test('the event banner warns before leaving and opens an isolated new tab only a
 test('banners preserve their full image and layout in both themes, on mobile and on image failure', async ({
   page,
 }) => {
-  await openBanner(page, 0.5);
   const banner = page.locator('.fake-ad-banner');
   const image = banner.locator('img');
-  for (const width of [1440, 360]) {
-    await page.setViewportSize({ width, height: 1050 });
-    for (const theme of ['dark', 'light']) {
-      const current = await page.locator('html').getAttribute('data-theme');
-      if (current !== theme)
-        await page
-          .getByRole('button', { name: theme === 'light' ? '밝은 테마' : '어두운 테마' })
-          .click();
-      await expect(image).toHaveJSProperty('naturalWidth', 1028);
-      const bounds = (await banner.boundingBox())!;
-      const imageBounds = (await image.boundingBox())!;
-      expect(bounds.width).toBeLessThanOrEqual(593);
-      expect(bounds.height).toBeLessThanOrEqual(221);
-      expect(imageBounds.width / imageBounds.height).toBeCloseTo(1028 / 382, 2);
-      expect(imageBounds.x).toBeGreaterThanOrEqual(bounds.x);
-      expect(imageBounds.y).toBeGreaterThanOrEqual(bounds.y);
-      expect(imageBounds.x + imageBounds.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1);
-      expect(imageBounds.y + imageBounds.height).toBeLessThanOrEqual(bounds.y + bounds.height + 1);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-        width,
-      );
-      const character = (await page
-        .getByRole('button', { name: '캐릭터 검색 열기' })
-        .boundingBox())!;
-      if (width === 360) expect(character.y).toBeGreaterThanOrEqual(bounds.y + bounds.height);
-      else expect(character.x).toBeGreaterThanOrEqual(bounds.x + bounds.width);
+  for (const random of [0.125, 0.5]) {
+    await openBanner(page, random);
+    for (const width of [1440, 360]) {
+      await page.setViewportSize({ width, height: 1050 });
+      for (const theme of ['dark', 'light']) {
+        const current = await page.locator('html').getAttribute('data-theme');
+        if (current !== theme)
+          await page
+            .getByRole('button', { name: theme === 'light' ? '밝은 테마' : '어두운 테마' })
+            .click();
+        const naturalWidth = random === 0.125 ? 2057 : 1028;
+        const naturalHeight = random === 0.125 ? 764 : 382;
+        await expect(image).toHaveJSProperty('naturalWidth', naturalWidth);
+        await expect(image).toHaveJSProperty('naturalHeight', naturalHeight);
+        await expect(image).toHaveCSS('object-fit', 'contain');
+        const bounds = (await banner.boundingBox())!;
+        const imageBounds = (await image.boundingBox())!;
+        expect(bounds.width).toBeLessThanOrEqual(593);
+        expect(bounds.height).toBeLessThanOrEqual(221);
+        expect(imageBounds.width / imageBounds.height).toBeCloseTo(naturalWidth / naturalHeight, 2);
+        expect(imageBounds.x).toBeGreaterThanOrEqual(bounds.x);
+        expect(imageBounds.y).toBeGreaterThanOrEqual(bounds.y);
+        expect(imageBounds.x + imageBounds.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1);
+        expect(imageBounds.y + imageBounds.height).toBeLessThanOrEqual(
+          bounds.y + bounds.height + 1,
+        );
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+          width,
+        );
+        const character = (await page
+          .getByRole('button', { name: '캐릭터 검색 열기' })
+          .boundingBox())!;
+        if (width === 360) expect(character.y).toBeGreaterThanOrEqual(bounds.y + bounds.height);
+        else expect(character.x).toBeGreaterThanOrEqual(bounds.x + bounds.width);
+      }
     }
   }
   const before = await banner.boundingBox();

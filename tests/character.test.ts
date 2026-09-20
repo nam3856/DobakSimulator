@@ -14,6 +14,7 @@ import {
 } from '../src/character/index.ts';
 import type { CharacterSnapshot, EquipmentSnapshot } from '../src/types.ts';
 import { matchTarget } from '../src/engine/target';
+import { clearPersonalCharacterCache } from '../src/character/client.ts';
 
 const basic = {
   character_name: '테스트캐릭터',
@@ -38,7 +39,10 @@ const weapon = {
   soul_potential_option_1: '보스 몬스터 공격 시 데미지 : +10%',
 };
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  clearPersonalCharacterCache();
+  vi.unstubAllGlobals();
+});
 
 describe('character normalization', () => {
   it('keeps selected equipment and ability presets distinct, including new soul fields and legendary later lines', () => {
