@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
+import { selectSimulator } from './helpers/navigation';
 import {
   quoteStarforce,
   rollStarforce,
@@ -271,7 +272,7 @@ test('leaving a skipped run saves visible progress, rejects queued stale callbac
   );
   await expect(page.locator('.sf-stats .stat-card').first().locator('strong')).toHaveText('1회');
   const visible = await saved(page);
-  await page.getByRole('navigation').getByRole('button', { name: '큐브', exact: true }).click();
+  await selectSimulator(page, '큐브');
   expect(
     await page.evaluate(
       () =>
@@ -296,7 +297,7 @@ test('leaving a skipped run saves visible progress, rejects queued stale callbac
   );
   await page.clock.fastForward(10_000);
   expect((await saved(page)).state).toEqual(visible.state);
-  await page.getByRole('navigation').getByRole('button', { name: '스타포스', exact: true }).click();
+  await selectSimulator(page, '스타포스');
   await expect(page.getByRole('button', { name: '자동 강화', exact: true })).toBeEnabled();
   expect((await saved(page)).state).toEqual(visible.state);
   await page.reload();

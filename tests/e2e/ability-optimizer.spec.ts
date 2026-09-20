@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
+import { selectSimulator } from './helpers/navigation';
 import type { CharacterSnapshot, OptionLine } from '../../src/types';
 import { deserialize, type StoredSession } from '../../src/ui/storage';
 
@@ -94,8 +95,11 @@ async function boot(page: Page, character?: CharacterSnapshot) {
     page.getByRole('heading', { name: '어빌리티 최적의 방법 찾기', exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole('navigation', { name: '시뮬레이터' }).getByRole('button'),
-  ).toHaveCount(6);
+    page.getByRole('group', { name: '시뮬레이터 분류', exact: true }).getByRole('button'),
+  ).toHaveText(['장비 강화', '어빌리티', '소울']);
+  await expect(
+    page.getByRole('group', { name: '어빌리티 시뮬레이터', exact: true }).getByRole('button'),
+  ).toHaveText(['어빌리티', '어빌리티 최적화']);
   await expect(page.getByRole('button', { name: '어빌리티 최적화', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
@@ -349,10 +353,7 @@ test('visiting, refreshing and leaving the optimizer preserves a paid simulator 
   await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
   await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
   const before = await readSession(page);
-  await page
-    .getByRole('navigation')
-    .getByRole('button', { name: '어빌리티 최적화', exact: true })
-    .click();
+  await selectSimulator(page, '어빌리티 최적화');
   await expect(page).toHaveURL(/#abilityOptimizer$/);
   await expect(
     page.getByRole('heading', { name: '어빌리티 최적의 방법 찾기', exact: true }),
@@ -366,10 +367,7 @@ test('visiting, refreshing and leaving the optimizer preserves a paid simulator 
   expect(during.config).toEqual(before.config);
   expect(during.state.spent).toEqual(before.state.spent);
   expect(during.state.attempts).toBe(before.state.attempts);
-  await page
-    .getByRole('navigation')
-    .getByRole('button', { name: '소울 증폭', exact: true })
-    .click();
+  await selectSimulator(page, '소울 증폭');
   await expect(page).toHaveURL(/#soulAmplification$/);
   await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
   const after = await readSession(page);

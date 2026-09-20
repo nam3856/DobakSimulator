@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "dev:root": "vite site-root --host 127.0.0.1 --port 5174 --strictPort",
+    "icons:build": "node scripts/build-brand-icons.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",

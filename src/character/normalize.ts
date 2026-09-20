@@ -1,6 +1,7 @@
 import type {
   AbilitySnapshot,
   CharacterSnapshot,
+  EquipmentBonusStats,
   EquipmentSnapshot,
   Grade,
   LineGrade,
@@ -25,6 +26,47 @@ const starforce = (input: unknown): number | undefined => {
   const value = Number(input);
   return Number.isInteger(value) && value >= 0 && value <= 30 ? value : undefined;
 };
+const equipmentStat = (input: unknown): number | undefined => {
+  if (typeof input !== 'number' && (typeof input !== 'string' || !/^\d+$/.test(input.trim())))
+    return undefined;
+  const value = Number(input);
+  return Number.isSafeInteger(value) && value >= 0 ? value : undefined;
+};
+const BASE_STAT_FIELDS = {
+  str: 'str',
+  dex: 'dex',
+  int: 'int',
+  luk: 'luk',
+  hp: 'max_hp',
+  mp: 'max_mp',
+  attack: 'attack_power',
+  magicAttack: 'magic_power',
+} as const;
+const BONUS_STAT_FIELDS = {
+  ...BASE_STAT_FIELDS,
+  armor: 'armor',
+  speed: 'speed',
+  jump: 'jump',
+  bossDamage: 'boss_damage',
+  damage: 'damage',
+  allStat: 'all_stat',
+  levelReduction: 'equipment_level_decrease',
+} as const;
+
+// Only keep documented simulator inputs. Missing/malformed API fields must not
+// turn into a reported zero, and base stats must never use item_total_option.
+function equipmentStats(
+  input: unknown,
+  fields: Partial<Record<keyof EquipmentBonusStats, string>>,
+): EquipmentBonusStats | undefined {
+  const raw = object(input);
+  const result: EquipmentBonusStats = {};
+  for (const [stat, apiField] of Object.entries(fields)) {
+    const value = equipmentStat(raw[apiField]);
+    if (value !== undefined) result[stat as keyof EquipmentBonusStats] = value;
+  }
+  return Object.keys(result).length ? result : undefined;
+}
 const image = (input: unknown): string => {
   try {
     const value = new URL(string(input));
@@ -74,6 +116,7 @@ const CATEGORIES: Record<string, string> = {
   귀걸이: 'earring',
   반지: 'ring',
   펜던트: 'pendant',
+  포켓아이템: 'pocket',
   기계심장: 'heart',
   심장: 'heart',
 };
@@ -116,6 +159,8 @@ function equipmentItem(raw: JsonObject, preset: string, index: number): Equipmen
   const soulGrade = normalizeGrade(raw.soul_potential_grade);
   const soulName = string(raw.soul_name);
   const baseLevel = number(object(raw.item_base_option).base_equipment_level);
+  const bonusOptions = equipmentStats(raw.item_add_option, BONUS_STAT_FIELDS);
+  const baseOptions = equipmentStats(raw.item_base_option, BASE_STAT_FIELDS);
   const expiration = string(raw.date_expire);
   const hasExpiration =
     expiration !== '' && !['permanent', '영구', '없음'].includes(expiration.toLowerCase());
@@ -139,6 +184,8 @@ function equipmentItem(raw: JsonObject, preset: string, index: number): Equipmen
     ...(stars !== undefined ? { starforce: stars } : {}),
     ...(superiorEquipment !== undefined ? { superiorEquipment } : {}),
     ...(extraordinaryStarforce !== undefined ? { extraordinaryStarforce } : {}),
+    ...(bonusOptions !== undefined ? { bonusOptions } : {}),
+    ...(baseOptions !== undefined ? { baseOptions } : {}),
     potentialGrade,
     potential: optionLines(raw, 'potential_option', potentialGrade ?? 'rare'),
     additionalGrade,

@@ -14,15 +14,22 @@ export const MODES: { id: SimulatorMode; name: string; caption: string }[] = [
   { id: 'soulAmplification', name: '소울 증폭', caption: '한 단계 더, 한 번만 더' },
   { id: 'soulPotential', name: '소울 잠재', caption: '깨어나는 소울의 힘' },
 ];
-export type AppTab = SimulatorMode | 'abilityOptimizer' | 'starforce';
-export function isStandaloneTab(tab: AppTab): tab is 'abilityOptimizer' | 'starforce' {
-  return tab === 'abilityOptimizer' || tab === 'starforce';
+export type StandaloneTab = 'abilityOptimizer' | 'starforce' | 'bonusOptions';
+export type AppTab = SimulatorMode | StandaloneTab;
+export function isStandaloneTab(tab: AppTab): tab is StandaloneTab {
+  return tab === 'abilityOptimizer' || tab === 'starforce' || tab === 'bonusOptions';
 }
 export const TABS: { id: AppTab; name: string }[] = [
   ...MODES,
   { id: 'abilityOptimizer', name: '어빌리티 최적화' },
   { id: 'starforce', name: '스타포스' },
+  { id: 'bonusOptions', name: '추가옵션' },
 ];
+export const TAB_GROUPS = [
+  { id: 'equipment', name: '장비 강화', tabs: ['cube', 'bonusOptions', 'starforce'] },
+  { id: 'ability', name: '어빌리티', tabs: ['ability', 'abilityOptimizer'] },
+  { id: 'soul', name: '소울', tabs: ['soulAmplification', 'soulPotential'] },
+] as const satisfies readonly { id: string; name: string; tabs: readonly AppTab[] }[];
 export function getTabFromHash(): AppTab {
   const tab = location.hash.slice(1) as AppTab;
   return TABS.some((item) => item.id === tab) ? tab : getModeFromHash();

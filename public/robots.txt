@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nam3856.github.io/DobakSimulator/sitemap.xml

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { selectSimulator } from './helpers/navigation';
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/app-config.json', (route) =>
@@ -12,9 +13,6 @@ async function boot(page: Page, hash = '#cube') {
   await expect(page.getByRole('button', { name: '캐릭터 검색 열기' })).toBeVisible();
   await expect(page.locator('.expected-stat')).not.toContainText('계산 중');
 }
-const nav = (page: Page, name: string) =>
-  page.getByRole('navigation').getByRole('button', { name, exact: true });
-
 async function setUnsuccessfulCubeStart(page: Page) {
   const details = page.locator('.start-details');
   if (!(await details.evaluate((element: HTMLDetailsElement) => element.open)))
@@ -35,7 +33,7 @@ test('bundled character, Worker benchmark and hash reload work under the Pages s
   await setUnsuccessfulCubeStart(page);
   await expect(page.locator('.expected-stat')).toContainText('같은 조건의 평균 소비');
   await expect(page.locator('.portrait-frame img')).toHaveJSProperty('naturalWidth', 300);
-  await nav(page, '소울 증폭').click();
+  await selectSimulator(page, '소울 증폭');
   await page.reload();
   await expect(page).toHaveURL(/#soulAmplification$/);
   await expect(page.getByRole('heading', { name: '소울 증폭 시뮬레이터' })).toBeVisible();
@@ -250,7 +248,7 @@ test('cube and soul numeric limits preserve aggregate targets and clamp out-of-r
   await value.press('Tab');
   await expect(value).toHaveValue((await value.getAttribute('min'))!);
 
-  await nav(page, '소울 잠재').click();
+  await selectSimulator(page, '소울 잠재');
   await expect(value).toHaveValue('5');
   await expect(value).toHaveAttribute('max', '6');
   await value.fill('999');

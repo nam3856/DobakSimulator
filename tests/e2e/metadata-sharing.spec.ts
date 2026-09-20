@@ -1,9 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
+import { selectSimulator } from './helpers/navigation';
 import { readFileSync } from 'node:fs';
 import type { CharacterSnapshot } from '../../src/types';
 
 const SITE_URL = 'https://nam3856.github.io/DobakSimulator/';
-const SITE_TITLE = '메이플스토리 통합 강화 시뮬레이터 | 이세계 직작';
+const SITE_TITLE = '이세계 직작 | 메이플스토리 강화 시뮬레이터';
 const SHARED_API = 'https://fixture-api.example/api';
 
 function characterFixture(name: string): CharacterSnapshot {
@@ -117,10 +118,10 @@ test('loaded character metadata and copied links use the returned nickname and c
   for (const [mode, label] of [
     ['cube', '큐브'],
     ['starforce', '스타포스'],
+    ['bonusOptions', '추가옵션'],
     ['abilityOptimizer', '어빌리티 최적화'],
   ]) {
-    if (mode !== 'cube')
-      await page.getByRole('navigation').getByRole('button', { name: label, exact: true }).click();
+    if (mode !== 'cube') await selectSimulator(page, label);
     const share = page.getByRole('button', { name: '캐릭터 공유 링크 복사', exact: true });
     await expect(share).toBeVisible();
     await share.click();

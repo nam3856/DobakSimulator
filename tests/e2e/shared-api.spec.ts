@@ -1,4 +1,5 @@
 import { test, expect, type Page, type Request } from '@playwright/test';
+import { selectSimulator } from './helpers/navigation';
 import { readFileSync } from 'node:fs';
 import type { CharacterSnapshot } from '../../src/types.ts';
 import { deserialize, type StoredSession } from '../../src/ui/storage';
@@ -137,7 +138,7 @@ test('searching a different job selects its endgame ability goal from the import
   );
   await openSharedSearch(page);
   await page.getByRole('button', { name: '캐릭터 검색 닫기' }).click();
-  await page.getByRole('navigation').getByRole('button', { name: '어빌리티', exact: true }).click();
+  await selectSimulator(page, '어빌리티');
   await expect(page.getByLabel('직업별 종결 어빌리티')).toHaveValue('메카닉');
   await page.getByLabel('직업별 종결 어빌리티').selectOption('나이트로드');
   await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();

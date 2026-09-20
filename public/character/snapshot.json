@@ -71,7 +71,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 42,
+          "dex": 132,
+          "int": 42,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 4,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 80,
+          "dex": 80,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 10,
+          "magicAttack": 0
+        }
       },
       {
         "id": "1:얼굴장식:1:루즈 컨트롤 머신 마크",
@@ -136,7 +163,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 22,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 30,
+          "dex": 84,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 5,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 0,
+          "mp": 0,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "1:눈장식:2:마력이 깃든 안대",
@@ -201,7 +255,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 21,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 25,
+          "dex": 70,
+          "int": 50,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 15,
+          "dex": 15,
+          "int": 15,
+          "luk": 15,
+          "hp": 0,
+          "mp": 0,
+          "attack": 3,
+          "magicAttack": 3
+        }
       },
       {
         "id": "1:귀고리:3:커맨더 포스 이어링",
@@ -266,7 +347,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 96,
+          "int": 30,
+          "luk": 0,
+          "hp": 3600,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 7,
+          "dex": 7,
+          "int": 7,
+          "luk": 7,
+          "hp": 500,
+          "mp": 500,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "1:상의:4:에테르넬 파이렛코트",
@@ -331,7 +439,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 125,
+          "int": 35,
+          "luk": 42,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 50,
+          "dex": 50,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 6,
+          "magicAttack": 0
+        }
       },
       {
         "id": "1:하의:5:에테르넬 파이렛팬츠",
@@ -396,7 +531,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 42,
+          "dex": 125,
+          "int": 0,
+          "luk": 35,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 4,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 50,
+          "dex": 50,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 6,
+          "magicAttack": 0
+        }
       },
       {
         "id": "1:신발:6:아케인셰이드 파이렛슈즈",
@@ -461,7 +623,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 102,
+          "int": 0,
+          "luk": 36,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 40,
+          "dex": 40,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 9,
+          "magicAttack": 0
+        }
       },
       {
         "id": "1:장갑:7:에테르넬 파이렛글러브",
@@ -526,7 +715,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 19,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 28,
+          "dex": 130,
+          "int": 42,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 55,
+          "dex": 55,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 12,
+          "magicAttack": 0
+        }
       },
       {
         "id": "1:망토:8:아케인셰이드 파이렛케이프",
@@ -591,7 +807,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 19,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 91,
+          "int": 36,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 5,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 35,
+          "dex": 35,
+          "int": 35,
+          "luk": 35,
+          "hp": 0,
+          "mp": 0,
+          "attack": 6,
+          "magicAttack": 6
+        }
       },
       {
         "id": "1:보조무기:9:아스트라 매그넘",
@@ -656,7 +899,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 20,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 15,
+          "dex": 15,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 7,
+          "magicAttack": 0
+        }
       },
       {
         "id": "1:무기:10:제네시스 피스톨",
@@ -727,7 +997,34 @@
         },
         "eligibleSoul": true,
         "starforce": 22,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 30,
+          "int": 0,
+          "luk": 30,
+          "hp": 0,
+          "mp": 0,
+          "attack": 120,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 10,
+          "damage": 6,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 150,
+          "dex": 150,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 249,
+          "magicAttack": 0
+        }
       },
       {
         "id": "1:반지1:11:리스트레인트 링",
@@ -741,7 +1038,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 4,
+          "dex": 4,
+          "int": 4,
+          "luk": 4,
+          "hp": 0,
+          "mp": 0,
+          "attack": 4,
+          "magicAttack": 4
+        }
       },
       {
         "id": "1:반지2:12:어드벤처 딥다크 크리티컬 링",
@@ -755,7 +1079,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 20,
+          "dex": 20,
+          "int": 20,
+          "luk": 20,
+          "hp": 1000,
+          "mp": 1000,
+          "attack": 20,
+          "magicAttack": 20
+        }
       },
       {
         "id": "1:반지3:13:여명의 가디언 엔젤 링",
@@ -820,7 +1171,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 19,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 5,
+          "dex": 5,
+          "int": 5,
+          "luk": 5,
+          "hp": 200,
+          "mp": 200,
+          "attack": 2,
+          "magicAttack": 2
+        }
       },
       {
         "id": "1:반지4:14:테네브리스 원정대 반지",
@@ -886,7 +1264,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 1000,
+          "mp": 1000,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "1:펜던트:15:고통의 근원",
@@ -951,7 +1356,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 81,
+          "int": 20,
+          "luk": 25,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 0,
+          "mp": 0,
+          "attack": 3,
+          "magicAttack": 3
+        }
       },
       {
         "id": "1:훈장:16:THE BLACK",
@@ -964,7 +1396,34 @@
         "additional": [],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 500,
+          "mp": 500,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "1:벨트:17:몽환의 벨트",
@@ -1029,7 +1488,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 110,
+          "int": 36,
+          "luk": 30,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 50,
+          "dex": 50,
+          "int": 50,
+          "luk": 50,
+          "hp": 150,
+          "mp": 150,
+          "attack": 6,
+          "magicAttack": 6
+        }
       },
       {
         "id": "1:어깨장식:18:아케인셰이드 파이렛숄더",
@@ -1094,12 +1580,39 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 35,
+          "dex": 35,
+          "int": 35,
+          "luk": 35,
+          "hp": 0,
+          "mp": 0,
+          "attack": 20,
+          "magicAttack": 20
+        }
       },
       {
         "id": "1:포켓 아이템:19:저주받은 녹의 마도서",
         "name": "저주받은 녹의 마도서",
-        "category": "unsupported",
+        "category": "pocket",
         "slot": "포켓 아이템",
         "level": 160,
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOEJHGD",
@@ -1108,7 +1621,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 65,
+          "int": 20,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 20,
+          "int": 10,
+          "luk": 10,
+          "hp": 100,
+          "mp": 100,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "1:기계 심장:20:플라즈마 하트",
@@ -1173,7 +1713,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 20,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 500,
+          "mp": 500,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "1:뱃지:21:크리스탈 웬투스 뱃지",
@@ -1186,7 +1753,34 @@
         "additional": [],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "1:엠블렘:22:미트라의 분노 : 해적",
@@ -1251,7 +1845,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 40,
+          "dex": 40,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "1:펜던트2:23:데이브레이크 펜던트",
@@ -1316,7 +1937,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 19,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 40,
+          "dex": 72,
+          "int": 24,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 8,
+          "dex": 8,
+          "int": 8,
+          "luk": 8,
+          "hp": 0,
+          "mp": 0,
+          "attack": 2,
+          "magicAttack": 2
+        }
       },
       {
         "id": "1:예비 특수 반지:24:컨티뉴어스 링",
@@ -1330,7 +1978,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 4,
+          "dex": 4,
+          "int": 4,
+          "luk": 4,
+          "hp": 0,
+          "mp": 0,
+          "attack": 4,
+          "magicAttack": 4
+        }
       }
     ],
     "2": [
@@ -1397,7 +2072,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 42,
+          "dex": 132,
+          "int": 42,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 4,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 80,
+          "dex": 80,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 10,
+          "magicAttack": 0
+        }
       },
       {
         "id": "2:얼굴장식:1:루즈 컨트롤 머신 마크",
@@ -1462,7 +2164,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 22,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 30,
+          "dex": 84,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 5,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 0,
+          "mp": 0,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "2:눈장식:2:마력이 깃든 안대",
@@ -1527,7 +2256,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 21,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 25,
+          "dex": 70,
+          "int": 50,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 15,
+          "dex": 15,
+          "int": 15,
+          "luk": 15,
+          "hp": 0,
+          "mp": 0,
+          "attack": 3,
+          "magicAttack": 3
+        }
       },
       {
         "id": "2:귀고리:3:커맨더 포스 이어링",
@@ -1592,7 +2348,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 96,
+          "int": 30,
+          "luk": 0,
+          "hp": 3600,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 7,
+          "dex": 7,
+          "int": 7,
+          "luk": 7,
+          "hp": 500,
+          "mp": 500,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "2:상의:4:에테르넬 파이렛코트",
@@ -1657,7 +2440,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 125,
+          "int": 35,
+          "luk": 42,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 50,
+          "dex": 50,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 6,
+          "magicAttack": 0
+        }
       },
       {
         "id": "2:하의:5:에테르넬 파이렛팬츠",
@@ -1722,7 +2532,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 42,
+          "dex": 125,
+          "int": 0,
+          "luk": 35,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 4,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 50,
+          "dex": 50,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 6,
+          "magicAttack": 0
+        }
       },
       {
         "id": "2:신발:6:아케인셰이드 파이렛슈즈",
@@ -1787,7 +2624,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 102,
+          "int": 0,
+          "luk": 36,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 40,
+          "dex": 40,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 9,
+          "magicAttack": 0
+        }
       },
       {
         "id": "2:장갑:7:에테르넬 파이렛글러브",
@@ -1852,7 +2716,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 19,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 28,
+          "dex": 130,
+          "int": 42,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 55,
+          "dex": 55,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 12,
+          "magicAttack": 0
+        }
       },
       {
         "id": "2:망토:8:아케인셰이드 파이렛케이프",
@@ -1917,7 +2808,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 19,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 91,
+          "int": 36,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 5,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 35,
+          "dex": 35,
+          "int": 35,
+          "luk": 35,
+          "hp": 0,
+          "mp": 0,
+          "attack": 6,
+          "magicAttack": 6
+        }
       },
       {
         "id": "2:보조무기:9:아스트라 매그넘",
@@ -1982,7 +2900,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 20,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 15,
+          "dex": 15,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 7,
+          "magicAttack": 0
+        }
       },
       {
         "id": "2:무기:10:제네시스 피스톨",
@@ -2053,7 +2998,34 @@
         },
         "eligibleSoul": true,
         "starforce": 22,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 30,
+          "int": 0,
+          "luk": 30,
+          "hp": 0,
+          "mp": 0,
+          "attack": 120,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 10,
+          "damage": 6,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 150,
+          "dex": 150,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 249,
+          "magicAttack": 0
+        }
       },
       {
         "id": "2:반지1:11:리스트레인트 링",
@@ -2067,7 +3039,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 4,
+          "dex": 4,
+          "int": 4,
+          "luk": 4,
+          "hp": 0,
+          "mp": 0,
+          "attack": 4,
+          "magicAttack": 4
+        }
       },
       {
         "id": "2:반지2:12:어드벤처 딥다크 크리티컬 링",
@@ -2081,7 +3080,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 20,
+          "dex": 20,
+          "int": 20,
+          "luk": 20,
+          "hp": 1000,
+          "mp": 1000,
+          "attack": 20,
+          "magicAttack": 20
+        }
       },
       {
         "id": "2:반지3:13:여명의 가디언 엔젤 링",
@@ -2146,7 +3172,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 19,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 5,
+          "dex": 5,
+          "int": 5,
+          "luk": 5,
+          "hp": 200,
+          "mp": 200,
+          "attack": 2,
+          "magicAttack": 2
+        }
       },
       {
         "id": "2:반지4:14:테네브리스 원정대 반지",
@@ -2212,7 +3265,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 1000,
+          "mp": 1000,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "2:펜던트:15:고통의 근원",
@@ -2277,7 +3357,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 81,
+          "int": 20,
+          "luk": 25,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 0,
+          "mp": 0,
+          "attack": 3,
+          "magicAttack": 3
+        }
       },
       {
         "id": "2:훈장:16:THE BLACK",
@@ -2290,7 +3397,34 @@
         "additional": [],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 500,
+          "mp": 500,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "2:벨트:17:몽환의 벨트",
@@ -2355,7 +3489,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 110,
+          "int": 36,
+          "luk": 30,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 50,
+          "dex": 50,
+          "int": 50,
+          "luk": 50,
+          "hp": 150,
+          "mp": 150,
+          "attack": 6,
+          "magicAttack": 6
+        }
       },
       {
         "id": "2:어깨장식:18:아케인셰이드 파이렛숄더",
@@ -2420,12 +3581,39 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 35,
+          "dex": 35,
+          "int": 35,
+          "luk": 35,
+          "hp": 0,
+          "mp": 0,
+          "attack": 20,
+          "magicAttack": 20
+        }
       },
       {
         "id": "2:포켓 아이템:19:저주받은 녹의 마도서",
         "name": "저주받은 녹의 마도서",
-        "category": "unsupported",
+        "category": "pocket",
         "slot": "포켓 아이템",
         "level": 160,
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOEJHGD",
@@ -2434,7 +3622,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 65,
+          "int": 20,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 20,
+          "int": 10,
+          "luk": 10,
+          "hp": 100,
+          "mp": 100,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "2:기계 심장:20:플라즈마 하트",
@@ -2499,7 +3714,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 20,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 500,
+          "mp": 500,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "2:뱃지:21:크리스탈 웬투스 뱃지",
@@ -2512,7 +3754,34 @@
         "additional": [],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "2:엠블렘:22:미트라의 분노 : 해적",
@@ -2577,7 +3846,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 40,
+          "dex": 40,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "2:펜던트2:23:데이브레이크 펜던트",
@@ -2642,7 +3938,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 19,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 40,
+          "dex": 72,
+          "int": 24,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 8,
+          "dex": 8,
+          "int": 8,
+          "luk": 8,
+          "hp": 0,
+          "mp": 0,
+          "attack": 2,
+          "magicAttack": 2
+        }
       },
       {
         "id": "2:예비 특수 반지:24:컨티뉴어스 링",
@@ -2656,7 +3979,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 4,
+          "dex": 4,
+          "int": 4,
+          "luk": 4,
+          "hp": 0,
+          "mp": 0,
+          "attack": 4,
+          "magicAttack": 4
+        }
       }
     ],
     "3": [
@@ -2723,7 +4073,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 8,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 2,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 3,
+          "levelReduction": 10
+        },
+        "baseOptions": {
+          "str": 2,
+          "dex": 1,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0
+        }
       },
       {
         "id": "3:눈장식:1:카오스 핑크빈 마크",
@@ -2788,7 +4165,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 16,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 51,
+          "int": 0,
+          "luk": 16,
+          "hp": 1560,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 7,
+          "dex": 7,
+          "int": 7,
+          "luk": 7,
+          "hp": 0,
+          "mp": 0,
+          "attack": 1,
+          "magicAttack": 1
+        }
       },
       {
         "id": "3:귀고리:2:하프 이어링",
@@ -2853,7 +4257,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 8,
+          "luk": 8,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0
+        }
       },
       {
         "id": "3:반지1:3:글로리온 링 : 슈프림",
@@ -2919,7 +4350,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 40,
+          "dex": 40,
+          "int": 40,
+          "luk": 40,
+          "hp": 4000,
+          "mp": 4000,
+          "attack": 25,
+          "magicAttack": 25
+        }
       },
       {
         "id": "3:반지2:4:SS급 마스터 쥬얼링",
@@ -2985,7 +4443,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 30,
+          "dex": 30,
+          "int": 30,
+          "luk": 30,
+          "hp": 3000,
+          "mp": 3000,
+          "attack": 20,
+          "magicAttack": 20
+        }
       },
       {
         "id": "3:반지3:5:카오스 링",
@@ -3051,7 +4536,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 30,
+          "dex": 30,
+          "int": 30,
+          "luk": 30,
+          "hp": 3000,
+          "mp": 3000,
+          "attack": 20,
+          "magicAttack": 20
+        }
       },
       {
         "id": "3:반지4:6:어웨이크 링",
@@ -3117,7 +4629,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 1000,
+          "mp": 1000,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "3:펜던트2:7:데이브레이크 펜던트",
@@ -3182,7 +4721,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 20,
+          "int": 44,
+          "luk": 0,
+          "hp": 2100,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 20
+        },
+        "baseOptions": {
+          "str": 8,
+          "dex": 8,
+          "int": 8,
+          "luk": 8,
+          "hp": 0,
+          "mp": 0,
+          "attack": 2,
+          "magicAttack": 2
+        }
       },
       {
         "id": "3:모자:8:에테르넬 파이렛햇",
@@ -3247,7 +4813,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 42,
+          "dex": 132,
+          "int": 42,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 4,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 80,
+          "dex": 80,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 10,
+          "magicAttack": 0
+        }
       },
       {
         "id": "3:상의:9:에테르넬 파이렛코트",
@@ -3312,7 +4905,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 125,
+          "int": 35,
+          "luk": 42,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 50,
+          "dex": 50,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 6,
+          "magicAttack": 0
+        }
       },
       {
         "id": "3:하의:10:에테르넬 파이렛팬츠",
@@ -3377,7 +4997,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 42,
+          "dex": 125,
+          "int": 0,
+          "luk": 35,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 4,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 50,
+          "dex": 50,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 6,
+          "magicAttack": 0
+        }
       },
       {
         "id": "3:신발:11:아케인셰이드 파이렛슈즈",
@@ -3442,7 +5089,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 102,
+          "int": 0,
+          "luk": 36,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 40,
+          "dex": 40,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 9,
+          "magicAttack": 0
+        }
       },
       {
         "id": "3:장갑:12:에테르넬 파이렛글러브",
@@ -3507,7 +5181,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 19,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 28,
+          "dex": 130,
+          "int": 42,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 55,
+          "dex": 55,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 12,
+          "magicAttack": 0
+        }
       },
       {
         "id": "3:망토:13:아케인셰이드 파이렛케이프",
@@ -3572,7 +5273,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 19,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 91,
+          "int": 36,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 5,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 35,
+          "dex": 35,
+          "int": 35,
+          "luk": 35,
+          "hp": 0,
+          "mp": 0,
+          "attack": 6,
+          "magicAttack": 6
+        }
       },
       {
         "id": "3:보조무기:14:아스트라 매그넘",
@@ -3637,7 +5365,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 20,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 15,
+          "dex": 15,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 7,
+          "magicAttack": 0
+        }
       },
       {
         "id": "3:무기:15:제네시스 피스톨",
@@ -3708,7 +5463,34 @@
         },
         "eligibleSoul": true,
         "starforce": 22,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 30,
+          "int": 0,
+          "luk": 30,
+          "hp": 0,
+          "mp": 0,
+          "attack": 120,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 10,
+          "damage": 6,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 150,
+          "dex": 150,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 249,
+          "magicAttack": 0
+        }
       },
       {
         "id": "3:펜던트:16:고통의 근원",
@@ -3786,7 +5568,34 @@
         "additional": [],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 500,
+          "mp": 500,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "3:벨트:18:몽환의 벨트",
@@ -3851,7 +5660,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 110,
+          "int": 36,
+          "luk": 30,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 5,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 50,
+          "dex": 50,
+          "int": 50,
+          "luk": 50,
+          "hp": 150,
+          "mp": 150,
+          "attack": 6,
+          "magicAttack": 6
+        }
       },
       {
         "id": "3:어깨장식:19:아케인셰이드 파이렛숄더",
@@ -3916,12 +5752,39 @@
         ],
         "eligibleSoul": false,
         "starforce": 18,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 35,
+          "dex": 35,
+          "int": 35,
+          "luk": 35,
+          "hp": 0,
+          "mp": 0,
+          "attack": 20,
+          "magicAttack": 20
+        }
       },
       {
         "id": "3:포켓 아이템:20:저주받은 녹의 마도서",
         "name": "저주받은 녹의 마도서",
-        "category": "unsupported",
+        "category": "pocket",
         "slot": "포켓 아이템",
         "level": 160,
         "imageUrl": "https://open.api.nexon.com/static/maplestory/item/icon/KEOEJHGD",
@@ -3930,7 +5793,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 65,
+          "int": 20,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 6,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 20,
+          "int": 10,
+          "luk": 10,
+          "hp": 100,
+          "mp": 100,
+          "attack": 10,
+          "magicAttack": 10
+        }
       },
       {
         "id": "3:기계 심장:21:플라즈마 하트",
@@ -3995,7 +5885,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 20,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 500,
+          "mp": 500,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "3:뱃지:22:크리스탈 웬투스 뱃지",
@@ -4008,7 +5925,34 @@
         "additional": [],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 10,
+          "dex": 10,
+          "int": 10,
+          "luk": 10,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "3:엠블렘:23:미트라의 분노 : 해적",
@@ -4073,7 +6017,34 @@
         ],
         "eligibleSoul": false,
         "starforce": 0,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 40,
+          "dex": 40,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 5,
+          "magicAttack": 5
+        }
       },
       {
         "id": "3:예비 특수 반지:24:컨티뉴어스 링",
@@ -4087,7 +6058,34 @@
         "eligibleSoul": false,
         "starforce": 0,
         "superiorEquipment": false,
-        "extraordinaryStarforce": false
+        "extraordinaryStarforce": false,
+        "bonusOptions": {
+          "str": 0,
+          "dex": 0,
+          "int": 0,
+          "luk": 0,
+          "hp": 0,
+          "mp": 0,
+          "attack": 0,
+          "magicAttack": 0,
+          "armor": 0,
+          "speed": 0,
+          "jump": 0,
+          "bossDamage": 0,
+          "damage": 0,
+          "allStat": 0,
+          "levelReduction": 0
+        },
+        "baseOptions": {
+          "str": 4,
+          "dex": 4,
+          "int": 4,
+          "luk": 4,
+          "hp": 0,
+          "mp": 0,
+          "attack": 4,
+          "magicAttack": 4
+        }
       }
     ]
   },
@@ -4186,9 +6184,14 @@
   "activeEquipmentPreset": "1",
   "activeAbilityPreset": "1",
   "profile": {
-    "mainStats": ["dex"],
-    "secondaryStats": ["str"],
+    "mainStats": [
+      "dex"
+    ],
+    "secondaryStats": [
+      "str"
+    ],
     "attackType": "attack"
   },
-  "starforceFetchedAt": "2026-09-17T20:01:48.838Z"
+  "starforceFetchedAt": "2026-09-17T20:01:48.838Z",
+  "bonusOptionsFetchedAt": "2026-09-19T12:51:21.638Z"
 }

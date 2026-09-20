@@ -50,7 +50,7 @@ const eligible = (item: EquipmentSnapshot) =>
   item.level <= 250 &&
   !item.superiorEquipment &&
   !item.extraordinaryStarforce &&
-  !['unsupported', 'emblem', 'forceShieldSoulRing'].includes(item.category) &&
+  !['unsupported', 'emblem', 'forceShieldSoulRing', 'pocket'].includes(item.category) &&
   (item.category !== 'secondaryWeapon' || item.name.includes('블레이드')) &&
   !/^(봉인된 제네시스|제네시스|데스티니|아스트라)/.test(item.name) &&
   (item.category !== 'ring' || item.level !== 110) &&

@@ -194,9 +194,14 @@ small {
   display: grid;
   place-items: center;
   border-radius: 13px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  transform: rotate(-5deg);
+  flex-shrink: 0;
+}
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: inherit;
 }
 .header-actions {
   display: flex;
@@ -1897,6 +1902,10 @@ progress::-moz-progress-bar {
   color: var(--faint);
   margin-left: 7px;
 }
+.footer-brand > img {
+  flex-shrink: 0;
+  border-radius: 5px;
+}
 .site-footer > div:last-child {
   display: flex;
   flex-direction: column;
@@ -2677,6 +2686,48 @@ progress::-moz-progress-bar {
   flex-shrink: 0;
   color: var(--accent);
   margin-left: auto;
+}
+
+/* About seven displayed lines per card, including the title and action. */
+.simulation-panel:is(.mode-cube, .mode-soulPotential) {
+  --potential-card-height: 240px;
+  --potential-result-height: var(--potential-card-height);
+}
+:is(.mode-cube, .mode-soulPotential) .current-result {
+  min-height: 240px;
+}
+:is(.mode-cube, .mode-soulPotential) .potential-progress-slot[data-reserved='true'] {
+  display: flow-root;
+  min-height: 84px;
+}
+:is(.mode-cube, .mode-soulPotential) .candidate-grid {
+  min-height: var(--potential-result-height);
+  grid-auto-rows: minmax(var(--potential-card-height), auto);
+  align-content: start;
+}
+:is(.mode-cube, .mode-soulPotential) .empty-result {
+  min-height: var(--potential-result-height);
+}
+:is(.mode-cube, .mode-soulPotential) .candidate-card {
+  display: flex;
+  flex-direction: column;
+}
+:is(.mode-cube, .mode-soulPotential) .candidate-footer {
+  display: flex;
+  align-items: flex-end;
+  min-height: 32px;
+  margin-top: auto;
+}
+@media (max-width: 1100px) {
+  .simulation-panel:is(.mode-cube, .mode-soulPotential)[data-selected-batch-size='3'] {
+    --potential-result-height: calc(3 * var(--potential-card-height) + 14px);
+  }
+}
+@media (max-width: 420px) {
+  :is(.mode-cube, .mode-soulPotential) .status-line {
+    min-height: 50px;
+    align-content: center;
+  }
 }
 
 /* Reserve the same draw area before and after an ability reset. */

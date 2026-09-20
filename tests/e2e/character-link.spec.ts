@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { selectSimulator } from './helpers/navigation';
 import { readFileSync } from 'node:fs';
 import type { CharacterSnapshot } from '../../src/types';
 import { deserialize, type StoredSession } from '../../src/ui/storage';
@@ -67,7 +68,7 @@ test('a character link imports active presets, uses the returned name and preser
   ]);
   expect(url.hash).toBe('#cube');
 
-  await page.getByRole('navigation').getByRole('button', { name: '어빌리티', exact: true }).click();
+  await selectSimulator(page, '어빌리티');
   await expect(page.getByLabel('어빌리티 프리셋')).toHaveValue('3');
   expect(new URL(page.url()).searchParams.get('character')).toBe(character.name);
   expect(new URL(page.url()).searchParams.get('v')).toBe('preview');

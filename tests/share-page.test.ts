@@ -65,6 +65,7 @@ describe('nickname share preview', () => {
     'soulPotential',
     'abilityOptimizer',
     'starforce',
+    'bonusOptions',
   ])(
     'opens the named character in the %s tab and preserves a link without JavaScript',
     async (mode) => {

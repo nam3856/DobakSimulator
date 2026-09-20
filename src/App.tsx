@@ -10,8 +10,8 @@ import {
   ChevronDown,
   CircleHelp,
   ExternalLink,
+  Flame,
   Gem,
-  Infinity as InfinityIcon,
   LoaderCircle,
   Moon,
   Orbit,
@@ -38,7 +38,7 @@ import type {
   SimulatorMode,
   WorkerResponse,
 } from './types';
-import { getCharacter, loadDefaultCharacter } from './character';
+import { getCharacter, loadDefaultCharacter, mergeMissingBundledBonusMetadata } from './character';
 import { getSharedCharacter, resolveSharedApiBase } from './character/shared';
 import {
   ABILITY_JOB_PRESETS,
@@ -86,7 +86,6 @@ import {
   METRIC_LABELS,
   MODES,
   RULE_VERSION,
-  TABS,
   type AppTab,
 } from './ui/constants';
 import { formatAmount, formatPercent, safePrice } from './ui/format';
@@ -97,6 +96,8 @@ import { getPotentialConditionBounds } from './ui/potential-bounds';
 import { FakeAdBanner } from './ui/FakeAdBanner';
 import { AbilityOptimizer } from './ui/AbilityOptimizer';
 import { StarforceSimulator } from './ui/StarforceSimulator';
+import { BonusOptionSimulator } from './ui/BonusOptionSimulator';
+import { SimulatorNavigation } from './ui/SimulatorNavigation';
 import { paidBenchmarkCost } from './engine/soul-cost';
 import {
   buildCharacterShareLink,
@@ -120,6 +121,7 @@ const tabIcons = {
   soulPotential: Gem,
   abilityOptimizer: Route,
   starforce: Star,
+  bonusOptions: Flame,
 };
 const workerFactory = () =>
   new Worker(new URL('./workers/simulator.worker.ts', import.meta.url), { type: 'module' });
@@ -379,7 +381,16 @@ export default function App() {
         if (disposed) return;
         setData(rules);
         const savedSession = readSession();
-        const stored = savedSession?.config.ruleVersion === RULE_VERSION ? savedSession : null;
+        const stored =
+          savedSession?.config.ruleVersion === RULE_VERSION
+            ? {
+                ...savedSession,
+                character: mergeMissingBundledBonusMetadata(
+                  savedSession.character,
+                  defaultCharacter,
+                ),
+              }
+            : null;
         const linkedName = getLinkedCharacter();
         let linkError = '';
         if (linkedName && stored?.character.name !== linkedName) {
@@ -929,7 +940,7 @@ export default function App() {
     return (
       <div className="boot-screen">
         <div className="brand-mark">
-          <InfinityIcon />
+          <img src={`${import.meta.env.BASE_URL}brand-icon.png`} alt="" width="41" height="41" />
         </div>
         <h1>다른 세계로 가는 문이 잠시 닫혔어요.</h1>
         <p>{bootError}</p>
@@ -942,7 +953,7 @@ export default function App() {
     return (
       <div className="boot-screen">
         <div className="brand-mark">
-          <InfinityIcon />
+          <img src={`${import.meta.env.BASE_URL}brand-icon.png`} alt="" width="41" height="41" />
         </div>
         <LoaderCircle className="spin" />
         <h1>또 다른 세계를 준비하고 있어요.</h1>
@@ -983,7 +994,7 @@ export default function App() {
           }}
         >
           <span className="brand-mark">
-            <InfinityIcon size={23} />
+            <img src={`${import.meta.env.BASE_URL}brand-icon.png`} alt="" width="41" height="41" />
           </span>
           <span>
             이세계 직작<small>ANOTHER WORLD SIMULATOR</small>
@@ -1033,25 +1044,11 @@ export default function App() {
             <CharacterShareButton name={character.name} mode={activeTab} apiBase={sharedApiBase} />
           </div>
         </section>
-        <nav className="sim-tabs" aria-label="시뮬레이터">
-          {TABS.map((tab) => {
-            const Icon = tabIcons[tab.id];
-            return (
-              <button
-                key={tab.id}
-                className={activeTab === tab.id ? 'active' : ''}
-                aria-current={activeTab === tab.id ? 'page' : undefined}
-                onClick={() => switchTab(tab.id)}
-              >
-                <Icon size={19} />
-                <span>{tab.name}</span>
-                {activeTab === tab.id && <span className="tab-active-dot" />}
-              </button>
-            );
-          })}
-        </nav>
+        <SimulatorNavigation activeTab={activeTab} onSelect={switchTab} />
         {activeTab === 'abilityOptimizer' ? (
           <AbilityOptimizer key={character.name} character={character} data={data} />
+        ) : activeTab === 'bonusOptions' ? (
+          <BonusOptionSimulator key={character.name} character={character} />
         ) : activeTab === 'starforce' ? (
           <StarforceSimulator key={character.name} character={character} />
         ) : (
@@ -1563,6 +1560,7 @@ export default function App() {
               <section
                 className={`panel simulation-panel mode-${config.mode}`}
                 data-batch-size={effectiveBatchSize(config, state?.grade ?? config.start.grade)}
+                data-selected-batch-size={config.batchSize}
               >
                 <div className="simulation-heading">
                   <div>
@@ -1726,7 +1724,19 @@ export default function App() {
                     )}
                   </div>
                 )}
-                {state && <ProgressDisplay data={data} config={config} state={state} />}
+                {config.mode === 'cube' || config.mode === 'soulPotential' ? (
+                  <div
+                    className="potential-progress-slot"
+                    data-reserved={
+                      config.start.grade !== 'legendary' &&
+                      (config.mode === 'soulPotential' || !isItemCube(config.cubeType))
+                    }
+                  >
+                    {state && <ProgressDisplay data={data} config={config} state={state} />}
+                  </div>
+                ) : (
+                  state && <ProgressDisplay data={data} config={config} state={state} />
+                )}
                 {state?.candidates.length ? (
                   config.mode !== 'soulAmplification' && (
                     <div className={`candidate-grid count-${state.candidates.length}`}>
@@ -2070,7 +2080,7 @@ export default function App() {
       </main>
       <footer className="site-footer">
         <div className="footer-brand">
-          <InfinityIcon size={18} />
+          <img src={`${import.meta.env.BASE_URL}brand-icon.png`} alt="" width="22" height="22" />
           <span>이세계 직작</span>
           <small>메이플스토리 통합 강화 시뮬레이터</small>
         </div>

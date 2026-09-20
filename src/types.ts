@@ -97,6 +97,29 @@ export interface BenchmarkResult {
   note?: string;
 }
 export type LuckReaction = 'jackpot' | 'happy' | 'neutral' | 'cry' | 'ghost';
+/** Reported additional-option totals; absent values are unknown, not zero. */
+export interface EquipmentBonusStats {
+  str?: number;
+  dex?: number;
+  int?: number;
+  luk?: number;
+  hp?: number;
+  mp?: number;
+  attack?: number;
+  magicAttack?: number;
+  armor?: number;
+  speed?: number;
+  jump?: number;
+  /** Percentage points, e.g. 12 means 12%. */
+  bossDamage?: number;
+  damage?: number;
+  allStat?: number;
+  levelReduction?: number;
+}
+export type EquipmentBaseStats = Pick<
+  EquipmentBonusStats,
+  'str' | 'dex' | 'int' | 'luk' | 'hp' | 'mp' | 'attack' | 'magicAttack'
+>;
 export interface EquipmentSnapshot {
   id: string;
   name: string;
@@ -110,6 +133,10 @@ export interface EquipmentSnapshot {
   superiorEquipment?: boolean;
   /** Whether an amazing equipment enhancement scroll was applied (blue stars). */
   extraordinaryStarforce?: boolean;
+  /** API item_add_option values, separate from additional potential lines. */
+  bonusOptions?: EquipmentBonusStats;
+  /** API item_base_option values before additional options and enhancements. */
+  baseOptions?: EquipmentBaseStats;
   potentialGrade?: Grade;
   potential: OptionLine[];
   additionalGrade?: Grade;
@@ -131,6 +158,8 @@ export interface CharacterSnapshot {
   bundledAvatars?: boolean;
   /** Separate provenance when only Star Force metadata was refreshed in the bundled snapshot. */
   starforceFetchedAt?: string;
+  /** Separate provenance when only additional-option/base stats were refreshed. */
+  bonusOptionsFetchedAt?: string;
   name: string;
   world: string;
   job: string;

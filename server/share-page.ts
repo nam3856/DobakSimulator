@@ -54,7 +54,7 @@ export function handleShareRequest(request: Request): Response {
 
   const invitation = characterShareHeadline(nickname);
   const title = `${invitation} | 이세계 직작`;
-  const description = `${invitation}. 메이플스토리 통합 강화 시뮬레이터에서 큐브·스타포스·어빌리티·소울 강화를 체험해 보세요.`;
+  const description = `${invitation}. 메이플스토리 통합 강화 시뮬레이터에서 큐브·추가옵션·스타포스·어빌리티·소울 강화를 체험해 보세요.`;
   // Never let a value close this script, even if nickname rules later change.
   const redirectScriptUrl = JSON.stringify(destination.href).replace(
     /[<>&\u2028\u2029]/g,
@@ -68,6 +68,8 @@ export function handleShareRequest(request: Request): Response {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, follow" />
     <title>${escapeHtml(title)}</title>
+    <link rel="icon" type="image/png" sizes="96x96" href="${SITE_URL}favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="${SITE_URL}apple-touch-icon.png" />
     <meta name="description" content="${escapeHtml(description)}" />
     <link rel="canonical" href="${SITE_URL}" />
     <meta property="og:type" content="website" />

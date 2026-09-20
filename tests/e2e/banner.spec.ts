@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { selectSimulator } from './helpers/navigation';
 
 const EXTERNAL_EVENT_URL = 'https://maplestory.nexon.com/News/Event/Ongoing/1389';
 
@@ -82,7 +83,7 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
   await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
   await expect(image).toHaveAttribute('src', first!);
   await page.getByRole('button', { name: '밝은 테마', exact: true }).click();
-  await page.getByRole('navigation').getByRole('button', { name: '큐브', exact: true }).click();
+  await selectSimulator(page, '큐브');
   await expect(image).toHaveAttribute('src', first!);
   await page.clock.fastForward(300);
   await expect(page.locator('.expected-stat')).not.toContainText('계산 중');

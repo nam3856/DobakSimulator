@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { selectSimulator } from './helpers/navigation';
 import { readFileSync } from 'node:fs';
 import type {
   CharacterSnapshot,
@@ -126,7 +127,7 @@ test('all tabs, cube types, equipment and presets start from their imported opti
     await expectImportedStart(page);
   }
   for (const name of ['어빌리티', '소울 증폭', '소울 잠재']) {
-    await page.getByRole('navigation').getByRole('button', { name, exact: true }).click();
+    await selectSimulator(page, name);
     await expectImportedStart(page);
     const preset = page.getByLabel(name === '어빌리티' ? '어빌리티 프리셋' : '장비 프리셋');
     await preset.selectOption('2');
@@ -134,7 +135,7 @@ test('all tabs, cube types, equipment and presets start from their imported opti
     await preset.selectOption('3');
     await expectImportedStart(page);
   }
-  await page.getByRole('navigation').getByRole('button', { name: '큐브', exact: true }).click();
+  await selectSimulator(page, '큐브');
   const session = await stored(page);
   const hat = session.character.equipmentPresets[session.equipmentPreset].find(
     (item) => item.category === 'hat',
@@ -157,7 +158,7 @@ test('nickname search loads the active equipment and soul state in every equipme
   );
   await boot(page);
   for (const name of ['큐브', '소울 증폭', '소울 잠재']) {
-    await page.getByRole('navigation').getByRole('button', { name, exact: true }).click();
+    await selectSimulator(page, name);
     await page.getByLabel('장비 프리셋').selectOption('1');
     await page.getByRole('button', { name: '캐릭터 검색 열기' }).click();
     await page.getByLabel('캐릭터 닉네임').fill(imported.name);

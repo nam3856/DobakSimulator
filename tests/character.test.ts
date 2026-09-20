@@ -5,6 +5,7 @@ import {
   CharacterApiError,
   getCharacter,
   getDefaultAvatarPath,
+  mergeMissingBundledBonusMetadata,
   normalizeCharacter,
   normalizeEquipmentCategory,
   parsePotentialLine,
@@ -169,6 +170,140 @@ describe('character normalization', () => {
     expect(snapshot.equipmentPresets['3'][0]).not.toHaveProperty('superiorEquipment');
   });
 
+  it('preserves additional-option totals and unenhanced base stats separately in each preset', () => {
+    const snapshot = normalizeCharacter(
+      basic,
+      {
+        preset_no: 2,
+        item_equipment: [
+          {
+            ...weapon,
+            item_add_option: {
+              str: '24',
+              dex: '96',
+              int: '0',
+              luk: '12',
+              max_hp: '2400',
+              max_mp: '0',
+              attack_power: '135',
+              magic_power: '0',
+              armor: '60',
+              speed: '5',
+              jump: '0',
+              boss_damage: '12',
+              damage: '6',
+              all_stat: '7',
+              equipment_level_decrease: 25,
+              private_field: 'must-not-copy',
+            },
+            item_base_option: {
+              base_equipment_level: 200,
+              str: '150',
+              dex: '150',
+              int: '0',
+              luk: '0',
+              max_hp: '500',
+              max_mp: '0',
+              attack_power: '295',
+              magic_power: '0',
+              private_field: 'must-not-copy',
+            },
+            item_total_option: { attack_power: '999' },
+          },
+        ],
+        item_equipment_preset_1: [{ ...weapon, item_add_option: { dex: '48', all_stat: '5' } }],
+        item_equipment_preset_3: [{ ...weapon, item_add_option: { dex: '72', all_stat: '6' } }],
+      },
+      {},
+    );
+    const item = snapshot.equipmentPresets['2'][0];
+    expect(item.bonusOptions).toEqual({
+      str: 24,
+      dex: 96,
+      int: 0,
+      luk: 12,
+      hp: 2400,
+      mp: 0,
+      attack: 135,
+      magicAttack: 0,
+      armor: 60,
+      speed: 5,
+      jump: 0,
+      bossDamage: 12,
+      damage: 6,
+      allStat: 7,
+      levelReduction: 25,
+    });
+    expect(item.baseOptions).toEqual({
+      str: 150,
+      dex: 150,
+      int: 0,
+      luk: 0,
+      hp: 500,
+      mp: 0,
+      attack: 295,
+      magicAttack: 0,
+    });
+    expect(item.level).toBe(200);
+    expect(item.additional).toEqual([]);
+    expect(snapshot.equipmentPresets['1'][0].bonusOptions).toEqual({ dex: 48, allStat: 5 });
+    expect(snapshot.equipmentPresets['3'][0].bonusOptions).toEqual({ dex: 72, allStat: 6 });
+    expect(JSON.stringify(snapshot)).not.toContain('must-not-copy');
+  });
+
+  it('keeps unknown additional/base stats absent while preserving explicit API zeros', () => {
+    const invalid = [
+      undefined,
+      null,
+      '',
+      ' ',
+      -1,
+      '1.5',
+      1.5,
+      NaN,
+      Infinity,
+      true,
+      [],
+      {},
+      '0x10',
+      '1e3',
+      Number.MAX_SAFE_INTEGER + 1,
+    ];
+    for (const value of invalid) {
+      const item = normalizeCharacter(
+        basic,
+        {
+          item_equipment: [
+            {
+              ...weapon,
+              item_add_option: { dex: value, attack_power: ' 0 ', equipment_level_decrease: value },
+              item_base_option: { ...weapon.item_base_option, attack_power: value, magic_power: 0 },
+            },
+          ],
+        },
+        {},
+      ).equipmentPresets['1'][0];
+      expect(item.bonusOptions).toEqual({ attack: 0 });
+      expect(item.baseOptions).toEqual({ magicAttack: 0 });
+    }
+    for (const value of [
+      undefined,
+      null,
+      [],
+      {},
+      'invalid',
+      { dex: null, attack_power: 'invalid' },
+    ]) {
+      const item = normalizeCharacter(
+        basic,
+        { item_equipment: [{ ...weapon, item_add_option: value, item_base_option: value }] },
+        {},
+      ).equipmentPresets['1'][0];
+      expect(item).not.toHaveProperty('bonusOptions');
+      expect(item).not.toHaveProperty('baseOptions');
+    }
+  });
+
   it('does not invent or clamp stars when API fields are missing or malformed', () => {
     const invalid = [
       undefined,
@@ -209,6 +344,7 @@ describe('character normalization', () => {
     expect(normalizeEquipmentCategory('방패', '보조무기')).toBe('shield');
     expect(normalizeEquipmentCategory('리스트레인트 링', '반지2')).toBe('ring');
     expect(normalizeEquipmentCategory('한벌옷', '상의')).toBe('overall');
+    expect(normalizeEquipmentCategory('포켓 아이템', '포켓 아이템')).toBe('pocket');
   });
   it('accepts eligible magnificent souls while rejecting low-level, expiring, sealed and secondary weapons', () => {
     const eligible = (changes: Record<string, unknown>) =>
@@ -228,6 +364,92 @@ describe('character normalization', () => {
     expect(
       eligible({ item_name: '데스티니 피스톨', item_base_option: { base_equipment_level: 250 } }),
     ).toBe(true);
+  });
+});
+
+describe('saved bundled character metadata', () => {
+  const storedSnapshot = (): CharacterSnapshot => ({
+    ...normalizeCharacter(
+      basic,
+      {
+        item_equipment: [
+          weapon,
+          {
+            ...weapon,
+            item_name: '핑크빛 성배',
+            item_equipment_slot: '포켓 아이템',
+            item_equipment_part: '포켓 아이템',
+          },
+        ],
+      },
+      {},
+      '2026-09-17T00:00:00Z',
+    ),
+    bundledAvatars: true,
+  });
+  const bundledSnapshot = (): CharacterSnapshot => {
+    const snapshot = storedSnapshot();
+    snapshot.bonusOptionsFetchedAt = '2026-09-19T00:00:00Z';
+    for (const item of snapshot.equipmentPresets['1']) {
+      item.bonusOptions = { dex: 80, attack: 6, allStat: 5 };
+      item.baseOptions = { attack: 249, magicAttack: 0 };
+    }
+    return snapshot;
+  };
+
+  it('fills missing bundled metadata immutably without changing stored item identity or prior character data', () => {
+    const stored = storedSnapshot();
+    stored.equipmentPresets['1'][1].category = 'unsupported';
+    const original = structuredClone(stored);
+    const bundled = bundledSnapshot();
+    const updated = mergeMissingBundledBonusMetadata(stored, bundled);
+    expect(stored).toEqual(original);
+    expect(updated.fetchedAt).toBe(stored.fetchedAt);
+    expect(updated.abilityPresets).toBe(stored.abilityPresets);
+    expect(updated.equipmentPresets['2']).toBe(stored.equipmentPresets['2']);
+    expect(updated.bonusOptionsFetchedAt).toBe(bundled.bonusOptionsFetchedAt);
+    expect(updated.equipmentPresets['1'][0]).toMatchObject({
+      ...stored.equipmentPresets['1'][0],
+      bonusOptions: { dex: 80, attack: 6, allStat: 5 },
+      baseOptions: { attack: 249, magicAttack: 0 },
+    });
+    expect(updated.equipmentPresets['1'][0].bonusOptions).not.toBe(
+      bundled.equipmentPresets['1'][0].bonusOptions,
+    );
+    expect(updated.equipmentPresets['1'][1].category).toBe('pocket');
+    expect(mergeMissingBundledBonusMetadata(updated, bundled)).toBe(updated);
+  });
+
+  it('leaves imported characters and other names or worlds untouched', () => {
+    const bundled = bundledSnapshot();
+    for (const changes of [
+      { bundledAvatars: false },
+      { bundledAvatars: undefined },
+      { name: '다른 캐릭터' },
+      { world: '다른 월드' },
+    ]) {
+      const stored = { ...storedSnapshot(), ...changes };
+      expect(mergeMissingBundledBonusMetadata(stored, bundled)).toBe(stored);
+    }
+  });
+
+  it('preserves existing bonus values and fills only matching equipment within its preset', () => {
+    const stored = storedSnapshot();
+    stored.equipmentPresets['1'][0].bonusOptions = { dex: 0, attack: 1 };
+    stored.equipmentPresets['1'][0].baseOptions = { attack: 1 };
+    const bundled = bundledSnapshot();
+    const updated = mergeMissingBundledBonusMetadata(stored, bundled);
+    expect(updated.equipmentPresets['1'][0]).toBe(stored.equipmentPresets['1'][0]);
+    for (const field of ['name', 'slot', 'level'] as const) {
+      const changed = storedSnapshot();
+      changed.equipmentPresets['1'] = [changed.equipmentPresets['1'][0]];
+      if (field === 'level') changed.equipmentPresets['1'][0].level += 1;
+      else changed.equipmentPresets['1'][0][field] += ' changed';
+      expect(mergeMissingBundledBonusMetadata(changed, bundled)).toBe(changed);
+    }
+    const wrongPreset = storedSnapshot();
+    wrongPreset.equipmentPresets = { '1': [], '2': wrongPreset.equipmentPresets['1'], '3': [] };
+    expect(mergeMissingBundledBonusMetadata(wrongPreset, bundled)).toBe(wrongPreset);
   });
 });
 
@@ -450,6 +672,15 @@ describe('default avatar and snapshot', () => {
     expect(snapshot.profile.mainStats).toEqual(['dex']);
     expect(Date.parse(snapshot.fetchedAt)).toBeGreaterThan(0);
     expect(Date.parse(snapshot.starforceFetchedAt ?? '')).toBeGreaterThan(0);
+    expect(Date.parse(snapshot.bonusOptionsFetchedAt ?? '')).toBeGreaterThan(0);
+    for (const preset of Object.values(snapshot.equipmentPresets)) {
+      const weapon = preset.find((equipment) => equipment.category === 'weapon');
+      expect(weapon?.baseOptions?.attack).toBeGreaterThan(0);
+      expect(weapon?.bonusOptions?.attack).toBeGreaterThan(0);
+      expect(
+        preset.some((equipment) => equipment.category === 'pocket' && equipment.bonusOptions),
+      ).toBe(true);
+    }
     for (const equipment of Object.values(snapshot.equipmentPresets).flat()) {
       expect(Number.isInteger(equipment.starforce)).toBe(true);
       expect(equipment.starforce).toBeGreaterThanOrEqual(0);

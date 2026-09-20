@@ -1,0 +1,35 @@
+{
+  "source": "https://openapi.nexon.com/game/maplestory/?id=14",
+  "endpoint": "/maplestory/v1/character/item-equipment",
+  "description": "Sanitized item_add_option observations from public character equipment. No credentials, identifiers or account data retained. Omitted option values are zero in the observed full response.",
+  "observations": [
+    {
+      "retrievedAt": "2026-09-19T13:09:29.225Z",
+      "name": "에테르넬 나이트아머",
+      "level": 250,
+      "stats": { "str": 28, "dex": 60, "int": 28, "hp": 4200, "attack": 5 },
+      "tiers": [4, 5, 6, 5]
+    },
+    {
+      "retrievedAt": "2026-09-19T13:09:29.225Z",
+      "name": "에테르넬 나이트팬츠",
+      "level": 250,
+      "stats": { "str": 42, "dex": 42, "int": 72, "hp": 4900, "attack": 5 },
+      "tiers": [6, 6, 7, 5]
+    },
+    {
+      "retrievedAt": "2026-09-19T13:09:51.066Z",
+      "name": "에테르넬 나이트아머",
+      "level": 250,
+      "stats": { "int": 72, "hp": 4900, "mp": 4200, "magicAttack": 4 },
+      "tiers": [6, 7, 6, 4]
+    },
+    {
+      "retrievedAt": "2026-09-19T13:09:51.066Z",
+      "name": "에테르넬 나이트글러브",
+      "level": 250,
+      "stats": { "dex": 35, "int": 70, "luk": 35, "hp": 4900, "armor": 72 },
+      "tiers": [5, 5, 7, 6]
+    }
+  ]
+}

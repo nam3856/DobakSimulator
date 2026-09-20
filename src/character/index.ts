@@ -4,6 +4,7 @@ export { getCharacter, CharacterApiError } from './client.ts';
 export { normalizeCharacter, normalizeEquipmentCategory, normalizeGrade } from './normalize.ts';
 export { parsePotentialLine, suggestPotentialTargets } from './potential.ts';
 export { resolveCharacterProfile } from './profiles.ts';
+export { mergeMissingBundledBonusMetadata } from './bundled-metadata.ts';
 export { buildAvatarUrl, AVATAR_POSES, AVATAR_REACTION_LABELS } from './avatar.ts';
 
 export function getDefaultAvatarPath(reaction: LuckReaction, baseUrl = './'): string {

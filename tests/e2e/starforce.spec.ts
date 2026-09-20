@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { selectSimulator } from './helpers/navigation';
 import type { StarforceConfig, StarforceState } from '../../src/engine/starforce';
 import type { StarforceOptimization } from '../../src/engine/starforce-optimizer';
 import { deserialize, type StoredSession } from '../../src/ui/storage';
@@ -91,7 +92,7 @@ async function optimize(page: Page): Promise<StarforceOptimization> {
   );
 }
 
-test('the sixth tab and starforce banner support mouse and keyboard without changing the main challenge', async ({
+test('the equipment group and starforce banner support mouse and keyboard without changing the main challenge', async ({
   page,
 }) => {
   await page.goto('./#soulAmplification');
@@ -104,8 +105,15 @@ test('the sixth tab and starforce banner support mouse and keyboard without chan
   // Navigating away pauses a paid manual result without changing its progress.
   original.state.status = 'paused';
   const navigation = page.getByRole('navigation');
-  await expect(navigation.getByRole('button')).toHaveCount(6);
-  await expect(navigation.getByRole('button').nth(5)).toHaveText('스타포스');
+  await expect(
+    navigation.getByRole('group', { name: '시뮬레이터 분류', exact: true }).getByRole('button'),
+  ).toHaveText(['장비 강화', '어빌리티', '소울']);
+  await navigation.getByRole('button', { name: '장비 강화 분류', exact: true }).click();
+  await expect(
+    navigation
+      .getByRole('group', { name: '장비 강화 시뮬레이터', exact: true })
+      .getByRole('button'),
+  ).toHaveText(['큐브', '추가옵션', '스타포스']);
   const banner = page.getByRole('button', { name: '스타포스 시뮬레이터로 이동', exact: true });
   await expect(banner.locator('img')).toHaveAttribute('src', /ad-2\.png/);
 
@@ -120,12 +128,12 @@ test('the sixth tab and starforce banner support mouse and keyboard without chan
     await expect(page.locator('.fake-ad-toast')).toHaveCount(0);
     expect((await mainSaved(page)).config).toEqual(original.config);
     expect((await mainSaved(page)).state).toEqual(original.state);
-    await navigation.getByRole('button', { name: '소울 증폭', exact: true }).click();
+    await selectSimulator(page, '소울 증폭');
     await page.clock.fastForward(300);
     await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
     expect((await mainSaved(page)).state).toEqual(original.state);
   }
-  await navigation.getByRole('button', { name: '스타포스', exact: true }).click();
+  await selectSimulator(page, '스타포스');
   await expect(page).toHaveURL(/#starforce$/);
   await ready(page);
   expect(page.context().pages()).toHaveLength(1);
@@ -503,11 +511,10 @@ test('stopping a charging attempt and leaving the tab cancel timers without hidd
   await page.clock.fastForward(150);
   await expectAttempts(page, 1n);
   const paid = await saved(page);
-  const navigation = page.getByRole('navigation');
-  await navigation.getByRole('button', { name: '큐브', exact: true }).click();
+  await selectSimulator(page, '큐브');
   await page.clock.fastForward(10000);
   expect((await saved(page)).state).toEqual(paid.state);
-  await navigation.getByRole('button', { name: '스타포스', exact: true }).click();
+  await selectSimulator(page, '스타포스');
   await ready(page);
   expect((await saved(page)).state).toEqual(paid.state);
   await expect(page.getByRole('button', { name: '자동 강화', exact: true })).toBeEnabled();

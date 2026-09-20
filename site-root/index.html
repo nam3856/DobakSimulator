@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#10271f" />
+    <title>이세계 직작 | 메이플스토리 강화 시뮬레이터</title>
+    <meta
+      name="description"
+      content="메이플스토리 강화, 이세계에서 먼저 도전하세요. 내 캐릭터로 큐브·추가옵션·스타포스·어빌리티·소울을 시뮬레이션하고 기대 비용을 비교할 수 있습니다."
+    />
+    <link rel="canonical" href="https://nam3856.github.io/" />
+    <link rel="icon" type="image/png" sizes="96x96" href="./favicon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+    <link rel="sitemap" type="application/xml" href="./sitemap.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:site_name" content="이세계 직작" />
+    <meta property="og:title" content="이세계 직작 | 메이플스토리 강화 시뮬레이터" />
+    <meta
+      property="og:description"
+      content="메소는 지키고, 가능성은 마음껏. 메이플스토리 강화, 이세계에서 먼저 도전하세요."
+    />
+    <meta property="og:url" content="https://nam3856.github.io/" />
+    <meta property="og:image" content="https://nam3856.github.io/brand-icon.png" />
+    <meta property="og:image:width" content="256" />
+    <meta property="og:image:height" content="256" />
+    <meta
+      property="og:image:alt"
+      content="짙은 숲색 바탕에 주황빛 단풍잎이 빛나는 이세계 직작 아이콘"
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="이세계 직작 | 메이플스토리 강화 시뮬레이터" />
+    <meta name="twitter:description" content="메이플스토리 강화, 이세계에서 먼저 도전하세요." />
+    <meta name="twitter:image" content="https://nam3856.github.io/brand-icon.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "이세계 직작",
+        "alternateName": "메이플스토리 강화 시뮬레이터",
+        "url": "https://nam3856.github.io/",
+        "inLanguage": "ko-KR"
+      }
+    </script>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic',
+          sans-serif;
+        color: #f3f5e9;
+        background: #0a1712;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 280px;
+        min-height: 100vh;
+        min-height: 100svh;
+        margin: 0;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        background:
+          radial-gradient(ellipse at 50% 26%, #2e604632, transparent 58%),
+          radial-gradient(ellipse at 50% 100%, #203b2930, transparent 58%);
+      }
+
+      header,
+      footer {
+        padding: 28px clamp(24px, 6vw, 80px);
+      }
+
+      .wordmark {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        color: #b9cbb8;
+        font-size: 13px;
+        font-weight: 650;
+        letter-spacing: 0.07em;
+      }
+
+      .wordmark::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 2px;
+        background: #d3a469;
+        transform: rotate(45deg);
+        content: '';
+      }
+
+      main {
+        width: min(100%, 800px);
+        margin: auto;
+        padding: 48px 24px 72px;
+        text-align: center;
+      }
+
+      .brand-icon {
+        display: block;
+        width: 112px;
+        height: 112px;
+        margin: 0 auto 34px;
+        border: 1px solid #d1bb7633;
+        border-radius: 25px;
+        box-shadow:
+          0 16px 56px #0005,
+          0 0 80px #89c28317;
+      }
+
+      .eyebrow {
+        margin: 0 0 16px;
+        color: #cdb991;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.13em;
+        line-height: 1.6;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(44px, 8vw, 68px);
+        font-weight: 800;
+        letter-spacing: -0.065em;
+        line-height: 1.16;
+      }
+
+      .tagline {
+        margin: 27px 0 0;
+        color: #d4dfcc;
+        font-size: clamp(19px, 3.2vw, 24px);
+        font-weight: 500;
+        letter-spacing: -0.045em;
+        line-height: 1.6;
+        word-break: keep-all;
+      }
+
+      .description {
+        margin: 15px 0 0;
+        color: #92a895;
+        font-size: 15px;
+        letter-spacing: -0.025em;
+        line-height: 1.9;
+        word-break: keep-all;
+      }
+
+      .enter {
+        display: inline-flex;
+        min-height: 56px;
+        margin-top: 36px;
+        padding: 0 28px;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        border: 1px solid #f1d7a799;
+        border-radius: 12px;
+        background: #e4c48d;
+        box-shadow: 0 8px 32px #0003;
+        color: #182a1d;
+        font-size: 16px;
+        font-weight: 750;
+        text-decoration: none;
+        transition:
+          background 160ms ease,
+          transform 160ms ease;
+      }
+
+      .enter:hover {
+        background: #f0d5a6;
+        transform: translateY(-2px);
+      }
+
+      .enter:focus-visible {
+        outline: 3px solid #f5efd6;
+        outline-offset: 5px;
+      }
+
+      .enter svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .features {
+        margin: 31px 0 0;
+        color: #96aa96;
+        font-size: 12px;
+        letter-spacing: 0.01em;
+        line-height: 2;
+        word-break: keep-all;
+      }
+
+      footer {
+        color: #809381;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-align: center;
+      }
+
+      footer span {
+        color: #bbab89;
+      }
+
+      @media (max-width: 480px) {
+        header {
+          padding-top: 24px;
+        }
+
+        main {
+          padding-top: 28px;
+          padding-bottom: 44px;
+        }
+
+        .brand-icon {
+          width: 96px;
+          height: 96px;
+          border-radius: 22px;
+        }
+
+        .description {
+          max-width: 285px;
+          margin-right: auto;
+          margin-left: auto;
+          font-size: 14px;
+        }
+
+        .features {
+          max-width: 280px;
+          margin-right: auto;
+          margin-left: auto;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .enter {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header><span class="wordmark">이세계 직작</span></header>
+    <main>
+      <img
+        class="brand-icon"
+        src="./brand-icon.png"
+        width="256"
+        height="256"
+        alt="이세계 직작 단풍잎 아이콘"
+        fetchpriority="high"
+      />
+      <p class="eyebrow">메이플스토리 강화 시뮬레이터</p>
+      <h1>이세계 직작</h1>
+      <p class="tagline">메소는 지키고, 가능성은 마음껏.</p>
+      <p class="description">
+        내 캐릭터의 다음 강화를 미리 경험하고,<br />목표까지의 비용과 나의 운을 확인해 보세요.
+      </p>
+      <a class="enter" href="https://nam3856.github.io/DobakSimulator/">
+        시뮬레이터 시작하기
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
+      </a>
+      <p class="features">큐브 · 추가옵션 · 스타포스 · 어빌리티 · 소울</p>
+    </main>
+    <footer><span>이세계 직작</span> &nbsp;·&nbsp; 도전은 이세계에서.</footer>
+  </body>
+</html>
