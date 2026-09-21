@@ -1033,7 +1033,7 @@ export default function App() {
         </div>
       </header>
       <main>
-        <h1 className="sr-only">메이플스토리 통합 강화 시뮬레이터 — 이세계 직작</h1>
+        <h1 className="sr-only">이세계 직작 — 메이플스토리 통합 강화 시뮬레이터</h1>
         {activeTab !== 'abilityOptimizer' && (
           <section className="hero">
             <FakeAdBanner onStarforce={() => switchTab('starforce')} />

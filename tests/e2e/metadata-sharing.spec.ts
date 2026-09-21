@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import type { CharacterSnapshot } from '../../src/types';
 
 const SITE_URL = 'https://nam3856.github.io/DobakSimulator/';
-const SITE_TITLE = '이세계 직작 | 메이플스토리 강화 시뮬레이터';
+const SITE_TITLE = '이세계 직작 — 메이플스토리 통합 강화 시뮬레이터';
 const SHARED_API = 'https://fixture-api.example/api';
 
 function characterFixture(name: string): CharacterSnapshot {
