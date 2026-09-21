@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { optimizeAbilityCost, type AbilityOptimizerInput } from '../src/engine/ability-optimizer';
+import {
+  optimizeAbilityCost,
+  type AbilityOptimizerInput,
+  type AbilityOptimizerTarget,
+} from '../src/engine/ability-optimizer';
 import { allCandidates, type RuleData } from '../src/engine/rules';
 import { seededRandom } from '../src/engine/math';
 import type { OptionLine, SimulationConfig } from '../src/types';
@@ -65,6 +69,114 @@ function input(
   batchSize: 1 | 3 = 1,
 ): AbilityOptimizerInput {
   return { start, targetTypes: ['a', 'b', 'c'], medalPrice: 5000, circulatorPrice: 10, batchSize };
+}
+
+/** Tiny, independent full-tuple oracle: no production candidates, compression or phase caches. */
+function mixedDirectOracle(
+  rules: RuleData,
+  cfg: AbilityOptimizerInput,
+  targets: AbilityOptimizerTarget[],
+) {
+  const rank = { normal: 0, rare: 1, epic: 2, unique: 3, legendary: 4 };
+  const goals = targets.map((target) => {
+    const option = rules.ability.grades[target.grade]!.options.find(
+      (row) => row.type === target.type,
+    )!;
+    const best = option.values.reduce((a, b) =>
+      (option.valueDirection === 'lower' ? b.value < a.value : b.value > a.value) ? b : a,
+    );
+    return { ...target, threshold: best.value, lower: option.valueDirection === 'lower' };
+  });
+  const matches = (value: OptionLine) =>
+    goals.some(
+      (goal) =>
+        value.type === goal.type &&
+        rank[value.grade] >= rank[goal.grade] &&
+        (goal.lower ? value.value <= goal.threshold : value.value >= goal.threshold),
+    );
+  const identity = (lines: OptionLine[]) =>
+    lines.map((line) => line.text.replace(/\s/g, '')).join('|');
+  const cache = new Map<string, { resets: number; meso: number; honor: number }>();
+  function solve(lines: OptionLine[]): { resets: number; meso: number; honor: number } {
+    const locks = [0, 1, 2].filter((slot) => matches(lines[slot]));
+    if (locks.length === goals.length) return { resets: 0, meso: 0, honor: 0 };
+    const key = JSON.stringify(lines.map((line) => [line.type, line.grade, line.value]));
+    const cached = cache.get(key);
+    if (cached) return cached;
+    const outcomes: { lines: OptionLine[]; p: number; rank: number }[] = [];
+    function draw(slot: number, next: OptionLine[], used: string[], p: number) {
+      if (slot === 3) {
+        if (identity(next) !== identity(lines))
+          outcomes.push({ lines: [...next], p, rank: next.filter(matches).length });
+        return;
+      }
+      if (locks.includes(slot)) {
+        draw(slot + 1, next, used, p);
+        return;
+      }
+      for (const [grade, gradeP] of Object.entries(rules.ability.advancedLineGrades[slot])) {
+        const eligible = rules.ability.grades[grade as OptionLine['grade']]!.options.filter(
+          (option) => !used.includes(option.type!),
+        );
+        const optionTotal = eligible.reduce((sum, option) => sum + option.weight, 0);
+        for (const option of eligible) {
+          const valueTotal = option.values.reduce((sum, value) => sum + value.weight, 0);
+          for (const value of option.values) {
+            const row: OptionLine = {
+              id: option.id,
+              abilityTypeId: option.id,
+              type: option.type!,
+              grade: grade as OptionLine['grade'],
+              value: value.value,
+              text: value.label,
+              unit: 'flat',
+            };
+            next[slot] = row;
+            draw(
+              slot + 1,
+              next,
+              [...used, option.type!],
+              (((p * gradeP! * option.weight) / optionTotal) * value.weight) / valueTotal,
+            );
+          }
+        }
+      }
+    }
+    draw(
+      0,
+      [...lines],
+      locks.map((slot) => lines[slot].type),
+      1,
+    );
+    const total = outcomes.reduce((sum, outcome) => sum + outcome.p, 0);
+    const progress = outcomes.filter((outcome) => outcome.rank > locks.length);
+    const leave =
+      1 - (1 - progress.reduce((sum, outcome) => sum + outcome.p / total, 0)) ** cfg.batchSize;
+    const price = rules.ability.costs.find((price) => price.locked === locks.length)!;
+    const result = {
+      resets: cfg.batchSize,
+      meso: cfg.batchSize * Number(price.meso),
+      honor: cfg.batchSize * price.honor,
+    };
+    for (const outcome of progress) {
+      const below = outcomes
+        .filter((row) => row.rank < outcome.rank)
+        .reduce((sum, row) => sum + row.p / total, 0);
+      const same = outcomes
+        .filter((row) => row.rank === outcome.rank)
+        .reduce((sum, row) => sum + row.p / total, 0);
+      const chance =
+        (((below + same) ** cfg.batchSize - below ** cfg.batchSize) * (outcome.p / total)) / same;
+      const future = solve(outcome.lines);
+      result.resets += chance * future.resets;
+      result.meso += chance * future.meso;
+      result.honor += chance * future.honor;
+    }
+    for (const field of ['resets', 'meso', 'honor'] as const) result[field] /= leave;
+    cache.set(key, result);
+    return result;
+  }
+  return solve(cfg.start);
 }
 
 /** Independent tiny model: ordered tuple and batch enumeration, fixed first-subset
@@ -147,6 +259,335 @@ function oracle(batchSize: number, mask: number, start: string[]) {
 }
 
 describe('ability acquisition and circulator strategy optimizer', () => {
+  it.each([1, 3] as const)(
+    'solves one and two unrestricted-slot goals analytically with %i comparisons',
+    (batchSize) => {
+      const rules = fixture();
+      const cfg = input(
+        ['c', 'd', 'e'].map((type) => line(type)),
+        batchSize,
+      );
+      const one = optimizeAbilityCost(rules, {
+        ...cfg,
+        targets: [{ type: 'a', grade: 'legendary' }],
+      });
+      const directOne = one.strategies.find((row) => row.id === 'direct-1')!;
+      const oneAttempts = batchSize / (1 - (23 / 59) ** batchSize);
+      expect(directOne.expectedResets).toBeCloseTo(oneAttempts, 10);
+      expect(directOne.expectedMeso).toBeCloseTo(oneAttempts * 2, 10);
+      expect(directOne.expectedHonor).toBeCloseTo(oneAttempts * 20, 10);
+      expect(directOne.policy).toMatchObject({ kind: 'acquire', lockSlots: [0, 1, 2] });
+      const two = optimizeAbilityCost(rules, {
+        ...cfg,
+        targets: [
+          { type: 'a', grade: 'legendary' },
+          { type: 'b', grade: 'legendary' },
+        ],
+      });
+      const directTwo = two.strategies.find((row) => row.id === 'direct-3')!;
+      const firstAttempts = batchSize / (1 - (5 / 59) ** batchSize);
+      const remainingChance =
+        ((41 / 59) ** batchSize - (5 / 59) ** batchSize) / (1 - (5 / 59) ** batchSize);
+      const finalAttempts = batchSize / (1 - (5 / 11) ** batchSize);
+      expect(directTwo.expectedResets).toBeCloseTo(
+        firstAttempts + remainingChance * finalAttempts,
+        10,
+      );
+      expect(directTwo.expectedMeso).toBeCloseTo(
+        firstAttempts * 2 + remainingChance * finalAttempts * 6,
+        10,
+      );
+      expect(directTwo.expectedHonor).toBeCloseTo(
+        firstAttempts * 20 + remainingChance * finalAttempts * 30,
+        10,
+      );
+      expect(two.strategies.some((row) => row.id.startsWith('lower-'))).toBe(false);
+    },
+  );
+
+  it('includes ignored lines in circulation exclusion for one and two selected goals', () => {
+    const rules = fixture(true);
+    const one = optimizeAbilityCost(rules, {
+      ...input([line('a'), line('d'), line('e', 2)]),
+      targets: [{ type: 'a', grade: 'legendary' }],
+    });
+    const oneCurrent = one.strategies.find((row) => row.id === 'current-types-circulator')!;
+    expect(oneCurrent.expectedCirculators).toBeCloseTo(1.6, 12);
+    expect(oneCurrent.expectedResets).toBe(0);
+    const two = optimizeAbilityCost(rules, {
+      ...input([line('a'), line('b'), line('e', 2)]),
+      targets: [
+        { type: 'a', grade: 'legendary' },
+        { type: 'b', grade: 'legendary' },
+      ],
+    });
+    expect(
+      two.strategies.find((row) => row.id === 'current-types-circulator')!.expectedCirculators,
+    ).toBeCloseTo(5, 12);
+  });
+
+  it('accepts stronger grades for unique goals only when their values also meet the threshold', () => {
+    const rules = fixture();
+    rules.ability.grades.unique = structuredClone(rules.ability.grades.legendary!);
+    rules.ability.advancedLineGrades = [
+      { legendary: 1 },
+      { unique: 0.5, legendary: 0.5 },
+      { unique: 0.5, legendary: 0.5 },
+    ];
+    rules.ability.grades.unique.options[0].values = [
+      { value: 1, label: 'a 1', weight: 0.75 },
+      { value: 2, label: 'a 2', weight: 0.25 },
+    ];
+    const legendary = rules.ability.grades.legendary!.options[0];
+    legendary.values = [
+      { value: 2, label: 'a 2', weight: 0.5 },
+      { value: 3, label: 'a 3', weight: 0.5 },
+    ];
+    const targets = [{ type: 'a', grade: 'unique' }] as AbilityOptimizerTarget[];
+    const cfg = {
+      ...input([line('c'), { ...line('d'), grade: 'unique' }, { ...line('e'), grade: 'unique' }]),
+      targets,
+    };
+    expect(
+      optimizeAbilityCost(rules, cfg).strategies.find((row) => row.id === 'direct-1')!
+        .expectedResets,
+    ).toBeCloseTo(59 / 27, 10);
+    const lowerValues = structuredClone(rules);
+    lowerValues.ability.grades.legendary!.options[0].values[0] = {
+      value: 1,
+      label: 'a 1',
+      weight: 0.5,
+    };
+    expect(
+      optimizeAbilityCost(lowerValues, cfg).strategies.find((row) => row.id === 'direct-1')!
+        .expectedResets,
+    ).toBeCloseTo(59 / 15, 10);
+    const incomplete = optimizeAbilityCost(lowerValues, {
+      ...cfg,
+      start: [line('a'), line('d'), line('e')],
+    });
+    expect(incomplete.strategies.every((row) => row.status !== 'already')).toBe(true);
+    expect(
+      incomplete.strategies.find((row) => row.id === 'current-types-circulator')!
+        .expectedCirculators,
+    ).toBeCloseTo(1, 12);
+    const completed = optimizeAbilityCost(lowerValues, {
+      ...cfg,
+      start: [line('a', 3), line('d'), line('e')],
+    });
+    expect(
+      completed.strategies.every((row) => row.status === 'already' && row.totalCost === 0),
+    ).toBe(true);
+  });
+
+  it('removes same-visible successes as well as repeats when different grades share displayed text', () => {
+    const rules = fixture();
+    rules.ability.grades.epic = structuredClone(rules.ability.grades.legendary!);
+    rules.ability.grades.unique = structuredClone(rules.ability.grades.legendary!);
+    rules.ability.advancedLineGrades = [
+      { legendary: 1 },
+      { epic: 0.5, unique: 0.5 },
+      { epic: 0.5, unique: 0.5 },
+    ];
+    const cfg = {
+      ...input([line('c'), { ...line('a'), grade: 'epic' }, { ...line('e'), grade: 'epic' }]),
+      targets: [{ type: 'a', grade: 'unique' }] as AbilityOptimizerTarget[],
+    };
+    expect(
+      optimizeAbilityCost(rules, cfg).strategies.find((row) => row.id === 'direct-1')!
+        .expectedResets,
+    ).toBeCloseTo(118 / 47, 10);
+  });
+
+  it.each([1, 3] as const)(
+    'matches an independent full-state oracle for three mixed-grade goals with %i comparisons',
+    (batchSize) => {
+      const rules = fixture();
+      rules.ability.grades.unique = structuredClone(rules.ability.grades.legendary!);
+      for (const grade of ['unique', 'legendary'] as const)
+        for (const option of rules.ability.grades[grade]!.options.slice(0, 3))
+          option.values =
+            grade === 'unique'
+              ? [
+                  { value: 1, label: `${option.type} 1`, weight: 0.5 },
+                  { value: 2, label: `${option.type} 2`, weight: 0.5 },
+                ]
+              : [
+                  { value: 2, label: `${option.type} 2`, weight: 0.5 },
+                  { value: 3, label: `${option.type} 3`, weight: 0.5 },
+                ];
+      rules.ability.advancedLineGrades = [
+        { legendary: 1 },
+        { unique: 0.5, legendary: 0.5 },
+        { unique: 0.5, legendary: 0.5 },
+      ];
+      const targets = [
+        { type: 'a', grade: 'legendary' },
+        { type: 'b', grade: 'unique' },
+        { type: 'c', grade: 'unique' },
+      ] as AbilityOptimizerTarget[];
+      const cfg = {
+        ...input(
+          [line('d'), { ...line('e'), grade: 'unique' }, { ...line('a'), grade: 'unique' }],
+          batchSize,
+        ),
+        targets,
+      };
+      const expected = mixedDirectOracle(rules, cfg, targets);
+      const row = optimizeAbilityCost(rules, cfg).strategies.find((row) => row.id === 'direct-7')!;
+      expect(row.expectedResets).toBeCloseTo(expected.resets, 8);
+      expect(row.expectedMeso).toBeCloseTo(expected.meso, 8);
+      expect(row.expectedHonor).toBeCloseTo(expected.honor, 8);
+    },
+    30000,
+  );
+
+  it('keeps the legacy three-legendary path and honors the new goal grades in cached calculations', () => {
+    const rules = fixture(true),
+      cfg = input([line('a'), line('d'), line('e', 2)]);
+    const legacy = optimizeAbilityCost(rules, cfg);
+    expect(
+      optimizeAbilityCost(rules, {
+        ...cfg,
+        targets: cfg.targetTypes!.map((type) => ({ type, grade: 'legendary' })),
+      }),
+    ).toEqual(legacy);
+    rules.ability.grades.unique = structuredClone(rules.ability.grades.legendary!);
+    rules.ability.grades.unique.options[0].values = [{ value: 1, label: 'a 1', weight: 1 }];
+    const unique = optimizeAbilityCost(rules, {
+      ...cfg,
+      targets: [{ type: 'a', grade: 'unique' }],
+    });
+    const legendary = optimizeAbilityCost(rules, {
+      ...cfg,
+      targets: [{ type: 'a', grade: 'legendary' }],
+    });
+    expect(unique.strategies.every((row) => row.status === 'already')).toBe(true);
+    expect(legendary.strategies.every((row) => row.status !== 'already')).toBe(true);
+    const repriced = optimizeAbilityCost(rules, {
+      ...cfg,
+      targets: [{ type: 'a', grade: 'legendary' }],
+      availableHonor: 999999999,
+      medalPrice: 0,
+      circulatorPrice: 123,
+    });
+    for (const row of repriced.strategies) {
+      const before = legendary.strategies.find((old) => old.id === row.id)!;
+      expect(row.expectedHonor).toBe(before.expectedHonor);
+      expect(row.expectedResets).toBe(before.expectedResets);
+      expect(row.expectedCirculators).toBe(before.expectedCirculators);
+      expect(row.totalCost).toBe(row.expectedMeso + 123 * row.expectedCirculators);
+    }
+  });
+
+  it('validates optional goal counts, grades and duplicate kinds', () => {
+    for (const targets of [
+      [],
+      [{ type: 'a', grade: 'epic' }],
+      [
+        { type: 'a', grade: 'unique' },
+        { type: 'a', grade: 'legendary' },
+      ],
+      ['a', 'b', 'c', 'd'].map((type) => ({ type, grade: 'legendary' })),
+    ])
+      expect(() =>
+        optimizeAbilityCost(fixture(), {
+          ...input(),
+          targets: targets as AbilityOptimizerTarget[],
+        }),
+      ).toThrow('서로 다른');
+  });
+
+  it('handles lower-is-better mixed thresholds, existing first locks and unreachable partial goals', () => {
+    const rules = fixture();
+    rules.ability.grades.unique = structuredClone(rules.ability.grades.legendary!);
+    rules.ability.advancedLineGrades = [
+      { legendary: 1 },
+      { unique: 0.5, legendary: 0.5 },
+      { unique: 0.5, legendary: 0.5 },
+    ];
+    const unique = rules.ability.grades.unique.options[0];
+    unique.valueDirection = 'lower';
+    unique.values = [
+      { value: 2, label: 'a 2', weight: 0.5 },
+      { value: 1, label: 'a 1', weight: 0.5 },
+    ];
+    const legendary = rules.ability.grades.legendary!.options[0];
+    legendary.valueDirection = 'lower';
+    legendary.values = [
+      { value: 1, label: 'a 1', weight: 0.5 },
+      { value: 0, label: 'a 0', weight: 0.5 },
+    ];
+    const cfg = {
+      ...input([line('c'), { ...line('d'), grade: 'unique' }, { ...line('e'), grade: 'unique' }]),
+      targets: [{ type: 'a', grade: 'unique' }] as AbilityOptimizerTarget[],
+    };
+    const result = optimizeAbilityCost(rules, cfg);
+    expect(result.strategies.find((row) => row.id === 'direct-1')!.expectedResets).toBeCloseTo(
+      59 / 30,
+      10,
+    );
+    expect(
+      optimizeAbilityCost(rules, {
+        ...cfg,
+        start: [line('a', 0), line('d'), line('e')],
+      }).strategies.every((row) => row.status === 'already'),
+    ).toBe(true);
+    const kept = optimizeAbilityCost(fixture(), {
+      ...input([line('a'), line('d'), line('e')]),
+      targets: [
+        { type: 'a', grade: 'legendary' },
+        { type: 'b', grade: 'legendary' },
+      ],
+    });
+    const keeper = kept.strategies.find((row) => row.id === 'keep-first-max')!;
+    expect(keeper.expectedResets).toBeCloseTo(11 / 6, 10);
+    expect(keeper.expectedMeso).toBeCloseTo(11, 10);
+    const impossible = fixture();
+    impossible.ability.grades.unique = structuredClone(impossible.ability.grades.legendary!);
+    impossible.ability.grades.unique.options[0].values = [{ value: 2, label: 'a 2', weight: 1 }];
+    const unreachable = optimizeAbilityCost(impossible, {
+      ...input(),
+      targets: [{ type: 'a', grade: 'unique' }],
+      medalPrice: 0,
+      circulatorPrice: 0,
+      availableHonor: 999999999,
+    });
+    expect(unreachable.bestStrategyId).toBeUndefined();
+    expect(
+      unreachable.strategies.every(
+        (row) => row.status === 'impossible' && row.totalCost === Infinity,
+      ),
+    ).toBe(true);
+  });
+
+  it('finishes an official three-target mixed-grade calculation without replaying failures', () => {
+    const rules = fixture();
+    rules.ability = JSON.parse(
+      readFileSync(new URL('../public/rules/ability.json', import.meta.url), 'utf8'),
+    );
+    const start = ['strFlat', 'dexFlat', 'intFlat'].map(
+      (type, slot) =>
+        allCandidates(rules, { mode: 'ability' } as SimulationConfig, 'legendary', slot).find(
+          (row) => row.line.type === type,
+        )!.line,
+    );
+    const began = performance.now();
+    const result = optimizeAbilityCost(rules, {
+      ...input(start, 3),
+      targets: [
+        { type: 'passiveSkillLevel', grade: 'legendary' },
+        { type: 'bossDamagePercent', grade: 'unique' },
+        { type: 'statusAilmentDamagePercent', grade: 'unique' },
+      ],
+    });
+    expect(result.strategies).toHaveLength(21);
+    expect(result.strategies.every((row) => row.status === 'ready' && row.totalCost > 0)).toBe(
+      true,
+    );
+    expect(performance.now() - began).toBeLessThan(25000);
+  }, 30000);
+
   it('matches independently drawn variable-value full paths including lower circulation and ordered batches', () => {
     const rules = fixture(true);
     const cfg = input([line('d'), line('e', 2), line('a')], 3);

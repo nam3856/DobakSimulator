@@ -4,11 +4,8 @@ import { fileURLToPath } from 'node:url';
 // Run only when refreshing the bundled artwork, never as part of a visitor request/build.
 // node --env-file=.env.local scripts/sync-optimizer-avatars.mjs
 // Pose reference: https://openapi.nexon.com/ko/support/notice/2715682/
-const characters = [
-  { name: '깽미니', directory: 'kkangmini' },
-  { name: '깽쿤', directory: 'kkangkun' },
-  { name: '렌내여친임', directory: 'rennae' },
-];
+const metadataUrl = new URL('../src/character/optimizer-avatars.json', import.meta.url);
+const characters = JSON.parse(await readFile(metadataUrl, 'utf8'));
 const base = 'https://open.api.nexon.com/maplestory/v1';
 const destination = new URL('../public/character/optimizer/', import.meta.url);
 const snapshot = JSON.parse(
@@ -23,7 +20,11 @@ async function request(path) {
     signal: AbortSignal.timeout(20_000),
   });
   if (!response.ok) throw new Error(`캐릭터 이미지 조회에 실패했습니다. (HTTP ${response.status})`);
-  return response.json();
+  try {
+    return await response.json();
+  } catch {
+    throw new Error('캐릭터 조회 응답을 확인하지 못했습니다.');
+  }
 }
 
 function imageUrl(url, frame) {
@@ -44,16 +45,24 @@ function imageUrl(url, frame) {
 
 try {
   const assets = [];
+  const refreshedCharacters = [];
   for (const character of characters) {
     let url;
-    if (snapshot.name === character.name) url = snapshot.imageUrl;
-    else {
+    let job;
+    if (snapshot.name === character.name) {
+      url = snapshot.imageUrl;
+      job = snapshot.job;
+    } else {
       const id = await request(`/id?character_name=${encodeURIComponent(character.name)}`);
       if (typeof id.ocid !== 'string' || !id.ocid)
         throw new Error(`${character.name}: 캐릭터를 찾을 수 없습니다.`);
       const basic = await request(`/character/basic?ocid=${encodeURIComponent(id.ocid)}`);
       url = basic.character_image;
+      job = basic.character_class;
     }
+    if (typeof job !== 'string' || !job.trim())
+      throw new Error(`${character.name}: 캐릭터 직업을 확인하지 못했습니다.`);
+    refreshedCharacters.push({ name: character.name, directory: character.directory, job });
     for (const frame of [1, 2, 3]) {
       const response = await fetch(imageUrl(url, frame), { signal: AbortSignal.timeout(20_000) });
       if (!response.ok)
@@ -80,6 +89,7 @@ try {
     await mkdir(fileURLToPath(new URL('./', asset.path)), { recursive: true });
     await writeFile(asset.path, asset.bytes);
   }
+  await writeFile(metadataUrl, `${JSON.stringify(refreshedCharacters, null, 2)}\n`);
   await writeFile(
     new URL('manifest.json', destination),
     `${JSON.stringify(
@@ -90,8 +100,9 @@ try {
         // Nexon's renderer currently returns a 300×300 canvas even when requesting 240×200.
         imageSize: { width: 300, height: 300 },
         frameOrder: [1, 2, 3, 2],
-        characters: characters.map((character) => ({
+        characters: refreshedCharacters.map((character) => ({
           name: character.name,
+          job: character.job,
           frames: [1, 2, 3].map((frame) => `${character.directory}/walk-${frame}.png`),
         })),
       },

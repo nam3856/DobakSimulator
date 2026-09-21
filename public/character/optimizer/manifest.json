@@ -15,6 +15,7 @@
   "characters": [
     {
       "name": "깽미니",
+      "job": "메카닉",
       "frames": [
         "kkangmini/walk-1.png",
         "kkangmini/walk-2.png",
@@ -23,6 +24,7 @@
     },
     {
       "name": "깽쿤",
+      "job": "레테",
       "frames": [
         "kkangkun/walk-1.png",
         "kkangkun/walk-2.png",
@@ -31,6 +33,7 @@
     },
     {
       "name": "렌내여친임",
+      "job": "렌",
       "frames": [
         "rennae/walk-1.png",
         "rennae/walk-2.png",

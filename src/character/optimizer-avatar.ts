@@ -1,13 +1,14 @@
 import type { CharacterSnapshot } from '../types';
+import optimizerAvatars from './optimizer-avatars.json';
 
 export const OPTIMIZER_WALK_SEQUENCE = [0, 1, 2, 1] as const;
 export const OPTIMIZER_WALK_FRAME_MS = 160;
 
-export const BUNDLED_OPTIMIZER_AVATARS = [
-  { name: '깽미니', directory: 'kkangmini' },
-  { name: '깽쿤', directory: 'kkangkun' },
-  { name: '렌내여친임', directory: 'rennae' },
-] as const;
+export const BUNDLED_OPTIMIZER_AVATARS: readonly {
+  name: string;
+  directory: string;
+  job: string;
+}[] = optimizerAvatars;
 
 export interface OptimizerAvatarDescriptor {
   name: string;

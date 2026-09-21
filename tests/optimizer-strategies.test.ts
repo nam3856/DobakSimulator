@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type {
   AbilityOptimizerPolicy,
   AbilityOptimizerStrategyResult,
+  AbilityOptimizerTarget,
 } from '../src/engine/ability-optimizer';
 import type { AbilityOption } from '../src/engine/rules';
 import { abilityKindLabel } from '../src/engine/ability-labels';
@@ -54,7 +55,13 @@ function row(
 const acquire = (
   timing: 'direct' | 'lower' | 'all',
   firstAcceptedTargets = ['boss', 'passive', 'attack'],
-): AbilityOptimizerPolicy => ({ kind: 'acquire', timing, firstAcceptedTargets });
+  lockSlots?: Array<0 | 1 | 2>,
+): AbilityOptimizerPolicy => ({
+  kind: 'acquire',
+  timing,
+  firstAcceptedTargets,
+  ...(lockSlots ? { lockSlots } : {}),
+});
 
 describe('optimizer strategy presentation', () => {
   it('removes empty percentage placeholders while preserving meaningful option names', () => {
@@ -146,5 +153,162 @@ describe('optimizer strategy presentation', () => {
     );
     expect(done.label).toBe('현재 상태');
     expect(done.detail).toBe('추가 재설정이 필요 없어요.');
+  });
+
+  it('uses one- and two-goal method names without claiming three required lines', () => {
+    for (const [targets, count] of [
+      [[{ type: 'boss', grade: 'legendary' }], '한'],
+      [
+        [
+          { type: 'boss', grade: 'legendary' },
+          { type: 'attack', grade: 'unique' },
+        ],
+        '두',
+      ],
+    ] as const) {
+      const rows = [
+        row(
+          'direct',
+          acquire(
+            'direct',
+            targets.map((target) => target.type),
+          ),
+        ),
+        row(
+          'lower',
+          acquire(
+            'lower',
+            targets.map((target) => target.type),
+          ),
+        ),
+        row('all', { kind: 'current-types' }),
+        row('keep', { kind: 'keep-first', targetType: 'boss' }),
+      ];
+      const groups = groupOptimizerStrategies(rows, targets);
+      expect(groups.find((group) => group.method === 'direct')?.title).toBe(
+        `재설정만으로 ${count} 줄 완성`,
+      );
+      expect(groups.find((group) => group.method === 'all')?.title).toBe(
+        `${count} 종류를 갖춘 뒤 서큘레이터로 완성`,
+      );
+      expect(groups.every((group) => !/세 줄|세 종류/.test(group.title))).toBe(true);
+      const current = optimizerLockCondition(rows[2], options, targets);
+      expect(current.title).toBe(`이미 목표 ${count} 종류가 있어요`);
+      expect(current.detail).toContain('목표 등급');
+      expect(
+        optimizerLockCondition({ ...rows[0], status: 'already' }, options, targets).title,
+      ).toBe(`목표 ${count} 줄 완성`);
+    }
+  });
+
+  it('uses each chosen grade threshold for mixed goals and allows stronger legendary results', () => {
+    const targets: AbilityOptimizerTarget[] = [
+      { type: 'boss', grade: 'legendary' },
+      { type: 'attack', grade: 'unique' },
+      { type: 'passive', grade: 'legendary' },
+    ];
+    const direct = optimizerLockCondition(
+      row('direct', acquire('direct', ['boss', 'attack'])),
+      options,
+      targets,
+    );
+    expect(direct.title).toBe('보스 몬스터 데미지 증가 또는 공격력 증가');
+    expect(direct.detail).toContain('각 옵션의 목표 등급');
+    expect(direct.detail).toContain('선택 등급의 최대치 기준');
+    expect(direct.detail).toContain('목표 수치를 충족한 레전드리도 인정');
+    for (const timing of ['lower', 'all'] as const) {
+      const circulator = optimizerLockCondition(
+        row(timing, acquire(timing, ['boss', 'attack'])),
+        options,
+        targets,
+      );
+      expect(circulator.detail).toContain('각 옵션의 목표 등급 이상');
+      expect(circulator.detail).toContain('현재 수치와 관계없이');
+      expect(circulator.detail).not.toContain('최대치');
+      expect(circulator.detail).toContain('유니크 목표는 레전드리도 인정');
+    }
+  });
+
+  it('explains the selected first-lock subset rather than the other target grades', () => {
+    const targets: AbilityOptimizerTarget[] = [
+      { type: 'boss', grade: 'legendary' },
+      { type: 'attack', grade: 'unique' },
+    ];
+    const unique = optimizerLockCondition(
+      row('unique', acquire('direct', ['attack'])),
+      options,
+      targets,
+    );
+    expect(unique.title).toBe('공격력 증가');
+    expect(unique.detail).toContain('유니크 최대치');
+    expect(unique.detail).not.toContain('레전드리 최대치');
+    const legendary = optimizerLockCondition(
+      row('legendary', acquire('direct', ['boss'])),
+      options,
+      targets,
+    );
+    expect(legendary.detail).toBe('아랫줄에 레전드리 최대치로 나오면 잠가요.');
+    expect(
+      optimizerLockCondition(row('any', acquire('all', ['boss', 'attack'])), options, targets)
+        .title,
+    ).toBe('목표 옵션 중 무엇이든');
+    expect(
+      optimizerLockCondition(
+        row('single', acquire('direct', ['boss'])),
+        options,
+        targets.slice(0, 1),
+      ).title,
+    ).toBe('보스 몬스터 데미지 증가');
+  });
+
+  it('describes a retained first line by the chosen goal rather than its own grade maximum', () => {
+    const targets: AbilityOptimizerTarget[] = [
+      { type: 'boss', grade: 'legendary' },
+      { type: 'attack', grade: 'unique' },
+    ];
+    const condition = optimizerLockCondition(
+      row('keep', { kind: 'keep-first', targetType: 'attack' }),
+      options,
+      targets,
+    );
+    expect(condition.title).toBe('공격력 증가');
+    expect(condition.detail).toContain('목표 등급과 선택 등급의 최대치 기준');
+    expect(condition.detail).toContain('첫 줄을 잠그고');
+    expect(condition.detail).toContain('유니크 목표는 목표 수치를 충족한 레전드리도 인정');
+    expect(condition.detail).not.toContain('이미 최대치인');
+    expect(
+      groupOptimizerStrategies(
+        [row('keep', { kind: 'keep-first', targetType: 'attack' })],
+        targets,
+      )[0].title,
+    ).toBe('완성된 첫 줄을 잠그고 나머지 한 줄 완성');
+  });
+
+  it('uses policy lock slots to distinguish all-line generalized strategies from lower-line locks', () => {
+    const targets: AbilityOptimizerTarget[] = [
+      { type: 'boss', grade: 'legendary' },
+      { type: 'attack', grade: 'unique' },
+    ];
+    for (const timing of ['direct', 'all'] as const) {
+      const condition = optimizerLockCondition(
+        row('any-slot', acquire(timing, ['boss', 'attack'], [0, 1, 2])),
+        options,
+        targets,
+      );
+      expect(condition.detail).toMatch(/^어느 줄이든/);
+      expect(condition.detail).not.toContain('아랫줄');
+    }
+    const lower = optimizerLockCondition(
+      row('lower', acquire('lower', ['attack'], [1, 2])),
+      options,
+      targets,
+    );
+    expect(lower.detail).toMatch(/^아랫줄에 유니크 이상/);
+    const first = optimizerLockCondition(
+      row('first-only', acquire('direct', ['boss'], [0])),
+      options,
+      targets,
+    );
+    expect(first.detail).toBe('첫째 줄에 레전드리 최대치로 나오면 잠가요.');
   });
 });

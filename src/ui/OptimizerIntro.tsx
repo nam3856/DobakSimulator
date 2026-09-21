@@ -1,34 +1,26 @@
-import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import type { OptimizerAvatarDescriptor } from '../character/optimizer-avatar';
+import type { RuleData } from '../engine/rules';
+import type { CharacterSnapshot } from '../types';
+import { OptimizerIntroScene } from './OptimizerIntroScene';
 import './optimizer-intro.css';
 
 const STEPS = ['현재 어빌리티', '목표 옵션', '보유 재화'];
 
 export function OptimizerIntro({
   avatar,
+  data,
+  characters,
   onStart,
 }: {
   avatar: OptimizerAvatarDescriptor;
+  data: RuleData;
+  characters: readonly CharacterSnapshot[];
   onStart: () => void;
 }) {
-  const [failed, setFailed] = useState(false);
-  const [fallbackFailed, setFallbackFailed] = useState(false);
   return (
     <div className="optimizer-intro">
-      <div className="optimizer-intro-portrait" aria-hidden="true">
-        {fallbackFailed ? (
-          <span className="optimizer-intro-placeholder">{avatar.name.slice(0, 1)}</span>
-        ) : (
-          <img
-            src={failed ? avatar.fallbackSrc : avatar.frames[1]}
-            alt=""
-            width="300"
-            height="300"
-            onError={() => (failed ? setFallbackFailed(true) : setFailed(true))}
-          />
-        )}
-      </div>
+      <OptimizerIntroScene initialAvatar={avatar} data={data} characters={characters} />
       <h2 className="optimizer-intro-title">
         <span>내 어빌리티,</span> <span>어떻게 완성할까요?</span>
       </h2>

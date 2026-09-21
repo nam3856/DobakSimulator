@@ -6,8 +6,33 @@ import {
   createOptimizerAvatar,
   OPTIMIZER_WALK_SEQUENCE,
 } from '../src/character/optimizer-avatar';
+import { resolveAbilityPreset } from '../src/character/ability-presets';
+import { createOptimizerIntroPortraits } from '../src/character/optimizer-intro-portraits';
+import type { RuleData } from '../src/engine/rules';
+import type { CharacterSnapshot } from '../src/types';
 
 describe('optimizer walking avatars', () => {
+  it('keeps real job metadata with the three bundled characters and their local frames', () => {
+    expect(BUNDLED_OPTIMIZER_AVATARS.map(({ name }) => name)).toEqual([
+      '깽미니',
+      '깽쿤',
+      '렌내여친임',
+    ]);
+    const manifest = JSON.parse(
+      readFileSync(new URL('../public/character/optimizer/manifest.json', import.meta.url), 'utf8'),
+    );
+    for (const character of BUNDLED_OPTIMIZER_AVATARS) {
+      expect(resolveAbilityPreset(character.job)).toBeDefined();
+      expect(
+        manifest.characters.find((entry: { name: string }) => entry.name === character.name),
+      ).toEqual({
+        name: character.name,
+        job: character.job,
+        frames: [1, 2, 3].map((frame) => `${character.directory}/walk-${frame}.png`),
+      });
+    }
+  });
+
   it('selects each fallback from local assets without any lookup', () => {
     const fetch = vi.spyOn(globalThis, 'fetch');
     try {
@@ -95,5 +120,128 @@ describe('optimizer walking avatars', () => {
       }
       expect(new Set(frames).size).toBe(3);
     }
+  });
+});
+
+describe('optimizer intro cached portraits', () => {
+  const read = (file: string) =>
+    JSON.parse(readFileSync(new URL(`../public/${file}.json`, import.meta.url), 'utf8'));
+  const data: RuleData = {
+    potential: read('rules/potential'),
+    additional: read('rules/additional-potential'),
+    gold: read('rules/gold'),
+    soul: read('rules/soul'),
+    ability: read('rules/ability'),
+  };
+  const snapshot: CharacterSnapshot = read('character/snapshot');
+  const cached = (overrides: Partial<CharacterSnapshot> = {}): CharacterSnapshot => ({
+    ...snapshot,
+    name: '조회한캐릭터',
+    job: '비숍',
+    imageUrl: 'https://open.api.nexon.com/static/maplestory/character/look/cached-outfit',
+    ...overrides,
+  });
+
+  it('starts with the three bundled characters in a stable order and local frame paths', () => {
+    const portraits = createOptimizerIntroPortraits(data, [], '/sim/');
+    expect(portraits.map(({ name }) => name)).toEqual(['깽미니', '깽쿤', '렌내여친임']);
+    expect(portraits.map(({ job }) => job)).toEqual(['메카닉', '레테', '렌']);
+    for (const [index, portrait] of portraits.entries()) {
+      expect(portrait.avatar.frames).toEqual(
+        [1, 2, 3].map(
+          (frame) =>
+            `/sim/character/optimizer/${BUNDLED_OPTIMIZER_AVATARS[index].directory}/walk-${frame}.png`,
+        ),
+      );
+      expect(portrait.options).toHaveLength(3);
+      expect(portrait.options.every((line) => line.grade === 'legendary')).toBe(true);
+    }
+  });
+
+  it('appends an already queried character with job-correct options and walking URLs without fetching', () => {
+    const fetch = vi.spyOn(globalThis, 'fetch');
+    try {
+      const portraits = createOptimizerIntroPortraits(data, [cached()], '/sim/');
+      expect(portraits).toHaveLength(4);
+      const portrait = portraits[3];
+      expect(portrait.name).toBe('조회한캐릭터');
+      expect(portrait.job).toBe('비숍');
+      expect(portrait.options.map((line) => line.type)).toEqual([
+        'bossDamagePercent',
+        'statusAilmentDamagePercent',
+        'magicAttackFlat',
+      ]);
+      for (const [index, frame] of portrait.avatar.frames.entries()) {
+        const url = new URL(frame);
+        expect(url.origin).toBe('https://open.api.nexon.com');
+        expect(url.pathname).toBe('/static/maplestory/character/look/cached-outfit');
+        expect(url.searchParams.get('action')).toBe(`A02.${index + 1}`);
+      }
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      fetch.mockRestore();
+    }
+  });
+
+  it('deduplicates by name, retains bundled artwork and uses the last valid cached selection', () => {
+    const portraits = createOptimizerIntroPortraits(
+      data,
+      [
+        cached({ name: '깽미니', job: '메카닉', imageUrl: 'invalid-but-bundled' }),
+        cached(),
+        cached({ name: '다른캐릭터', job: '렌' }),
+        cached({
+          job: '나이트로드',
+          imageUrl: 'https://open.api.nexon.com/static/maplestory/character/look/new-outfit',
+        }),
+        cached({ name: '깽미니', job: '비숍' }),
+      ],
+      '/sim/',
+    );
+    expect(portraits.map(({ name }) => name)).toEqual([
+      '깽미니',
+      '깽쿤',
+      '렌내여친임',
+      '조회한캐릭터',
+      '다른캐릭터',
+    ]);
+    expect(portraits[0].job).toBe('비숍');
+    expect(
+      portraits[0].avatar.frames.every((frame) =>
+        frame.startsWith('/sim/character/optimizer/kkangmini/'),
+      ),
+    ).toBe(true);
+    expect(portraits[3].job).toBe('나이트로드');
+    expect(
+      portraits[3].avatar.frames.every((frame) => new URL(frame).pathname.endsWith('/new-outfit')),
+    ).toBe(true);
+    expect(portraits[3].options.map((line) => line.type)).toEqual([
+      'passiveSkillLevel',
+      'bossDamagePercent',
+      'statusAilmentDamagePercent',
+    ]);
+  });
+
+  it('skips unknown jobs, unsupported image URLs and empty names without losing valid entries', () => {
+    const portraits = createOptimizerIntroPortraits(
+      data,
+      [
+        cached(),
+        cached({ job: '없는 직업' }),
+        cached({ name: '외부이미지', imageUrl: 'https://example.com/avatar.png' }),
+        cached({ name: '로컬이미지', imageUrl: '/character/neutral.png' }),
+        cached({ name: '잘못된프로토콜', imageUrl: 'http://open.api.nexon.com/image' }),
+        cached({ name: '잘못된주소', imageUrl: 'invalid' }),
+        cached({ name: '  ' }),
+      ],
+      '/sim/',
+    );
+    expect(portraits.map(({ name }) => name)).toEqual([
+      '깽미니',
+      '깽쿤',
+      '렌내여친임',
+      '조회한캐릭터',
+    ]);
+    expect(portraits[3].job).toBe('비숍');
   });
 });

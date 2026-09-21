@@ -90,10 +90,13 @@ async function boot(page: Page, character?: CharacterSnapshot) {
   await expect(page.locator('.optimizer-intro-description')).toHaveText(
     '현재 옵션과 보유 명성치에 맞춰 강화 순서와 예상 추가비용을 비교해요.',
   );
-  await expect(page.locator('.optimizer-intro-portrait img')).toHaveAttribute(
-    'src',
-    /character\/optimizer\/(kkangmini|kkangkun|rennae)\/walk-2\.png$/,
-  );
+  const introFrames = page.locator('.optimizer-intro-avatar-layer[data-active="true"] img');
+  await expect(introFrames).toHaveCount(3);
+  for (const [index, frame] of (await introFrames.all()).entries())
+    await expect(frame).toHaveAttribute(
+      'src',
+      new RegExp(`character/optimizer/(kkangmini|kkangkun|rennae)/walk-${index + 1}\\.png$`),
+    );
   await expect(
     page
       .getByRole('list', { name: '어빌리티 최적화 진행 순서', exact: true })
@@ -263,7 +266,7 @@ test('bundled character starts blank, validates three manual lines, and preserve
   await expect(page.getByLabel('최적화 직업 프리셋', { exact: true })).toHaveValue('메카닉');
   await targets(page);
   await page.getByLabel('목표 옵션 2', { exact: true }).selectOption('passiveSkillLevel');
-  await expect(page.locator('.optimizer-validation')).toContainText('서로 다른 옵션 세 개');
+  await expect(page.locator('.optimizer-validation')).toContainText('서로 다른 옵션');
   await expect(nextButton(page)).toBeDisabled();
   await targets(page);
   await next(page, 'prices');
@@ -420,7 +423,7 @@ test('real worker compares current types and first-line retention and reprices h
   await expect(nextButton(page)).toBeEnabled();
   await next(page, 'target');
   await targets(page);
-  await expect(page.locator('.optimizer-start-status')).toContainText('목표 세 종류 확보 완료');
+  await expect(page.locator('.optimizer-start-status')).toContainText('선택한 종류·등급 확보 완료');
   await next(page, 'prices');
   await page.getByLabel('현재 보유 명성치', { exact: true }).fill('0');
   await prices(page, '500000', '1');

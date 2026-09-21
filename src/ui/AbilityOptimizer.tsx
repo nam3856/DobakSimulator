@@ -18,6 +18,7 @@ import {
   type RuleData,
 } from '../engine/rules';
 import type {
+  AbilityOptimizerTarget,
   AbilityOptimizerResult,
   AbilityOptimizerStrategyResult,
 } from '../engine/ability-optimizer';
@@ -49,10 +50,14 @@ const TIPS = [
   '같은 종류의 어빌리티는 중복으로 등장하지 않아요.',
   '잠근 줄이 많을수록 재설정에 필요한 명성치와 메소가 늘어나요.',
   '심연의 서큘레이터는 등급과 종류를 유지하고 세 줄의 수치를 함께 바꿔요.',
-  '목표 세 종류를 모두 레전드리로 갖췄다면, 서큘레이터로 수치만 완성하는 방법도 비교해 보세요.',
+  '목표 종류와 등급을 갖췄다면, 서큘레이터로 수치만 완성하는 방법도 비교해 보세요.',
   '기댓값은 평균이에요. 실제로 필요한 비용은 도전마다 달라질 수 있어요.',
 ];
 type Step = 'intro' | 'character' | 'target' | 'prices' | 'calculating' | 'result';
+type TargetGrade = 'none' | 'unique' | 'legendary';
+type TargetGrades = ['legendary', TargetGrade, TargetGrade];
+const DEFAULT_TARGET_GRADES: TargetGrades = ['legendary', 'legendary', 'legendary'];
+const gradeName = (grade: TargetGrade) => (grade === 'unique' ? '유니크' : '레전드리');
 const count = (value: number) =>
   Number.isFinite(value) ? value.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : '—';
 const money = (value: number) => `${formatAmount(value)} 메소`;
@@ -119,6 +124,11 @@ export function AbilityOptimizer({
     () => data.ability.grades.legendary?.options.filter((o) => o.type && o.values.length) ?? [],
     [data],
   );
+  const uniqueOptions = useMemo(
+    () => data.ability.grades.unique?.options.filter((o) => o.type && o.values.length) ?? [],
+    [data],
+  );
+  const goalOptions = (grade: TargetGrade) => (grade === 'unique' ? uniqueOptions : options);
   const pools = useMemo(
     () =>
       [0, 1, 2].map((slot) =>
@@ -142,11 +152,20 @@ export function AbilityOptimizer({
     } catch {
       defaults = options.slice(0, 3).map((o) => o.type!);
     }
+    const grades: TargetGrades =
+      Array.isArray(saved.targetGrades) &&
+      saved.targetGrades.length === 3 &&
+      saved.targetGrades[0] === 'legendary' &&
+      saved.targetGrades.every((g) => ['none', 'unique', 'legendary'].includes(g))
+        ? (saved.targetGrades as TargetGrades)
+        : DEFAULT_TARGET_GRADES;
     const target =
       Array.isArray(saved.targetTypes) &&
       saved.targetTypes.length === 3 &&
-      saved.targetTypes.every((t) => options.some((o) => o.type === t))
-        ? (saved.targetTypes as string[])
+      saved.targetTypes.every((t) => typeof t === 'string')
+        ? (saved.targetTypes as string[]).map((t, i) =>
+            grades[i] === 'none' || goalOptions(grades[i]).some((o) => o.type === t) ? t : '',
+          )
         : defaults;
     const selectedJob =
       typeof saved.job === 'string'
@@ -154,13 +173,17 @@ export function AbilityOptimizer({
         : (resolveAbilityPreset(next?.job ?? character.job)?.job ?? '');
     let job = '';
     try {
-      if (makeAbilityPresetGoal(data, selectedJob).conditions.every((c, i) => c.type === target[i]))
+      if (
+        grades.every((g) => g === 'legendary') &&
+        makeAbilityPresetGoal(data, selectedJob).conditions.every((c, i) => c.type === target[i])
+      )
         job = selectedJob;
     } catch {
       /* Custom goals. */
     }
     return {
       target: target as [string, string, string],
+      grades,
       job,
       preset:
         typeof saved.preset === 'string' && next?.abilityPresets[saved.preset]
@@ -172,6 +195,7 @@ export function AbilityOptimizer({
   const [initial] = useState(() => settings(initialCharacter));
   const [savedPrices] = useState(() => stored(PRICE_KEY));
   const [targetTypes, setTargetTypes] = useState(initial.target);
+  const [targetGrades, setTargetGrades] = useState<TargetGrades>(initial.grades);
   const [job, setJob] = useState(initial.job);
   const [preset, setPreset] = useState(initial.preset);
   const [batchSize, setBatchSize] = useState<1 | 3>(initial.batch);
@@ -193,6 +217,10 @@ export function AbilityOptimizer({
   const [error, setError] = useState('');
   const [avatar, setAvatar] = useState<OptimizerAvatarDescriptor>();
   const [introAvatar] = useState(() => createOptimizerAvatar());
+  const introCharacters = useMemo(
+    () => (selectedCharacter ? [character, selectedCharacter] : [character]),
+    [character, selectedCharacter],
+  );
   const [tip, setTip] = useState('');
   const worker = useRef<Worker | null>(null);
   const requestId = useRef('');
@@ -204,7 +232,19 @@ export function AbilityOptimizer({
     () => rawLines.map((line, slot) => line && resolveOptionLine(data, ABILITY_CONFIG, line, slot)),
     [data, rawLines],
   );
-  const selected = targetTypes.map((t) => options.find((o) => o.type === t));
+  const selected = targetTypes.map((t, i) =>
+    targetGrades[i] === 'none' ? undefined : goalOptions(targetGrades[i]).find((o) => o.type === t),
+  );
+  const targets = useMemo<AbilityOptimizerTarget[]>(
+    () =>
+      targetTypes.flatMap((type, i) =>
+        targetGrades[i] === 'none'
+          ? []
+          : [{ type, grade: targetGrades[i] as 'unique' | 'legendary' }],
+      ),
+    [targetTypes, targetGrades],
+  );
+  const allLegendary = targets.every((target) => target.grade === 'legendary');
   const medal = price(medalPrice),
     circulator = price(circulatorPrice),
     honor = price(availableHonor);
@@ -224,10 +264,10 @@ export function AbilityOptimizer({
               ? '현재 세 줄은 서로 다른 종류여야 합니다.'
               : '';
   const targetValidation =
-    new Set(targetTypes).size !== 3
-      ? '서로 다른 옵션 세 개를 선택해 주세요.'
-      : selected.some((o) => !o)
-        ? '목표 옵션 세 개를 선택해 주세요.'
+    new Set(targets.map((target) => target.type)).size !== targets.length
+      ? '선택한 목표는 서로 다른 옵션이어야 합니다.'
+      : selected.some((o, i) => targetGrades[i] !== 'none' && !o)
+        ? '사용할 목표 옵션을 모두 선택해 주세요.'
         : '';
   const priceValidation =
     honor === undefined || honor > 999999999
@@ -235,16 +275,28 @@ export function AbilityOptimizer({
       : medal === undefined || circulator === undefined
         ? '훈장과 서큘레이터의 개당 메소 가격을 입력해 주세요. 무료라면 0을 입력할 수 있습니다.'
         : '';
-  const acquired = lines.map((l) =>
-    l?.grade === 'legendary' ? selected.find((o) => o?.type === l.type) : undefined,
+  const acquired = selected.map(
+    (option, i) =>
+      option &&
+      lines.find(
+        (line) =>
+          line?.type === option.type &&
+          (line.grade === 'legendary' || (targetGrades[i] === 'unique' && line.grade === 'unique')),
+      ),
   );
   const allTypesAcquired =
     !startValidation &&
-    acquired.length === 3 &&
-    acquired.every(Boolean) &&
-    new Set(acquired.map((o) => o!.id)).size === 3;
+    !targetValidation &&
+    acquired.every((line, i) => targetGrades[i] === 'none' || !!line);
   const allValuesComplete =
-    allTypesAcquired && lines.every((l, i) => l.value === maximum(acquired[i]!).value);
+    allTypesAcquired &&
+    selected.every(
+      (option, i) =>
+        !option ||
+        (option.valueDirection === 'lower'
+          ? acquired[i]!.value <= maximum(option).value
+          : acquired[i]!.value >= maximum(option).value),
+    );
   const sharedSearch = !!apiBase && !personal;
 
   useEffect(() => {
@@ -255,7 +307,7 @@ export function AbilityOptimizer({
       );
       localStorage.setItem(
         `isekai:ability-optimizer:settings:v1:${selectedCharacter?.name ?? 'manual'}`,
-        JSON.stringify({ targetTypes, preset, batchSize, job }),
+        JSON.stringify({ targetTypes, targetGrades, preset, batchSize, job }),
       );
       setSaved(true);
     } catch {
@@ -273,6 +325,7 @@ export function AbilityOptimizer({
     medalPrice,
     circulatorPrice,
     targetTypes,
+    targetGrades,
     preset,
     batchSize,
     job,
@@ -322,6 +375,7 @@ export function AbilityOptimizer({
       setNickname(next.name);
       setPreset(nextSettings.preset);
       setTargetTypes(nextSettings.target);
+      setTargetGrades(nextSettings.grades);
       setJob(nextSettings.job);
       setBatchSize(nextSettings.batch);
       setAvailableHonor(String(next.abilityPresets[nextSettings.preset]?.honor ?? 0));
@@ -397,7 +451,7 @@ export function AbilityOptimizer({
       baseUrl: new URL(import.meta.env.BASE_URL, document.baseURI).href,
       input: {
         start: lines,
-        targetTypes,
+        targets,
         medalPrice: medal,
         circulatorPrice: circulator,
         batchSize,
@@ -413,7 +467,10 @@ export function AbilityOptimizer({
     goToStep('prices', 'back');
   }
   const best = result?.strategies.find((s) => s.id === result.bestStrategyId);
-  const methodGroups = useMemo(() => groupOptimizerStrategies(result?.strategies ?? []), [result]);
+  const methodGroups = useMemo(
+    () => groupOptimizerStrategies(result?.strategies ?? [], targets),
+    [result, targets],
+  );
   const titles: Record<Step, string> = {
     intro: '어빌리티 최적화',
     character: '어떤 캐릭터로 돌릴까요?',
@@ -432,7 +489,12 @@ export function AbilityOptimizer({
       data-direction={direction}
     >
       {step === 'intro' ? (
-        <OptimizerIntro avatar={introAvatar} onStart={() => goToStep('character')} />
+        <OptimizerIntro
+          avatar={introAvatar}
+          data={data}
+          characters={introCharacters}
+          onStart={() => goToStep('character')}
+        />
       ) : (
         <>
           {step !== 'calculating' && (
@@ -455,7 +517,7 @@ export function AbilityOptimizer({
             <h2 ref={heading} tabIndex={-1}>
               {titles[step]}
             </h2>
-            {step === 'target' && <p>줄 순서 무관 · 세 옵션 모두 레전드리 최대치</p>}
+            {step === 'target' && <p>필요한 옵션만 선택 · 선택한 등급의 최대치 기준</p>}
           </div>
           {step === 'character' && (
             <div className="panel optimizer-step-panel">
@@ -634,12 +696,14 @@ export function AbilityOptimizer({
                   value={job}
                   onChange={(e) => {
                     setJob(e.target.value);
-                    if (e.target.value)
+                    if (e.target.value) {
+                      setTargetGrades(DEFAULT_TARGET_GRADES);
                       setTargetTypes(
                         makeAbilityPresetGoal(data, e.target.value).conditions.map(
                           (c) => c.type,
                         ) as [string, string, string],
                       );
+                    }
                   }}
                 >
                   <option value="">직접 선택</option>
@@ -652,34 +716,84 @@ export function AbilityOptimizer({
               </Field>
               <div className="optimizer-target-lines">
                 {selected.map((option, index) => (
-                  <Field key={index} label={`목표 옵션 ${index + 1}`}>
-                    <select
-                      aria-label={`목표 옵션 ${index + 1}`}
-                      value={targetTypes[index]}
-                      onChange={(e) => {
-                        const next = [...targetTypes] as [string, string, string];
-                        next[index] = e.target.value;
-                        setTargetTypes(next);
-                        setJob('');
-                      }}
-                    >
-                      {options.map((o) => (
-                        <option key={o.id} value={o.type}>
-                          {maximum(o).label}
+                  <div className="field optimizer-target-field" key={index}>
+                    <label htmlFor={`optimizer-target-${index}`}>
+                      목표 옵션 {index + 1} {index === 0 && <GradeBadge grade="legendary" />}
+                    </label>
+                    <div className={`optimizer-target-choice ${index === 0 ? 'required' : ''}`}>
+                      {index > 0 && (
+                        <select
+                          aria-label={`목표 옵션 ${index + 1} 등급`}
+                          value={targetGrades[index]}
+                          onChange={(e) => {
+                            const grade = e.target.value as TargetGrade;
+                            const nextGrades = [...targetGrades] as TargetGrades;
+                            nextGrades[index] = grade;
+                            setTargetGrades(nextGrades);
+                            if (
+                              grade !== 'none' &&
+                              !goalOptions(grade).some((o) => o.type === targetTypes[index])
+                            ) {
+                              const nextTypes = [...targetTypes] as [string, string, string];
+                              nextTypes[index] = '';
+                              setTargetTypes(nextTypes);
+                            }
+                            setJob('');
+                          }}
+                        >
+                          <option value="none">선택 안 함</option>
+                          <option value="unique">유니크 옵션</option>
+                          <option value="legendary">레전드리 옵션</option>
+                        </select>
+                      )}
+                      <select
+                        id={`optimizer-target-${index}`}
+                        aria-label={`목표 옵션 ${index + 1}`}
+                        value={targetGrades[index] === 'none' ? '' : targetTypes[index]}
+                        disabled={targetGrades[index] === 'none'}
+                        onChange={(e) => {
+                          const next = [...targetTypes] as [string, string, string];
+                          next[index] = e.target.value;
+                          setTargetTypes(next);
+                          setJob('');
+                        }}
+                      >
+                        <option value="">
+                          {targetGrades[index] === 'none'
+                            ? '목표에서 제외'
+                            : '옵션을 선택해 주세요'}
                         </option>
-                      ))}
-                    </select>
-                    {option && <small>레전드리 최대치 · {maximum(option).label}</small>}
-                  </Field>
+                        {targetGrades[index] !== 'none' &&
+                          goalOptions(targetGrades[index]).map((o) => (
+                            <option key={o.id} value={o.type}>
+                              {maximum(o).label}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                    {option && (
+                      <small>
+                        {gradeName(targetGrades[index])} 최대치 · {maximum(option).label}
+                      </small>
+                    )}
+                  </div>
                 ))}
               </div>
+              {!allTypesAcquired && (
+                <p className="optimizer-help optimizer-target-help">
+                  줄 순서는 무관해요. 선택 안 함은 계산에서 제외하고, 유니크 목표는 목표 수치를
+                  충족한 레전드리도 인정해요.
+                </p>
+              )}
               {allTypesAcquired && (
                 <div className="optimizer-start-status" role="status">
                   <Check size={15} />
                   <span>
                     {allValuesComplete
-                      ? '세 줄 모두 최대치입니다.'
-                      : '목표 세 종류 확보 완료 · 수치만 완성하는 방법도 비교해요.'}
+                      ? targets.length === 3 && allLegendary
+                        ? '세 줄 모두 최대치입니다.'
+                        : '선택한 목표를 이미 달성했어요.'
+                      : '선택한 종류·등급 확보 완료 · 수치만 완성하는 방법도 비교해요.'}
                   </span>
                 </div>
               )}
@@ -798,11 +912,21 @@ export function AbilityOptimizer({
               <section className="optimizer-target-summary" aria-label="완성할 목표">
                 <div>
                   <h3>완성할 목표</h3>
-                  <span>모두 레전드리 최대치 · 줄 순서 무관</span>
+                  <span>
+                    {targets.length}개 옵션 ·{' '}
+                    {allLegendary ? '레전드리 최대치' : '선택한 등급 이상 · 목표 수치 충족'} · 줄
+                    순서 무관
+                  </span>
                 </div>
                 <ul>
                   {selected.map(
-                    (option) => option && <li key={option.id}>{maximum(option).label}</li>,
+                    (option, i) =>
+                      option && (
+                        <li key={option.id}>
+                          <GradeBadge grade={targetGrades[i] as 'unique' | 'legendary'} />{' '}
+                          {maximum(option).label}
+                        </li>
+                      ),
                   )}
                 </ul>
               </section>
@@ -815,7 +939,7 @@ export function AbilityOptimizer({
                   <h3>{best.status === 'already' ? '이미 완성됐어요' : best.name}</h3>
                   <p>
                     {best.status === 'already'
-                      ? '세 옵션 모두 레전드리 최대치예요. 추가 재설정 없이 그대로 사용하면 돼요.'
+                      ? '선택한 목표를 모두 달성했어요. 추가 재설정 없이 그대로 사용하면 돼요.'
                       : best.description}
                   </p>
                   <strong className="optimizer-total">{money(best.totalCost)}</strong>
@@ -824,7 +948,7 @@ export function AbilityOptimizer({
                   </p>
                   {best.status !== 'already' && (
                     <div className="optimizer-best-condition">
-                      <LockCondition strategy={best} options={options} />
+                      <LockCondition strategy={best} options={options} targets={targets} />
                       {best.policy.kind !== 'current-types' && (
                         <p className="optimizer-help">아랫줄은 둘째·셋째 줄을 말해요.</p>
                       )}
@@ -876,7 +1000,7 @@ export function AbilityOptimizer({
                           size={18}
                           aria-hidden="true"
                         />
-                        <LockCondition strategy={group.best} options={options} />
+                        <LockCondition strategy={group.best} options={options} targets={targets} />
                       </summary>
                       <div className="optimizer-strategy-list">
                         {group.strategies.map((strategy, i) => (
@@ -887,7 +1011,11 @@ export function AbilityOptimizer({
                           >
                             <summary>
                               <span className="optimizer-rank">{i + 1}</span>
-                              <LockCondition strategy={strategy} options={options} />
+                              <LockCondition
+                                strategy={strategy}
+                                options={options}
+                                targets={targets}
+                              />
                               <strong>
                                 {strategy.status === 'impossible'
                                   ? '달성 불가'
@@ -897,7 +1025,7 @@ export function AbilityOptimizer({
                             <div className="optimizer-strategy-detail">
                               <p className="optimizer-help">
                                 {strategy.status === 'already'
-                                  ? '세 줄 모두 완성되어 추가 재설정이 필요 없어요.'
+                                  ? '선택한 목표를 모두 달성해 추가 재설정이 필요 없어요.'
                                   : strategy.description}
                               </p>
                               <CostBreakdown strategy={strategy} circulatorPrice={circulator!} />
@@ -951,11 +1079,13 @@ export function AbilityOptimizer({
 function LockCondition({
   strategy,
   options,
+  targets,
 }: {
   strategy: AbilityOptimizerStrategyResult;
   options: AbilityOption[];
+  targets: AbilityOptimizerTarget[];
 }) {
-  const condition = optimizerLockCondition(strategy, options);
+  const condition = optimizerLockCondition(strategy, options, targets);
   return (
     <span className="optimizer-lock-condition">
       <small>{condition.label}</small>

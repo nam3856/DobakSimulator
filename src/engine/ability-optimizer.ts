@@ -1,4 +1,5 @@
 import type { OptionLine, SimulationConfig } from '../types';
+import { calculateAbilityTargetStrategies } from './ability-optimizer-targets';
 import { abilityKindLabel } from './ability-labels';
 import {
   allCandidates,
@@ -13,17 +14,23 @@ import {
 
 export interface AbilityOptimizerInput {
   start: OptionLine[];
-  targetTypes: [string, string, string];
+  targetTypes?: [string, string, string];
+  targets?: AbilityOptimizerTarget[];
   medalPrice: number;
   circulatorPrice: number;
   availableHonor?: number;
   batchSize: 1 | 3;
+}
+export interface AbilityOptimizerTarget {
+  type: string;
+  grade: 'unique' | 'legendary';
 }
 export type AbilityOptimizerPolicy =
   | {
       kind: 'acquire';
       timing: 'direct' | 'lower' | 'all';
       firstAcceptedTargets: string[];
+      lockSlots?: Array<0 | 1 | 2>;
     }
   | { kind: 'current-types' }
   | { kind: 'keep-first'; targetType: string };
@@ -127,7 +134,10 @@ function pricedResult(
     bestStrategyId: strategies.find((row) => row.status !== 'impossible')?.id,
     notes: [
       `비교한 ${strategies.length}개 전략 중 예상 총비용이 가장 낮은 방법입니다. 모든 가능한 정책의 전역 최적해는 아닙니다.`,
-      '목표는 세 옵션 모두 레전드리 최대치이며 최종 줄 순서는 무관합니다. 목표 전체를 완성한 결과는 먼저 채택합니다.',
+      input.targets?.some((target) => target.grade !== 'legendary') ||
+      (input.targets?.length !== undefined && input.targets.length !== 3)
+        ? `선택한 목표 ${input.targets!.length}개의 등급과 수치 조건을 만족하면 완성입니다. 각 목표는 선택 등급의 최상위 수치를 기준으로 판정하며, 더 높은 등급도 수치 조건을 만족하면 인정합니다. 목표에 없는 줄과 최종 줄 순서는 무관합니다.`
+        : '목표는 세 옵션 모두 레전드리 최대치이며 최종 줄 순서는 무관합니다. 목표 전체를 완성한 결과는 먼저 채택합니다.',
       '3회 비교는 같은 잠금에서 세 번 모두 과금합니다. 성공 또는 다음 단계 우선, 같은 단계는 먼저 나온 결과를 채택합니다.',
       '심연의 서큘레이터는 등급·종류를 유지하고 세 줄 수치를 함께 다시 뽑으며, 전체 동일 결과를 제외하고 미달 결과는 보관하지 않습니다.',
       '패시브 스킬 레벨 +1처럼 나올 수 있는 값이 하나뿐인 옵션은 서큘레이터를 사용해도 수치가 바뀌지 않습니다. 이미 필요한 수치가 완성된 단계는 건너뜁니다.',
@@ -146,8 +156,27 @@ export function optimizeAbilityCost(
   if (input.start.length !== 3) throw new Error('현재 어빌리티 세 줄을 불러와 주세요.');
   if (![1, 3].includes(input.batchSize))
     throw new Error('재설정 비교 횟수는 1회 또는 3회여야 합니다.');
-  if (input.targetTypes.length !== 3 || new Set(input.targetTypes).size !== 3)
-    throw new Error('서로 다른 목표 옵션 세 개를 선택해 주세요.');
+  const requested =
+    input.targets === undefined
+      ? input.targetTypes?.map((type) => ({ type, grade: 'legendary' as const }))
+      : input.targets;
+  if (
+    !Array.isArray(requested) ||
+    requested.length < 1 ||
+    requested.length > 3 ||
+    (input.targets === undefined && requested.length !== 3) ||
+    requested.some(
+      (target) =>
+        !target ||
+        typeof target.type !== 'string' ||
+        !target.type ||
+        !['unique', 'legendary'].includes(target.grade),
+    ) ||
+    new Set(requested.map((target) => target.type)).size !== requested.length
+  )
+    throw new Error(
+      '서로 다른 목표 옵션을 1개부터 3개까지 선택하고 유니크 또는 레전드리 등급을 지정해 주세요.',
+    );
   if (
     ![input.medalPrice, input.circulatorPrice].every(
       (value) => Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER,
@@ -159,12 +188,20 @@ export function optimizeAbilityCost(
     throw new Error('보유 명성치는 0부터 999,999,999까지의 정수로 입력해 주세요.');
   const cacheKey = JSON.stringify({
     start: input.start,
-    targetTypes: input.targetTypes,
+    targets: requested,
     batchSize: input.batchSize,
   });
   const cached = calculationCache.get(data)?.get(cacheKey);
   if (cached) return pricedResult(cached, input);
-  const targets = input.targetTypes.map((type) => {
+  if (requested.length !== 3 || requested.some((target) => target.grade !== 'legendary')) {
+    const rows = calculateAbilityTargetStrategies(data, input, requested);
+    let cache = calculationCache.get(data);
+    if (!cache) calculationCache.set(data, (cache = new Map()));
+    if (cache.size >= 4) cache.delete(cache.keys().next().value!);
+    cache.set(cacheKey, rows);
+    return pricedResult(rows, input);
+  }
+  const targets = requested.map(({ type }) => {
     const option = data.ability.grades.legendary?.options.find(
       (row) => (row.type ?? row.id) === type,
     );

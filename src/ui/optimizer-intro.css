@@ -1,10 +1,12 @@
 .optimizer-wizard.optimizer-intro {
   min-height: 0;
+  max-width: none;
   display: block;
 }
 
 .optimizer-wizard .optimizer-intro {
   display: flex;
+  width: 100%;
   flex-direction: column;
   align-items: center;
   min-height: 0;
@@ -12,15 +14,66 @@
   text-align: center;
 }
 
-.optimizer-intro-portrait {
+.optimizer-intro-scene {
   position: relative;
-  width: 128px;
-  height: 120px;
+  isolation: isolate;
+  width: 100%;
+  height: 180px;
   flex-shrink: 0;
   overflow: hidden;
-  margin-bottom: 16px;
-  border-radius: 36px;
-  background: radial-gradient(ellipse at 50% 65%, var(--accent-wash), transparent 72%);
+  margin-bottom: 14px;
+  pointer-events: none;
+}
+
+.optimizer-intro-options {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  container-type: inline-size;
+}
+
+.optimizer-intro-option-runner {
+  position: absolute;
+  left: 0;
+  width: max-content;
+  text-align: left;
+  top: calc(22px + var(--option-lane) * 48px);
+  animation: optimizer-intro-option-pass 2.2s linear both;
+  opacity: 0.65;
+  will-change: transform;
+}
+
+.optimizer-intro-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 13px;
+  max-width: 320px;
+  min-height: 35px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-raised);
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.optimizer-intro-option-grade {
+  width: 8px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.optimizer-intro-portrait {
+  position: relative;
+  z-index: 1;
+  width: 240px;
+  height: 180px;
+  margin-inline: auto;
+  background: radial-gradient(ellipse at 50% 58%, var(--accent-wash), transparent 57%);
 }
 
 .optimizer-intro-portrait::after {
@@ -28,31 +81,30 @@
   position: absolute;
   width: 66px;
   height: 6px;
-  bottom: 14px;
+  bottom: 31px;
   left: calc(50% - 33px);
   border-radius: 50%;
   background: var(--accent-wash);
 }
 
-.optimizer-intro-portrait img {
+.optimizer-intro-avatar-layer {
   position: absolute;
   z-index: 1;
-  top: 50%;
-  left: 50%;
-  width: 300px;
-  height: 300px;
-  max-width: none;
-  transform: translate(-50%, -55%);
-  object-fit: contain;
-  image-rendering: pixelated;
+  inset: 0 0 20px;
+  animation: optimizer-intro-avatar-in 320ms ease-out both;
 }
 
-.optimizer-intro-placeholder {
-  display: grid;
-  height: 100%;
-  place-items: center;
-  font-size: 36px;
-  color: var(--accent);
+.optimizer-intro-avatar-layer[data-active='false'] {
+  animation-name: optimizer-intro-avatar-out;
+}
+
+.optimizer-intro-portrait .optimizer-walking-avatar {
+  width: 240px;
+  height: 160px;
+}
+
+.optimizer-intro-scene[data-paused='true'] .optimizer-intro-option-runner {
+  animation-play-state: paused;
 }
 
 .optimizer-wizard .optimizer-intro-title {
@@ -113,7 +165,7 @@
   font-size: 17px;
 }
 
-.optimizer-intro-portrait,
+.optimizer-intro-scene,
 .optimizer-intro-title,
 .optimizer-intro-description,
 .optimizer-intro-steps,
@@ -121,7 +173,7 @@
   animation: optimizer-content-in 280ms var(--optimizer-motion-ease) both;
 }
 
-.optimizer-intro-portrait {
+.optimizer-intro-scene {
   animation-delay: 25ms;
 }
 
@@ -146,8 +198,30 @@
     padding: 6px 12px 20px;
   }
 
+  .optimizer-intro-scene {
+    height: 150px;
+    margin-bottom: 14px;
+  }
+
   .optimizer-intro-portrait {
-    margin-bottom: 12px;
+    height: 150px;
+  }
+
+  .optimizer-intro-portrait .optimizer-walking-avatar {
+    height: 130px;
+  }
+
+  .optimizer-intro-option-runner {
+    top: calc(10px + var(--option-lane) * 38px);
+    animation-duration: 1.8s;
+  }
+
+  .optimizer-intro-option {
+    max-width: 310px;
+    padding: 8px 10px;
+    font-size: 10px;
+    min-height: 31px;
+    gap: 7px;
   }
 
   .optimizer-wizard .optimizer-intro-title {
@@ -173,8 +247,42 @@
   }
 }
 
+@keyframes optimizer-intro-option-pass {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(100cqw, 0, 0);
+  }
+}
+
+@keyframes optimizer-intro-avatar-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes optimizer-intro-avatar-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .optimizer-wizard .optimizer-intro > * {
     animation: none;
+  }
+  .optimizer-intro-option-runner {
+    left: calc(4% + var(--option-lane) * 13%);
+    width: auto;
+    transform: none;
+    opacity: 0.25;
+    will-change: auto;
   }
 }

@@ -538,6 +538,31 @@
 .optimizer-step-panel {
   min-width: 0;
 }
+.optimizer-target-choice {
+  display: grid;
+  grid-template-columns: 136px minmax(0, 1fr);
+  gap: 8px;
+}
+.optimizer-target-field > label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.optimizer-target-choice.required {
+  grid-template-columns: minmax(0, 1fr);
+}
+.optimizer-target-choice select {
+  min-width: 0;
+  width: 100%;
+}
+.optimizer-target-choice select:disabled {
+  opacity: 0.45;
+}
+.optimizer-target-summary .grade-badge {
+  margin-right: 4px;
+}
 .optimizer-search-row {
   display: flex;
   gap: 8px;
@@ -727,7 +752,20 @@
   .optimizer-target-lines .field {
     margin-bottom: 10px;
   }
+  .optimizer-target-choice {
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 6px;
+  }
+  .optimizer-target-choice select {
+    padding-inline: 8px;
+    font-size: 11px;
+  }
   .optimizer-target-lines .field small {
     display: none;
+  }
+  .optimizer-target .optimizer-start-status {
+    margin-top: 10px;
+    padding: 8px 10px;
+    font-size: 11px;
   }
 }
