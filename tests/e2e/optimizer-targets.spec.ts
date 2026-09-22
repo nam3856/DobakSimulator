@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 import type { CharacterSnapshot, OptionLine } from '../../src/types';
-import type { AbilityOptimizerResult } from '../../src/engine/ability-optimizer';
+import type { NormalAbilityOptimizerResult } from '../../src/engine/ability-normal-optimizer';
 import type { AbilityOption } from '../../src/engine/rules';
 
 const API = 'https://fixture-api.example/api';
@@ -70,23 +70,16 @@ async function openTargets(page: Page, character: CharacterSnapshot) {
 
 async function calculate(page: Page) {
   await next(page).click();
-  await expect(wizard(page)).toHaveAttribute('data-step', 'prices');
-  await page.getByLabel('심연의 서큘레이터 가격', { exact: true }).fill('1');
-  await wizard(page).getByRole('button', { name: '계산', exact: true }).click();
   await expect(wizard(page)).toHaveAttribute('data-step', 'result', { timeout: 60_000 });
   await expect(wizard(page).getByRole('alert')).toHaveCount(0);
   return page.evaluate(
-    () => (window as unknown as { optimizerResult: AbilityOptimizerResult }).optimizerResult,
+    () => (window as unknown as { optimizerResult: NormalAbilityOptimizerResult }).optimizerResult,
   );
 }
 
-async function expectComplete(page: Page, result: AbilityOptimizerResult, count: number) {
-  expect(result.strategies.length).toBeGreaterThan(0);
-  expect(result.strategies.every((row) => row.status === 'already' && row.totalCost === 0)).toBe(
-    true,
-  );
+async function expectComplete(page: Page, count: number) {
   await expect(page.locator('.optimizer-best h3')).toHaveText('이미 완성됐어요');
-  await expect(page.locator('.optimizer-total')).toHaveText('0 메소');
+  await expect(page.locator('.optimizer-total')).toHaveText('추가 소모 없음');
   await expect(page.locator('.optimizer-target-summary li')).toHaveCount(count);
   await expect(page.locator('.optimizer-target-summary')).toContainText(`${count}개 옵션`);
 }
@@ -226,7 +219,7 @@ test('one required target is complete on any current line and excludes both unus
   await grade(page, 3).selectOption('none');
   await expect(page.locator('.optimizer-start-status')).toContainText('이미 달성');
   const result = await calculate(page);
-  await expectComplete(page, result, 1);
+  await expectComplete(page, 1);
   await expect(page.locator('.optimizer-target-summary')).toContainText(
     line('passiveSkillLevel').text,
   );
@@ -246,7 +239,7 @@ test('a legendary value above a unique target counts as complete even when targe
   await grade(page, 3).selectOption('unique');
   await expect(page.locator('.optimizer-start-status')).toContainText('이미 달성');
   const result = await calculate(page);
-  await expectComplete(page, result, 2);
+  await expectComplete(page, 2);
   const summary = page.locator('.optimizer-target-summary');
   await expect(summary).toContainText('선택한 등급 이상 · 목표 수치 충족');
   await expect(summary.locator('li').nth(1)).toContainText('유니크');
@@ -260,19 +253,23 @@ test('three mixed-grade targets retain all goals and compare lower-line circulat
   page,
 }) => {
   test.setTimeout(90_000);
-  await openTargets(page, fixture('세줄혼합등급목표', 'unique'));
+  const character = fixture('세줄혼합등급목표', 'unique');
+  character.abilityPresets['1'].lines = [
+    line('passiveSkillLevel'),
+    line('bossDamagePercent', 'unique'),
+    line('criticalRatePercent', 'unique'),
+  ];
+  await openTargets(page, character);
   await grade(page, 2).selectOption('unique');
   await grade(page, 3).selectOption('unique');
   const result = await calculate(page);
   expect(
-    result.strategies.every((row) => row.status === 'ready' && Number.isFinite(row.totalCost)),
+    result.strategies.every((row) => row.status === 'ready' && Number.isFinite(row.expectedHonor)),
   ).toBe(true);
-  const current = result.strategies.find((row) => row.policy.kind === 'current-types')!;
+  const current = result.strategies.find((row) => row.id === 'normal-black')!;
   expect(current.expectedResets).toBe(0);
-  expect(current.expectedCirculators).toBeGreaterThan(0);
-  expect(
-    result.strategies.some((row) => row.policy.kind === 'acquire' && row.policy.timing === 'lower'),
-  ).toBe(true);
+  expect(current.expectedBlack).toBeGreaterThan(0);
+  expect(result.strategies.some((row) => row.id === 'normal-miracle-honor')).toBe(true);
   await expect(page.locator('.optimizer-target-summary li')).toHaveCount(3);
   await expect(page.locator('.optimizer-target-summary .grade-unique')).toHaveCount(2);
   await expect(page.locator('.optimizer-target-summary .grade-legendary')).toHaveCount(1);
@@ -282,19 +279,25 @@ test('a unique target below its maximum needs real worker calculation and can fi
   page,
 }) => {
   test.setTimeout(90_000);
-  await openTargets(page, fixture('유니크수치미완성', 'unique'));
+  const character = fixture('유니크수치미완성', 'unique');
+  character.abilityPresets['1'].lines = [
+    line('passiveSkillLevel'),
+    line('bossDamagePercent', 'unique'),
+    line('criticalRatePercent', 'unique'),
+  ];
+  await openTargets(page, character);
   await grade(page, 2).selectOption('none');
   await grade(page, 3).selectOption('unique');
   await expect(page.locator('.optimizer-start-status')).not.toContainText('이미 달성');
   const result = await calculate(page);
   expect(result.strategies.some((row) => row.status === 'already')).toBe(false);
-  const current = result.strategies.find((row) => row.policy.kind === 'current-types');
+  const current = result.strategies.find((row) => row.id === 'normal-black');
   expect(current).toBeDefined();
   expect(current!.expectedResets).toBe(0);
-  expect(current!.expectedCirculators).toBeGreaterThan(1);
-  expect(Number.isFinite(current!.totalCost)).toBe(true);
-  expect(current!.totalCost).toBe(current!.expectedCirculators);
-  expect(result.bestStrategyId).toBe(current!.id);
+  expect(current!.expectedBlack).toBeGreaterThan(1);
+  expect(current!.expectedHonor).toBe(0);
+  expect(current!.expectedMiracle).toBe(0);
+  expect(current!.expectedChaos).toBe(0);
   await expect(page.locator('.optimizer-best h3')).not.toHaveText('이미 완성됐어요');
   await expect(page.locator('.optimizer-target-summary li')).toHaveCount(2);
 });
@@ -333,8 +336,6 @@ for (const width of [360, 390]) {
     );
     await next(page).focus();
     await page.keyboard.press('Enter');
-    await expect(wizard(page)).toHaveAttribute('data-step', 'prices');
-    await wizard(page).getByRole('button', { name: '계산', exact: true }).click();
     await expect(wizard(page)).toHaveAttribute('data-step', 'result');
     await expect(page.locator('.optimizer-target-summary li')).toHaveCount(2);
     await expect(page.locator('.optimizer-best h3')).toHaveText('이미 완성됐어요');

@@ -169,6 +169,67 @@
   font-weight: 400;
   margin-top: 5px;
 }
+.optimizer-normal-table-wrap {
+  overflow-x: auto;
+  margin: 18px 0;
+}
+.optimizer-normal-table {
+  width: 100%;
+  min-width: 610px;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.optimizer-normal-table th,
+.optimizer-normal-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+.optimizer-normal-table th:first-child {
+  text-align: left;
+  width: 32%;
+}
+.optimizer-normal-table thead th {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+.optimizer-normal-table td {
+  font-variant-numeric: tabular-nums;
+}
+.optimizer-normal-table small {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.optimizer-normal-table .optimizer-normal-minimum {
+  color: var(--accent);
+  font-weight: 600;
+}
+.optimizer-normal-methods {
+  display: grid;
+  gap: 10px;
+}
+.optimizer-normal-method {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.optimizer-normal-method summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.optimizer-normal-method summary > span:last-child {
+  color: var(--muted);
+  white-space: nowrap;
+  font-size: 11px;
+}
 .optimizer-steps {
   margin: 20px 0 0;
   border-top: 1px solid var(--border);

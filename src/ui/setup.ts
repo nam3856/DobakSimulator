@@ -83,6 +83,7 @@ export function makeConfig(
   mode: SimulatorMode,
   cubeType: CubeType,
   abilityPreset: string,
+  abilityResetMode: 'normal' | 'advanced' = 'advanced',
 ): SimulationConfig {
   const side =
     cubeType === 'additional' || cubeType === 'primeAdditional' ? 'additional' : 'potential';
@@ -121,6 +122,7 @@ export function makeConfig(
       failures: 0,
     },
     lockedSlots: [],
+    abilityResetMode: mode === 'ability' ? abilityResetMode : undefined,
     abilityStrategy: mode === 'ability' ? 'lowerFirst' : undefined,
     batchSize: mode === 'soulAmplification' ? 1 : 3,
     target,
@@ -131,9 +133,25 @@ export function makeConfig(
   if (mode === 'ability') {
     const ability =
       character.abilityPresets[abilityPreset] ?? Object.values(character.abilityPresets)[0];
-    const lines = reconcileLines(data, config, ability?.lines ?? []);
+    // Import the actual grades unchanged, including lower legendary lines from advanced resets.
+    const lines = reconcileLines(
+      data,
+      { ...config, abilityResetMode: 'advanced' },
+      ability?.lines ?? [],
+    );
     config.start.lines = lines;
     const preset = resolveAbilityPreset(character.job);
+    if (abilityResetMode === 'normal') {
+      const first = preset
+        ? makeAbilityPresetGoal(data, preset.job, 'minimum').conditions[0]
+        : lines[0]
+          ? { type: lines[0].type, minValue: lines[0].value }
+          : { type: 'bossDamagePercent', minValue: 20 };
+      config.abilityStrategy = 'fixed';
+      config.batchSize = 1;
+      config.target.conditions = [{ ...first, minGrade: 'legendary', slot: 0, slots: undefined }];
+      return config;
+    }
     if (preset) {
       config.abilityPresetJob = preset.job;
       config.target = makeAbilityPresetGoal(data, preset.job, 'minimum');

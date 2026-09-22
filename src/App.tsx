@@ -61,7 +61,7 @@ import {
   rollBatch,
   validateConfig,
 } from './engine';
-import type { RuleData } from './engine/rules';
+import { abilityResetCosts, isNormalAbility, type RuleData } from './engine/rules';
 import {
   Avatar,
   DistributionChart,
@@ -77,6 +77,8 @@ import {
   CATEGORIES,
   CUBES,
   getModeFromHash,
+  configTab,
+  tabMode,
   getTabFromHash,
   GRADE_NAMES,
   GRADES,
@@ -125,6 +127,11 @@ const tabIcons = {
 };
 const workerFactory = () =>
   new Worker(new URL('./workers/simulator.worker.ts', import.meta.url), { type: 'module' });
+
+function makeConfigForTab(...args: Parameters<typeof makeConfig>): SimulationConfig {
+  args[6] ??= getTabFromHash() === 'abilityNormal' ? 'normal' : 'advanced';
+  return makeConfig(...args);
+}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<AppTab>(getTabFromHash);
@@ -246,7 +253,15 @@ export default function App() {
         }
       }
     return [...map.values()];
-  }, [data, config?.mode, config?.cubeType, config?.category, config?.level, config?.start.stage]);
+  }, [
+    data,
+    config?.mode,
+    config?.cubeType,
+    config?.category,
+    config?.level,
+    config?.start.stage,
+    config?.abilityResetMode,
+  ]);
   const conditionBounds = useMemo(
     () =>
       data && config
@@ -284,6 +299,7 @@ export default function App() {
       !!automaticAbilityTarget);
   const canRestartAuto =
     !!data && !!config && !errors.length && state?.status === 'success' && state.attempts > 0n;
+  const normalAbility = !!config && isNormalAbility(config);
   const itemBased = config?.mode === 'cube' && isItemCube(config.cubeType);
   const paidCost = state && config ? paidBenchmarkCost(config, state.spent) : 0n;
   const actualCost = Number(paidCost);
@@ -297,7 +313,9 @@ export default function App() {
     config?.mode === 'cube'
       ? selectedCube.name
       : config?.mode === 'ability'
-        ? '고급 어빌리티'
+        ? normalAbility
+          ? '일반 어빌리티 재설정'
+          : '고급 어빌리티'
         : config?.mode === 'soulAmplification'
           ? '소울 증폭'
           : '소울 잠재';
@@ -429,8 +447,13 @@ export default function App() {
           const requested =
             linkError || isStandaloneTab(getTabFromHash()) ? stored.config.mode : getModeFromHash();
           if (!isStandaloneTab(getTabFromHash()))
-            setActiveTab(location.hash && !linkError ? requested : stored.config.mode);
-          if (location.hash && requested !== stored.config.mode) {
+            setActiveTab(location.hash && !linkError ? getTabFromHash() : configTab(stored.config));
+          if (
+            location.hash &&
+            (requested !== stored.config.mode ||
+              (requested === 'ability' &&
+                (getTabFromHash() === 'abilityNormal') !== isNormalAbility(stored.config)))
+          ) {
             if (stored.playMode !== 'recreate') archiveSession(stored.config, stored.state);
             const items = stored.character.equipmentPresets[stored.equipmentPreset] ?? [];
             const selected =
@@ -439,7 +462,7 @@ export default function App() {
                 : items.find((x) => x.id === stored.equipmentId);
             setEquipmentId(selected?.id ?? '');
             begin(
-              makeConfig(
+              makeConfigForTab(
                 rules,
                 stored.character,
                 selected,
@@ -460,7 +483,7 @@ export default function App() {
               items.find((x) => x.category === 'weapon') ??
               items[0];
             setEquipmentId(selected?.id ?? '');
-            const draft = makeConfig(
+            const draft = makeConfigForTab(
               rules,
               stored.character,
               selected,
@@ -485,6 +508,7 @@ export default function App() {
             );
           } else if (
             stored.config.mode === 'ability' &&
+            !isNormalAbility(stored.config) &&
             !stored.config.abilityStrategy &&
             lowerFirstGoal(stored.config.target)
           ) {
@@ -516,7 +540,7 @@ export default function App() {
               status: stored.state.status === 'running' ? 'paused' : stored.state.status,
             });
             if (!isStandaloneTab(getTabFromHash()))
-              history.replaceState(null, '', `#${stored.config.mode}`);
+              history.replaceState(null, '', `#${configTab(stored.config)}`);
           }
         } else {
           setCharacter(defaultCharacter);
@@ -527,7 +551,7 @@ export default function App() {
           const first = available.find((x) => x.category === 'weapon') ?? available[0];
           setEquipmentId(first?.id ?? '');
           begin(
-            makeConfig(
+            makeConfigForTab(
               rules,
               defaultCharacter,
               first,
@@ -659,12 +683,15 @@ export default function App() {
         stop();
         return;
       }
-      const mode = tab;
-      if (mode !== latest.current.config?.mode) switchMode(mode);
+      if (
+        tab !== (latest.current.config && configTab(latest.current.config)) ||
+        (tab === 'abilityNormal' && isStandaloneTab(activeTab))
+      )
+        switchMode(tab);
     };
     addEventListener('hashchange', listener);
     return () => removeEventListener('hashchange', listener);
-  }, [data, character, config, equipmentId, equipmentPreset]);
+  }, [data, character, config, equipmentId, equipmentPreset, activeTab]);
 
   function patchConfig(patch: Partial<SimulationConfig>, resetLines = false) {
     if (!config || !data) return;
@@ -749,6 +776,10 @@ export default function App() {
   }
   function toggleAbilityLock(slot: number) {
     if (!config || !state || config.mode !== 'ability' || auto) return;
+    if (isNormalAbility(config) && slot > 0 && state.lines[slot]?.grade === 'legendary') {
+      setMessage('일반 재설정에서는 2·3번째 레전드리 옵션을 잠글 수 없습니다.');
+      return;
+    }
     const currentLocks = usesAbilityProgression(config)
       ? (state.lockedSlots ?? abilityProgress(config, state.lines).lockedSlots)
       : config.lockedSlots;
@@ -761,23 +792,75 @@ export default function App() {
     }
     patchConfig({ abilityStrategy: 'fixed', lockedSlots: locks });
   }
-  function switchMode(mode: SimulatorMode) {
+  function switchMode(tab: Exclude<AppTab, 'abilityOptimizer' | 'starforce' | 'bonusOptions'>) {
+    const mode = tabMode(tab);
     if (!data || !character || !config) return;
-    setActiveTab(mode);
+    setActiveTab(tab);
     let nextItem = item;
     if ((mode === 'soulPotential' || mode === 'soulAmplification') && !nextItem?.eligibleSoul) {
       nextItem = equipment.find((x) => x.eligibleSoul);
       setEquipmentId(nextItem?.id ?? '');
     }
-    history.replaceState(null, '', `#${mode}`);
-    begin(makeConfig(data, character, nextItem, mode, config.cubeType, abilityPreset));
+    history.replaceState(null, '', `#${tab}`);
+    const draft = makeConfigForTab(data, character, nextItem, mode, config.cubeType, abilityPreset);
+    if (tab === 'abilityNormal') {
+      try {
+        const raw = sessionStorage.getItem('isekai:ability-normal:target');
+        sessionStorage.removeItem('isekai:ability-normal:target');
+        const target = raw ? JSON.parse(raw) : undefined;
+        const conditions = Array.isArray(target?.conditions)
+          ? target.conditions
+          : target
+            ? [target]
+            : [];
+        if (
+          conditions.length > 0 &&
+          conditions.length <= 3 &&
+          conditions.every(
+            (condition: unknown) =>
+              !!condition &&
+              typeof condition === 'object' &&
+              'type' in condition &&
+              typeof condition.type === 'string' &&
+              'minValue' in condition &&
+              Number.isFinite(condition.minValue),
+          )
+        ) {
+          draft.target = { ...draft.target, conditions };
+          if (
+            Array.isArray(target?.start) &&
+            target.start.length === 3 &&
+            target.start.every(
+              (line: unknown) =>
+                !!line &&
+                typeof line === 'object' &&
+                'text' in line &&
+                typeof line.text === 'string' &&
+                'type' in line &&
+                typeof line.type === 'string' &&
+                'value' in line &&
+                Number.isFinite(line.value),
+            )
+          )
+            draft.start = { ...draft.start, lines: target.start };
+        }
+      } catch {
+        /* The default first-line goal remains usable without storage. */
+      }
+    }
+    begin(draft);
   }
   function switchTab(tab: AppTab) {
     if (isStandaloneTab(tab)) {
       stop();
       setActiveTab(tab);
       history.replaceState(null, '', `#${tab}`);
-    } else if (isStandaloneTab(activeTab) && config?.mode === tab) {
+    } else if (
+      isStandaloneTab(activeTab) &&
+      config &&
+      configTab(config) === tab &&
+      tab !== 'abilityNormal'
+    ) {
       setActiveTab(tab);
       history.replaceState(null, '', `#${tab}`);
     } else switchMode(tab);
@@ -786,7 +869,7 @@ export default function App() {
     if (!data || !character || !config) return;
     setEquipmentId(id);
     begin(
-      makeConfig(
+      makeConfigForTab(
         data,
         character,
         equipment.find((x) => x.id === id),
@@ -805,11 +888,11 @@ export default function App() {
       next.find((x) => x.category === 'weapon') ??
       next[0];
     setEquipmentId(selected?.id ?? '');
-    begin(makeConfig(data, character, selected, config.mode, config.cubeType, abilityPreset));
+    begin(makeConfigForTab(data, character, selected, config.mode, config.cubeType, abilityPreset));
   }
   function chooseCube(cubeType: CubeType) {
     if (!data || !character || !config) return;
-    begin(makeConfig(data, character, item, 'cube', cubeType, abilityPreset));
+    begin(makeConfigForTab(data, character, item, 'cube', cubeType, abilityPreset));
   }
   function openSearch() {
     setName('');
@@ -837,11 +920,18 @@ export default function App() {
     const selected = nextItems.find((x) => x.category === 'weapon') ?? nextItems[0];
     setEquipmentId(selected?.id ?? '');
     begin(
-      makeConfig(rules, next, selected, mode, cubeType, next.activeAbilityPreset),
+      makeConfigForTab(rules, next, selected, mode, cubeType, next.activeAbilityPreset),
       rules,
       preserve,
     );
-    replaceCharacterLink(next.name, isStandaloneTab(activeTab) ? activeTab : mode);
+    replaceCharacterLink(
+      next.name,
+      isStandaloneTab(activeTab)
+        ? activeTab
+        : mode === 'ability' && getTabFromHash() === 'abilityNormal'
+          ? 'abilityNormal'
+          : mode,
+    );
   }
   async function searchCharacter(event?: React.FormEvent, refresh = false) {
     event?.preventDefault();
@@ -1155,7 +1245,7 @@ export default function App() {
                       onChange={(e) => {
                         setAbilityPreset(e.target.value);
                         begin(
-                          makeConfig(
+                          makeConfigForTab(
                             data,
                             character,
                             item,
@@ -1403,6 +1493,13 @@ export default function App() {
                         canLock={config.mode === 'ability' && !usesAbilityProgression(config)}
                         locks={config.lockedSlots}
                         onLock={toggleAbilityLock}
+                        unLockableSlots={
+                          normalAbility
+                            ? config.start.lines.flatMap((line, slot) =>
+                                slot > 0 && line.grade === 'legendary' ? [slot] : [],
+                              )
+                            : []
+                        }
                       />
                       {config.mode === 'cube' && isPrime(config.cubeType) && (
                         <small className="inline-note">
@@ -1472,7 +1569,7 @@ export default function App() {
                   </h2>
                   <span className="panel-step">02</span>
                 </div>
-                {config.mode === 'ability' && (
+                {config.mode === 'ability' && !normalAbility && (
                   <div className="ability-presets">
                     <Field label="직업별 종결 어빌리티">
                       <select
@@ -1566,11 +1663,18 @@ export default function App() {
                     </p>
                   </div>
                 )}
+                {normalAbility && (
+                  <p className="inline-note">
+                    레전드리 첫 줄 목표부터 설정하세요. 2·3번째 줄은 에픽 또는 유니크로 등장합니다.
+                    목표를 추가하면 선택한 잠금을 유지하며 모든 조건이 완성될 때까지 진행합니다.
+                  </p>
+                )}
                 <GoalEditor
                   goal={config.target}
                   mode={config.mode}
                   options={targetOptions}
                   conditionBounds={conditionBounds}
+                  abilitySlotOptions={normalAbility ? editorOptions : undefined}
                   onChange={(target) => patchConfig({ target })}
                 />
                 <details className="imported-details">
@@ -1635,7 +1739,7 @@ export default function App() {
                 ) : (
                   <div className="current-result">
                     <div className="card-title">
-                      <span>현재 보관 옵션</span>
+                      <span>{normalAbility ? '현재 적용 옵션' : '현재 보관 옵션'}</span>
                       <GradeBadge grade={state?.grade ?? config.start.grade} />
                     </div>
                     <OptionLines
@@ -1650,6 +1754,13 @@ export default function App() {
                       onToggleLock={config.mode === 'ability' ? toggleAbilityLock : undefined}
                       locksDisabled={auto || !state}
                       automaticLocks={usesAbilityProgression(config)}
+                      unLockableSlots={
+                        normalAbility
+                          ? (state?.lines ?? config.start.lines).flatMap((line, slot) =>
+                              slot > 0 && line.grade === 'legendary' ? [slot] : [],
+                            )
+                          : []
+                      }
                     />
                     {config.mode === 'ability' && (
                       <p className="inline-note">
@@ -1667,7 +1778,24 @@ export default function App() {
                 )}
                 {config.mode === 'ability' && (
                   <div className="ability-progress-slot">
-                    {usesAbilityProgression(config) && state ? (
+                    {normalAbility ? (
+                      <div className="ability-progress" aria-label="일반 재설정 안내">
+                        <strong>일반 재설정 · 명성치만 사용</strong>
+                        <p className="inline-note">
+                          매번 새 결과가 즉시 적용됩니다. 2·3번째 레전드리 옵션은 잠글 수 없으며
+                          재설정하면 변경됩니다.
+                        </p>
+                        <small>
+                          잠금 {config.lockedSlots.length}줄 · 다음 1회 명성치{' '}
+                          {formatAmount(
+                            abilityResetCosts(data, config).find(
+                              (cost) => cost.locked === config.lockedSlots.length,
+                            )!.honor,
+                          )}{' '}
+                          · 메소 0
+                        </small>
+                      </div>
+                    ) : usesAbilityProgression(config) && state ? (
                       <div className="ability-progress" aria-label="어빌리티 자동 잠금 진행">
                         <strong>
                           {state.status === 'success'
@@ -1788,7 +1916,7 @@ export default function App() {
                             {candidate.adopted && candidate.progressed && (
                               <span className="kept-label">보조 목표 확보 · 자동 잠금</span>
                             )}
-                            {!candidate.hit && (
+                            {!candidate.hit && !normalAbility && (
                               <button
                                 className="text-button accept-option"
                                 disabled={auto}
@@ -1858,7 +1986,7 @@ export default function App() {
                       </button>
                       <button
                         className={config.batchSize === 3 ? 'selected' : ''}
-                        disabled={auto || config.mode === 'soulAmplification'}
+                        disabled={auto || config.mode === 'soulAmplification' || normalAbility}
                         onClick={() => config.batchSize !== 3 && patchConfig({ batchSize: 3 })}
                       >
                         3회 비교
@@ -1904,15 +2032,17 @@ export default function App() {
                     </button>
                   </div>
                   <p className="control-hint">
-                    {config.batchSize === 3
-                      ? effectiveBatchSize(config, state?.grade ?? config.start.grade) === 1
-                        ? '등급 상승 구간은 1회씩 진행하고, 레전드리에 도달하면 3회 비교로 자동 전환합니다.'
+                    {normalAbility
+                      ? '목표 달성 여부와 관계없이 새 옵션이 즉시 적용됩니다. 자동 재설정은 현재 잠금을 유지합니다.'
+                      : config.batchSize === 3
+                        ? effectiveBatchSize(config, state?.grade ?? config.start.grade) === 1
+                          ? '등급 상승 구간은 1회씩 진행하고, 레전드리에 도달하면 3회 비교로 자동 전환합니다.'
+                          : usesAbilityProgression(config)
+                            ? '같은 잠금 상태에서 3회분을 모두 사용하고, 목표 달성 또는 보조 줄을 더 많이 확보한 결과를 채택합니다.'
+                            : '3개를 모두 뽑고 비용도 3회분을 사용합니다.'
                         : usesAbilityProgression(config)
-                          ? '같은 잠금 상태에서 3회분을 모두 사용하고, 목표 달성 또는 보조 줄을 더 많이 확보한 결과를 채택합니다.'
-                          : '3개를 모두 뽑고 비용도 3회분을 사용합니다.'
-                      : usesAbilityProgression(config)
-                        ? '목표 보조 줄을 확보하면 채택·잠금합니다. 나머지 결과는 기존 옵션을 유지합니다.'
-                        : '목표 미달 시 기존 옵션을 유지하며, 등급 상승은 적용합니다.'}
+                          ? '목표 보조 줄을 확보하면 채택·잠금합니다. 나머지 결과는 기존 옵션을 유지합니다.'
+                          : '목표 미달 시 기존 옵션을 유지하며, 등급 상승은 적용합니다.'}
                   </p>
                 </div>
                 {errors.length > 0 && (
@@ -1958,15 +2088,19 @@ export default function App() {
                           ? '사용한 큐브'
                           : config.mode === 'soulAmplification'
                             ? '사용한 총비용'
-                            : '사용한 메소'}
+                            : normalAbility
+                              ? '사용한 명성치'
+                              : '사용한 메소'}
                       </span>
                       <strong title={formatAmount(paidCost, false)}>
                         {formatAmount(paidCost)}
-                        <small>{itemBased ? '개' : '메소'}</small>
+                        <small>{itemBased ? '개' : normalAbility ? '명성치' : '메소'}</small>
                       </strong>
                       <div>
                         {config.mode === 'ability'
-                          ? `명성치 ${formatAmount(state.spent.honor)} 소모`
+                          ? normalAbility
+                            ? '메소 소모 없음'
+                            : `명성치 ${formatAmount(state.spent.honor)} 소모`
                           : state.spent.credits > 0n
                             ? `${formatAmount(state.spent.credits)} 크레딧`
                             : config.mode === 'soulAmplification'
@@ -1982,7 +2116,13 @@ export default function App() {
                       <strong>
                         {benchmark ? formatAmount(benchmark.expectedCost) : '계산 중'}
                         <small>
-                          {benchmark?.unit === 'cubes' ? '개' : benchmark ? '메소' : ''}
+                          {benchmark?.unit === 'cubes'
+                            ? '개'
+                            : benchmark?.unit === 'honor'
+                              ? '명성치'
+                              : benchmark
+                                ? '메소'
+                                : ''}
                         </small>
                       </strong>
                       <div>
@@ -2081,8 +2221,14 @@ export default function App() {
                                 )}
                               </div>
                               <small>
-                                {formatAmount(itemBased ? entry.cost.cubes : entry.cost.meso)}{' '}
-                                {itemBased ? '개' : '메소'}
+                                {formatAmount(
+                                  itemBased
+                                    ? entry.cost.cubes
+                                    : normalAbility
+                                      ? entry.cost.honor
+                                      : entry.cost.meso,
+                                )}{' '}
+                                {itemBased ? '개' : normalAbility ? '명성치' : '메소'}
                               </small>
                             </div>
                           ))}

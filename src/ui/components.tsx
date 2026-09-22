@@ -56,6 +56,7 @@ export function OptionLines({
   onToggleLock,
   locksDisabled = false,
   automaticLocks = false,
+  unLockableSlots = [],
   empty = '아직 다른 세계의 결과가 없어요.',
 }: {
   lines: OptionLine[];
@@ -63,6 +64,7 @@ export function OptionLines({
   onToggleLock?: (slot: number) => void;
   locksDisabled?: boolean;
   automaticLocks?: boolean;
+  unLockableSlots?: number[];
   empty?: string;
 }) {
   return (
@@ -81,7 +83,16 @@ export function OptionLines({
                   className={`icon-button option-lock-button${locked ? ' locked' : ''}`}
                   aria-label={`${i + 1}번째 보관 옵션 ${locked ? '잠금 해제' : '잠금'}`}
                   aria-pressed={locked}
-                  disabled={locksDisabled || (!locked && (locks?.length ?? 0) >= 2)}
+                  disabled={
+                    locksDisabled ||
+                    unLockableSlots.includes(i) ||
+                    (!locked && (locks?.length ?? 0) >= 2)
+                  }
+                  title={
+                    unLockableSlots.includes(i)
+                      ? '일반 재설정에서는 아랫줄 레전드리 옵션을 잠글 수 없습니다.'
+                      : undefined
+                  }
                   onClick={() => onToggleLock(i)}
                 >
                   {locked ? (
@@ -113,6 +124,7 @@ export function LineEditor({
   locks,
   onLock,
   canLock = false,
+  unLockableSlots = [],
 }: {
   lines: OptionLine[];
   options: OptionLine[][];
@@ -120,6 +132,7 @@ export function LineEditor({
   locks?: number[];
   onLock?: (slot: number) => void;
   canLock?: boolean;
+  unLockableSlots?: number[];
 }) {
   return (
     <div className="line-editors">
@@ -154,6 +167,12 @@ export function LineEditor({
                 className={`icon-button lock-button ${locks?.includes(slot) ? 'locked' : ''}`}
                 aria-label={`${slot + 1}번째 옵션 ${locks?.includes(slot) ? '잠금 해제' : '잠금'}`}
                 aria-pressed={locks?.includes(slot)}
+                disabled={unLockableSlots.includes(slot)}
+                title={
+                  unLockableSlots.includes(slot)
+                    ? '일반 재설정에서는 아랫줄 레전드리 옵션을 잠글 수 없습니다.'
+                    : undefined
+                }
                 onClick={() => onLock?.(slot)}
               >
                 {locks?.includes(slot) ? <LockKeyhole size={15} /> : <UnlockKeyhole size={15} />}
@@ -230,12 +249,14 @@ export function GoalEditor({
   options,
   mode,
   conditionBounds,
+  abilitySlotOptions,
 }: {
   goal: Goal;
   onChange: (x: Goal) => void;
   options: OptionLine[];
   mode: SimulationConfig['mode'];
   conditionBounds?: Array<ConditionValueBounds | undefined>;
+  abilitySlotOptions?: OptionLine[][];
 }) {
   const rangeId = useId();
   const lowerTypes = new Set([
@@ -253,6 +274,12 @@ export function GoalEditor({
       );
   for (const x of goal.conditions)
     if (!metrics.has(x.type)) metrics.set(x.type, METRIC_LABELS[x.type] ?? x.type);
+  const optionsForCondition = (condition: TargetCondition) =>
+    abilitySlotOptions
+      ? (condition.slot !== undefined ? [condition.slot] : (condition.slots ?? [0, 1, 2])).flatMap(
+          (slot) => abilitySlotOptions[slot] ?? [],
+        )
+      : options;
   const changeCondition = (i: number, patch: Partial<TargetCondition>, useMinimum = false) =>
     onChange({
       ...goal,
@@ -260,7 +287,11 @@ export function GoalEditor({
         j !== i
           ? x
           : mode === 'ability'
-            ? boundAbilityCondition(options, { ...x, ...patch }, useMinimum)
+            ? boundAbilityCondition(
+                optionsForCondition({ ...x, ...patch }),
+                { ...x, ...patch },
+                useMinimum,
+              )
             : { ...x, ...patch },
       ),
     });
@@ -354,7 +385,9 @@ export function GoalEditor({
             {goal.conditions.map((condition, i) => {
               const bounds =
                 conditionBounds?.[i] ??
-                (mode === 'ability' ? abilityConditionBounds(options, condition) : undefined);
+                (mode === 'ability'
+                  ? abilityConditionBounds(optionsForCondition(condition), condition)
+                  : undefined);
               const descriptionId = bounds ? `${rangeId}-condition-${i}` : undefined;
               return (
                 <div className="goal-condition" key={i}>
@@ -769,14 +802,18 @@ export function DistributionChart({
           <div key={name}>
             <span>{name === 'P50' ? '중앙값' : name}</span>
             <strong>
-              {formatAmount(value)} <small>{benchmark.unit === 'meso' ? '메소' : '개'}</small>
+              {formatAmount(value)}{' '}
+              <small>
+                {benchmark.unit === 'meso' ? '메소' : benchmark.unit === 'honor' ? '명성치' : '개'}
+              </small>
             </strong>
           </div>
         ))}
       </div>
       {hovered && (
         <div className="chart-tooltip">
-          {formatAmount(hovered.cost)} {benchmark.unit === 'meso' ? '메소' : '개'} 이내 ·{' '}
+          {formatAmount(hovered.cost)}{' '}
+          {benchmark.unit === 'meso' ? '메소' : benchmark.unit === 'honor' ? '명성치' : '개'} 이내 ·{' '}
           {(hovered.cdf * 100).toFixed(1)}%
         </div>
       )}

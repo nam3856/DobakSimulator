@@ -6,10 +6,11 @@ const tabs = [
   ['cube', '큐브', '장비 강화'],
   ['bonusOptions', '추가옵션', '장비 강화'],
   ['starforce', '스타포스', '장비 강화'],
-  ['ability', '어빌리티', '어빌리티'],
+  ['ability', '고급 재설정', '어빌리티'],
   ['abilityOptimizer', '어빌리티 최적화', '어빌리티'],
   ['soulAmplification', '소울 증폭', '소울'],
   ['soulPotential', '소울 잠재', '소울'],
+  ['abilityNormal', '일반 재설정', '어빌리티'],
 ] as const;
 
 test.beforeEach(async ({ page }) => {

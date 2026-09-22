@@ -8,6 +8,7 @@ import type {
 } from '../types';
 import {
   allCandidates,
+  abilityResetCosts,
   benchmarkUnit,
   canAppend,
   eligibleCandidates,
@@ -16,6 +17,7 @@ import {
   gradeRank,
   guaranteedAfterFailures,
   isPrime,
+  isNormalAbility,
   lineIdentity,
   potentialRules,
   resolveOptionLine,
@@ -50,7 +52,7 @@ export function addCost(a: ResourceCost, b: ResourceCost): ResourceCost {
   };
 }
 export function costValue(config: SimulationConfig, cost: ResourceCost): bigint {
-  return benchmarkUnit(config) === 'cubes' ? cost.cubes : cost.meso;
+  return cost[benchmarkUnit(config)];
 }
 
 export function attemptCost(
@@ -61,7 +63,7 @@ export function attemptCost(
 ): ResourceCost {
   const result = emptyCost();
   if (config.mode === 'ability') {
-    const costs = data.ability.costs.find((c) => c.locked === config.lockedSlots.length);
+    const costs = abilityResetCosts(data, config).find((c) => c.locked === config.lockedSlots.length);
     if (!costs) throw new Error('어빌리티는 최대 두 줄까지 잠글 수 있습니다.');
     result.meso = BigInt(costs.meso);
     result.honor = BigInt(costs.honor);
@@ -105,6 +107,8 @@ export function prepareDraw(
   for (const slot of locked) {
     const line = current[slot];
     if (!line) throw new Error('고정할 현재 옵션을 먼저 선택해주세요.');
+    if (isNormalAbility(config) && slot > 0 && line.grade === 'legendary')
+      throw new Error('일반 재설정에서는 둘째·셋째 줄의 레전드리 옵션을 잠글 수 없습니다.');
     const candidate =
       candidates[slot].find(
         (c) => lineIdentity(c.line) === lineIdentity(line) && c.line.grade === line.grade,
@@ -170,7 +174,9 @@ export function validateConfig(data: RuleData, config: SimulationConfig): string
     config.mode === 'ability' &&
     (config.start.grade !== 'legendary' || config.lockedSlots.length > 2)
   )
-    errors.push('고급 어빌리티는 레전드리에서 최대 두 줄을 잠글 수 있습니다.');
+    errors.push('어빌리티 시뮬레이터는 레전드리에서 최대 두 줄을 잠글 수 있습니다.');
+  if (isNormalAbility(config) && config.batchSize !== 1)
+    errors.push('일반 재설정은 1회씩 진행하며 결과가 즉시 적용됩니다.');
   if (isPrime(config) && config.start.grade !== 'legendary')
     errors.push('프라임 큐브는 레전드리 전용입니다.');
   if (config.batchSize === 3 && !['ability', 'cube', 'soulPotential'].includes(config.mode))
@@ -402,12 +408,15 @@ export function rollBatch(
       next.candidates.push(result);
       next.history.push(result);
     }
-    const selected = abilityProgression
+    const selected = isNormalAbility(config)
+      ? next.candidates[0]
+      : abilityProgression
       ? pickAbilityCandidate(config, baseline, next.candidates)
       : (next.candidates.find((r) => r.hit) ?? next.candidates.find((r) => r.promoted));
     if (selected) {
       next.grade = selected.grade;
       next.lines = selected.lines;
+      if (isNormalAbility(config)) selected.adopted = true;
       if (abilityProgression) {
         selected.adopted = true;
         next.lockedSlots = [...selected.lockedSlots!];

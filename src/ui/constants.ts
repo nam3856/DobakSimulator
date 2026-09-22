@@ -15,19 +15,30 @@ export const MODES: { id: SimulatorMode; name: string; caption: string }[] = [
   { id: 'soulPotential', name: '소울 잠재', caption: '깨어나는 소울의 힘' },
 ];
 export type StandaloneTab = 'abilityOptimizer' | 'starforce' | 'bonusOptions';
-export type AppTab = SimulatorMode | StandaloneTab;
+export type AppTab = SimulatorMode | StandaloneTab | 'abilityNormal';
+export const tabMode = (tab: Exclude<AppTab, StandaloneTab>): SimulatorMode =>
+  tab === 'abilityNormal' ? 'ability' : tab;
+export function configTab(config: {
+  mode: SimulatorMode;
+  abilityResetMode?: 'normal' | 'advanced';
+}): SimulatorMode | 'abilityNormal' {
+  return config.mode === 'ability' && config.abilityResetMode === 'normal'
+    ? 'abilityNormal'
+    : config.mode;
+}
 export function isStandaloneTab(tab: AppTab): tab is StandaloneTab {
   return tab === 'abilityOptimizer' || tab === 'starforce' || tab === 'bonusOptions';
 }
 export const TABS: { id: AppTab; name: string }[] = [
-  ...MODES,
+  ...MODES.map((mode) => ({ ...mode, name: mode.id === 'ability' ? '고급 재설정' : mode.name })),
+  { id: 'abilityNormal', name: '일반 재설정' },
   { id: 'abilityOptimizer', name: '어빌리티 최적화' },
   { id: 'starforce', name: '스타포스' },
   { id: 'bonusOptions', name: '추가옵션' },
 ];
 export const TAB_GROUPS = [
   { id: 'equipment', name: '장비 강화', tabs: ['cube', 'bonusOptions', 'starforce'] },
-  { id: 'ability', name: '어빌리티', tabs: ['ability', 'abilityOptimizer'] },
+  { id: 'ability', name: '어빌리티', tabs: ['abilityNormal', 'ability', 'abilityOptimizer'] },
   { id: 'soul', name: '소울', tabs: ['soulAmplification', 'soulPotential'] },
 ] as const satisfies readonly { id: string; name: string; tabs: readonly AppTab[] }[];
 export function getTabFromHash(): AppTab {
@@ -139,5 +150,6 @@ export function isPrime(cube: CubeType) {
 }
 export function getModeFromHash(): SimulatorMode {
   const hash = location.hash.slice(1);
+  if (hash === 'abilityNormal') return 'ability';
   return MODES.some((x) => x.id === hash) ? (hash as SimulatorMode) : 'cube';
 }

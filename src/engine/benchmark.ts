@@ -8,6 +8,7 @@ import {
   gradeRank,
   guaranteedAfterFailures,
   isPrime,
+  isNormalAbility,
   lineIdentity,
   potentialRules,
   tupleIdentity,
@@ -24,6 +25,7 @@ import {
 import { conditionMatchesLine, matchTarget, metricValue } from './target';
 import { usesAbilityProgression } from './ability-strategy';
 import { abilityStrategyBenchmark } from './ability-benchmark';
+import { abilityNormalBenchmark } from './ability-normal-benchmark';
 import { etherPrice } from './soul-cost';
 import {
   finiteGeometricMean,
@@ -57,6 +59,7 @@ function cacheKey(data: RuleData, config: SimulationConfig, grade: Grade, groups
     soul: data.soul.ruleId,
     ability: data.ability.ruleId,
     mode: config.mode,
+    abilityResetMode: config.abilityResetMode ?? 'advanced',
     cubeType: config.cubeType,
     category: config.category,
     level: config.level,
@@ -535,6 +538,13 @@ export function computeBenchmark(
     return amplificationBenchmark(data, config, actualCost, options);
   if (config.start.lines.length !== 3)
     throw new Error('초기 옵션 세 줄을 먼저 생성한 뒤 예상 비용을 계산해주세요.');
+  if (isNormalAbility(config))
+    return abilityNormalBenchmark(
+      data,
+      config,
+      analyzeOutcomes(data, config, config.start.grade, false),
+      actualCost,
+    );
   if (usesAbilityProgression(config))
     return abilityStrategyBenchmark(data, config, actualCost, options);
   if (config.mode === 'ability' || isPrime(config) || config.start.grade === 'legendary') {

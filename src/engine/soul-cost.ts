@@ -1,4 +1,5 @@
 import type { ResourceCost, SimulationConfig } from '../types';
+import { isNormalAbility } from './rules';
 
 export const DEFAULT_ETHER_PRICES: Record<string, string> = {
   ether1: '1500000000',
@@ -26,6 +27,7 @@ export function etherMarketValue(config: SimulationConfig, cost: ResourceCost): 
 
 /** Keep the resource ledger intact; value consumed ethers for soul amplification. */
 export function paidBenchmarkCost(config: SimulationConfig, cost: ResourceCost): bigint {
+  if (isNormalAbility(config)) return cost.honor;
   if (config.mode === 'soulAmplification') return cost.meso + etherMarketValue(config, cost);
   if (config.mode === 'cube' && ['gold', 'prime', 'primeAdditional'].includes(config.cubeType))
     return cost.cubes;

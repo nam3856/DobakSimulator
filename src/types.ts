@@ -42,6 +42,8 @@ export interface SimulationConfig {
   level: number;
   start: StartState;
   lockedSlots: number[];
+  /** Missing in older saves: preserve advanced reset behavior. */
+  abilityResetMode?: 'normal' | 'advanced';
   abilityStrategy?: 'lowerFirst' | 'firstLocked' | 'fixed';
   abilityPresetJob?: string;
   batchSize: 1 | 3;
@@ -88,7 +90,7 @@ export interface BenchmarkResult {
   expectedCost: number;
   expectedAttempts: number;
   successProbability: number;
-  unit: 'meso' | 'cubes';
+  unit: 'meso' | 'cubes' | 'honor';
   method: 'analytic' | 'sampled';
   sampleCount: number;
   quantiles: { p10: number; p50: number; p90: number };

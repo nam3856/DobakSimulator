@@ -65,7 +65,9 @@ export async function collectAbilityRules({ offline = false } = {}) {
       const weight = parseFloat(row[gradeIndex + 1].text) / 100;
       if (!(weight > 0)) continue;
       const isStat = /^(STR|DEX|INT|LUK)(, (STR|DEX|INT|LUK))? 증가$/.test(label);
-      const group = isStat ? groups[0] : groups.find(entry => normalize(entry.label).includes(normalize(label)));
+      const group = isStat ? groups[0] : groups.find(entry =>
+        normalize(entry.label).includes(normalize(label)) &&
+        (!label.includes('%') || entry.label.includes('%')));
       if (!group) throw Error(`No value family for ${label}.`);
       const valuesByLabel = new Map();
       const combined = /^(STR|DEX|INT|LUK),/.test(label);
@@ -94,7 +96,7 @@ export async function collectAbilityRules({ offline = false } = {}) {
     for (const option of options) option.weight /= displayedMass;
     grades[grade] = { displayedMass, options };
   }
-  const rule = { ruleId: 'kms-ability-advanced-2026-09-17', version: 'official-v1', checkedAt: '2026-09-17',
+  const rule = { ruleId: 'kms-ability-advanced-2026-09-17-v2', version: 'official-v2', checkedAt: '2026-09-17',
     sourceUrl, updateSourceUrl: 'https://maplestory.nexon.com/news/update/813', sourceSha256: sha256(html),
     requiredGrade: 'legendary', confidence: 'verified', preview: false,
     advancedLineGrades: [{ legendary: 1 }, { epic: .83, unique: .15, legendary: .02 }, { epic: .83, unique: .15, legendary: .02 }],

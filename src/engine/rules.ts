@@ -161,8 +161,34 @@ export function selectPool(
   return pools[0];
 }
 
-function abilityCandidates(data: RuleData, slot: number): Candidate[] {
-  const grades = data.ability.advancedLineGrades[slot];
+/** KMS ordinary honor reset, for the simulator's legendary starting grade.
+ * Sources: official ability game guide /Articles/392 and ability/reputevalue.
+ */
+export const NORMAL_ABILITY_COSTS = [
+  { locked: 0, honor: 8000, meso: '0' },
+  { locked: 1, honor: 11000, meso: '0' },
+  { locked: 2, honor: 16000, meso: '0' },
+];
+export const NORMAL_ABILITY_LINE_GRADES: Partial<Record<LineGrade, number>>[] = [
+  { legendary: 1 },
+  { epic: 0.85, unique: 0.15 },
+  { epic: 0.85, unique: 0.15 },
+];
+
+export function isNormalAbility(
+  config: Pick<SimulationConfig, 'mode' | 'abilityResetMode'>,
+): boolean {
+  return config.mode === 'ability' && config.abilityResetMode === 'normal';
+}
+
+export function abilityResetCosts(data: RuleData, config: SimulationConfig) {
+  return isNormalAbility(config) ? NORMAL_ABILITY_COSTS : data.ability.costs;
+}
+
+function abilityCandidates(data: RuleData, config: SimulationConfig, slot: number): Candidate[] {
+  const grades = (isNormalAbility(config)
+    ? NORMAL_ABILITY_LINE_GRADES
+    : data.ability.advancedLineGrades)[slot];
   const results: Candidate[] = [];
   for (const [grade, chance] of Object.entries(grades)) {
     if (!(chance! > 0)) continue;
@@ -213,7 +239,7 @@ export function allCandidates(
   grade: Grade,
   slot: number,
 ): Candidate[] {
-  if (config.mode === 'ability') return abilityCandidates(data, slot);
+  if (config.mode === 'ability') return abilityCandidates(data, config, slot);
   const rules = potentialRules(data, config);
   const rule = rules.grades.find((r) => r.grade === grade);
   const lineGrades = rule?.lineGrades.find((r) => r.slot === slot + 1)?.chances;
@@ -287,7 +313,12 @@ export function resolveOptionLine(
   line: OptionLine,
   slot: number,
 ): OptionLine {
-  const rows = getLineOptions(data, config, slot);
+  // Imported advanced-reset lines remain legendary until an ordinary reset actually
+  // replaces them. Equal visible text in a lower grade must not downgrade the import.
+  const preserveLowerLegendary = isNormalAbility(config) && slot > 0 && line.grade === 'legendary';
+  const rows = preserveLowerLegendary
+    ? getLineOptions(data, { ...config, abilityResetMode: 'advanced' }, slot, 'legendary')
+    : getLineOptions(data, config, slot);
   return (
     rows.find(
       (candidate) =>
@@ -315,7 +346,8 @@ export function isPrime(config: SimulationConfig): boolean {
     config.mode === 'cube' && (config.cubeType === 'prime' || config.cubeType === 'primeAdditional')
   );
 }
-export function benchmarkUnit(config: SimulationConfig): 'meso' | 'cubes' {
+export function benchmarkUnit(config: SimulationConfig): 'meso' | 'cubes' | 'honor' {
+  if (isNormalAbility(config)) return 'honor';
   return config.mode === 'cube' && ['gold', 'prime', 'primeAdditional'].includes(config.cubeType)
     ? 'cubes'
     : 'meso';
@@ -323,10 +355,10 @@ export function benchmarkUnit(config: SimulationConfig): 'meso' | 'cubes' {
 
 /** A selected three-result mode begins once potential rerolls reach legendary. */
 export function effectiveBatchSize(
-  config: Pick<SimulationConfig, 'mode' | 'batchSize'>,
+  config: Pick<SimulationConfig, 'mode' | 'batchSize' | 'abilityResetMode'>,
   grade: Grade,
 ): 1 | 3 {
-  return config.batchSize === 3 &&
+  return !isNormalAbility(config) && config.batchSize === 3 &&
     (config.mode === 'ability' ||
       ((config.mode === 'cube' || config.mode === 'soulPotential') && grade === 'legendary'))
     ? 3

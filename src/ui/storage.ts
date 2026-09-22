@@ -69,6 +69,8 @@ export function readSession(): StoredSession | null {
       !validLines(x.config?.start?.lines) ||
       !validGrade(x.config?.start?.grade) ||
       !Array.isArray(x.config?.lockedSlots) ||
+      (x.config.abilityResetMode !== undefined &&
+        !['normal', 'advanced'].includes(x.config.abilityResetMode)) ||
       (x.config.abilityStrategy !== undefined &&
         !['lowerFirst', 'firstLocked', 'fixed'].includes(x.config.abilityStrategy)) ||
       (x.state?.lockedSlots !== undefined && !validLocks(x.state.lockedSlots)) ||

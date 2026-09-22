@@ -6,6 +6,7 @@ import type {
   TargetCondition,
 } from '../types';
 import { conditionMatchesLine } from './target';
+import { isNormalAbility } from './rules';
 
 export interface AbilityProgress {
   lockedSlots: number[];
@@ -17,6 +18,7 @@ export interface AbilityProgress {
 export function usesLowerFirstAbility(config: SimulationConfig): boolean {
   return (
     config.mode === 'ability' &&
+    !isNormalAbility(config) &&
     config.abilityStrategy === 'lowerFirst' &&
     config.target.mode === 'ability' &&
     config.target.match === 'all'
@@ -26,6 +28,7 @@ export function usesLowerFirstAbility(config: SimulationConfig): boolean {
 export function usesFirstLockedAbility(config: SimulationConfig): boolean {
   return (
     config.mode === 'ability' &&
+    !isNormalAbility(config) &&
     config.abilityStrategy === 'firstLocked' &&
     config.target.mode === 'ability' &&
     config.target.match === 'all'

@@ -263,7 +263,10 @@ describe('advanced ability and all soul stages', () => {
         expect(option.weight).toBeCloseTo(parseFloat(row[gradeIndex + 1]) / 100 / mass, 12);
         const group = /^(STR|DEX|INT|LUK)(, (STR|DEX|INT|LUK))? 증가$/.test(row[0])
           ? groups[0]
-          : groups.find((g) => normalize(g.label).includes(normalize(row[0])))!;
+          : groups.find((g) =>
+              normalize(g.label).includes(normalize(row[0])) &&
+              (!row[0].includes('%') || g.label.includes('%')),
+            )!;
         expect(group.rows).toHaveLength(6);
         const expectedValues = new Map<string, number>();
         for (const source of group.rows) {

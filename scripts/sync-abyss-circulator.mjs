@@ -102,7 +102,10 @@ for (const [grade, pool] of Object.entries(ability.grades)) {
     const isStat = /^(STR|DEX|INT|LUK)(, (STR|DEX|INT|LUK))? 증가$/.test(option.label);
     const family = isStat
       ? families[0]
-      : families.find((entry) => normalize(entry.label).includes(normalize(option.label)));
+      : families.find((entry) =>
+          normalize(entry.label).includes(normalize(option.label)) &&
+          (!option.label.includes('%') || entry.label.includes('%')),
+        );
     if (!family) throw new Error(`Missing value family: ${grade}/${option.label}`);
     const combined = /^(STR|DEX|INT|LUK),/.test(option.label);
     const values = new Map();
@@ -162,7 +165,7 @@ for (const [grade, pool] of Object.entries(ability.grades)) {
 
 const rule = {
   ruleId: 'kms-abyss-circulator-2026-09-17',
-  version: 'official-v1',
+  version: 'official-v2',
   checkedAt,
   scope:
     'Advanced-reset-reachable option types and grades for the legendary three-target optimizer; discontinued legacy-only options and Rare lines are not included.',

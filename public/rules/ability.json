@@ -1,6 +1,6 @@
 {
-  "ruleId": "kms-ability-advanced-2026-09-17",
-  "version": "official-v1",
+  "ruleId": "kms-ability-advanced-2026-09-17-v2",
+  "version": "official-v2",
   "checkedAt": "2026-09-17",
   "sourceUrl": "https://maplestory.nexon.com/Guide/OtherProbability/ability/reputevalue",
   "updateSourceUrl": "https://maplestory.nexon.com/news/update/813",
@@ -1646,33 +1646,33 @@
           "valueDirection": "higher",
           "values": [
             {
-              "value": 375,
-              "label": "최대 HP 375% 증가",
+              "value": 5,
+              "label": "최대 HP 5% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 390,
-              "label": "최대 HP 390% 증가",
+              "value": 6,
+              "label": "최대 HP 6% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 405,
-              "label": "최대 HP 405% 증가",
+              "value": 7,
+              "label": "최대 HP 7% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 420,
-              "label": "최대 HP 420% 증가",
+              "value": 8,
+              "label": "최대 HP 8% 증가",
               "weight": 0.14999999999999997
             },
             {
-              "value": 435,
-              "label": "최대 HP 435% 증가",
+              "value": 9,
+              "label": "최대 HP 9% 증가",
               "weight": 0.14999999999999997
             },
             {
-              "value": 450,
-              "label": "최대 HP 450% 증가",
+              "value": 10,
+              "label": "최대 HP 10% 증가",
               "weight": 0.09999999999999998
             }
           ]
@@ -1686,33 +1686,33 @@
           "valueDirection": "higher",
           "values": [
             {
-              "value": 375,
-              "label": "최대 MP 375% 증가",
+              "value": 5,
+              "label": "최대 MP 5% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 390,
-              "label": "최대 MP 390% 증가",
+              "value": 6,
+              "label": "최대 MP 6% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 405,
-              "label": "최대 MP 405% 증가",
+              "value": 7,
+              "label": "최대 MP 7% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 420,
-              "label": "최대 MP 420% 증가",
+              "value": 8,
+              "label": "최대 MP 8% 증가",
               "weight": 0.14999999999999997
             },
             {
-              "value": 435,
-              "label": "최대 MP 435% 증가",
+              "value": 9,
+              "label": "최대 MP 9% 증가",
               "weight": 0.14999999999999997
             },
             {
-              "value": 450,
-              "label": "최대 MP 450% 증가",
+              "value": 10,
+              "label": "최대 MP 10% 증가",
               "weight": 0.09999999999999998
             }
           ]
@@ -3048,33 +3048,33 @@
           "valueDirection": "higher",
           "values": [
             {
-              "value": 525,
-              "label": "최대 HP 525% 증가",
+              "value": 15,
+              "label": "최대 HP 15% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 540,
-              "label": "최대 HP 540% 증가",
+              "value": 16,
+              "label": "최대 HP 16% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 555,
-              "label": "최대 HP 555% 증가",
+              "value": 17,
+              "label": "최대 HP 17% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 570,
-              "label": "최대 HP 570% 증가",
+              "value": 18,
+              "label": "최대 HP 18% 증가",
               "weight": 0.14999999999999997
             },
             {
-              "value": 585,
-              "label": "최대 HP 585% 증가",
+              "value": 19,
+              "label": "최대 HP 19% 증가",
               "weight": 0.14999999999999997
             },
             {
-              "value": 600,
-              "label": "최대 HP 600% 증가",
+              "value": 20,
+              "label": "최대 HP 20% 증가",
               "weight": 0.09999999999999998
             }
           ]
@@ -3088,33 +3088,33 @@
           "valueDirection": "higher",
           "values": [
             {
-              "value": 525,
-              "label": "최대 MP 525% 증가",
+              "value": 15,
+              "label": "최대 MP 15% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 540,
-              "label": "최대 MP 540% 증가",
+              "value": 16,
+              "label": "최대 MP 16% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 555,
-              "label": "최대 MP 555% 증가",
+              "value": 17,
+              "label": "최대 MP 17% 증가",
               "weight": 0.19999999999999996
             },
             {
-              "value": 570,
-              "label": "최대 MP 570% 증가",
+              "value": 18,
+              "label": "최대 MP 18% 증가",
               "weight": 0.14999999999999997
             },
             {
-              "value": 585,
-              "label": "최대 MP 585% 증가",
+              "value": 19,
+              "label": "최대 MP 19% 증가",
               "weight": 0.14999999999999997
             },
             {
-              "value": 600,
-              "label": "최대 MP 600% 증가",
+              "value": 20,
+              "label": "최대 MP 20% 증가",
               "weight": 0.09999999999999998
             }
           ]

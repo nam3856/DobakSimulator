@@ -8,6 +8,7 @@ const tabIcons = {
   bonusOptions: Flame,
   starforce: Star,
   ability: Sparkles,
+  abilityNormal: Sparkles,
   abilityOptimizer: Route,
   soulAmplification: Orbit,
   soulPotential: Gem,

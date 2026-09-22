@@ -23,6 +23,11 @@ import type {
   AbilityOptimizerStrategyResult,
 } from '../engine/ability-optimizer';
 import type { OptimizerRequest, OptimizerResponse } from '../workers/ability-optimizer.worker';
+import type { NormalAbilityOptimizerResult } from '../engine/ability-normal-optimizer';
+import type {
+  NormalOptimizerRequest,
+  NormalOptimizerResponse,
+} from '../workers/ability-normal-optimizer.worker';
 import {
   ABILITY_JOB_PRESETS,
   makeAbilityPresetGoal,
@@ -214,6 +219,7 @@ export function AbilityOptimizer({
   );
   const [saved, setSaved] = useState(true);
   const [result, setResult] = useState<AbilityOptimizerResult>();
+  const [normalResult, setNormalResult] = useState<NormalAbilityOptimizerResult>();
   const [error, setError] = useState('');
   const [avatar, setAvatar] = useState<OptimizerAvatarDescriptor>();
   const [introAvatar] = useState(() => createOptimizerAvatar());
@@ -245,6 +251,7 @@ export function AbilityOptimizer({
     [targetTypes, targetGrades],
   );
   const allLegendary = targets.every((target) => target.grade === 'legendary');
+  const normalOptimization = targets.filter((target) => target.grade === 'legendary').length === 1;
   const medal = price(medalPrice),
     circulator = price(circulatorPrice),
     honor = price(availableHonor);
@@ -320,6 +327,7 @@ export function AbilityOptimizer({
     }
     inFlight.current = false;
     setResult(undefined);
+    setNormalResult(undefined);
     setError('');
   }, [
     medalPrice,
@@ -399,11 +407,64 @@ export function AbilityOptimizer({
             ? 'character'
             : step === 'prices'
               ? 'target'
-              : 'prices',
+              : normalOptimization
+                ? 'target'
+                : 'prices',
         'back',
       );
   }
+  function calculateNormal() {
+    if (startValidation || targetValidation) return;
+    if (allValuesComplete) {
+      goToStep('result');
+      return;
+    }
+    worker.current?.terminate();
+    const next = new Worker(
+      new URL('../workers/ability-normal-optimizer.worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+    worker.current = next;
+    const id = crypto.randomUUID();
+    requestId.current = id;
+    inFlight.current = true;
+    setAvatar(createOptimizerAvatar(selectedCharacter));
+    setTip('일반 최적화는 명성치와 서큘레이터 종류별 사용 개수를 각각 비교해요.');
+    setError('');
+    setNormalResult(undefined);
+    goToStep('calculating');
+    next.onmessage = ({ data: response }: MessageEvent<NormalOptimizerResponse>) => {
+      if (response.id !== requestId.current) return;
+      inFlight.current = false;
+      next.terminate();
+      worker.current = null;
+      if ('error' in response) {
+        setError(response.error);
+        goToStep('target', 'back');
+      } else {
+        setNormalResult(response.result);
+        goToStep('result');
+      }
+    };
+    next.onerror = () => {
+      if (requestId.current !== id) return;
+      setError('계산을 완료하지 못했습니다. 다시 계산해 주세요.');
+      goToStep('target', 'back');
+      inFlight.current = false;
+      next.terminate();
+      worker.current = null;
+    };
+    next.postMessage({
+      id,
+      baseUrl: new URL(import.meta.env.BASE_URL, document.baseURI).href,
+      input: { start: lines, targets },
+    } satisfies NormalOptimizerRequest);
+  }
   function calculate() {
+    if (normalOptimization) {
+      calculateNormal();
+      return;
+    }
     if (
       startValidation ||
       targetValidation ||
@@ -464,7 +525,31 @@ export function AbilityOptimizer({
     inFlight.current = false;
     worker.current?.terminate();
     worker.current = null;
-    goToStep('prices', 'back');
+    goToStep(normalOptimization ? 'target' : 'prices', 'back');
+  }
+  function prepareNormalTarget() {
+    if (!normalOptimization || targetValidation) return;
+    const conditions = selected.flatMap((option, i) => {
+      if (!option) return [];
+      const value = maximum(option).value;
+      return [
+        {
+          type: option.type,
+          minValue: option.valueDirection === 'lower' ? 0 : value,
+          ...(option.valueDirection === 'lower' ? { maxValue: value } : {}),
+          minGrade: targetGrades[i],
+          ...(targetGrades[i] === 'legendary' ? { slot: 0 } : { slots: [1, 2] }),
+        },
+      ];
+    });
+    try {
+      sessionStorage.setItem(
+        'isekai:ability-normal:target',
+        JSON.stringify({ conditions, start: lines }),
+      );
+    } catch {
+      // The tab link remains usable when browser storage is unavailable.
+    }
   }
   const best = result?.strategies.find((s) => s.id === result.bestStrategyId);
   const methodGroups = useMemo(
@@ -509,7 +594,9 @@ export function AbilityOptimizer({
                     ? '2 / 3'
                     : step === 'prices'
                       ? '3 / 3'
-                      : '계산 결과'}
+                      : normalOptimization
+                        ? '추천 결과'
+                        : '계산 결과'}
               </span>
             </div>
           )}
@@ -781,8 +868,9 @@ export function AbilityOptimizer({
               </div>
               {!allTypesAcquired && (
                 <p className="optimizer-help optimizer-target-help">
-                  줄 순서는 무관해요. 선택 안 함은 계산에서 제외하고, 유니크 목표는 목표 수치를
-                  충족한 레전드리도 인정해요.
+                  {normalOptimization
+                    ? '레전드리 목표가 1개라면 일반 재설정과 미라클·블랙·카오스 서큘레이터를 비교해요. 유니크 목표는 둘째·셋째 줄에서 노려요.'
+                    : '줄 순서는 무관해요. 선택 안 함은 계산에서 제외하고, 유니크 목표는 목표 수치를 충족한 레전드리도 인정해요.'}
                 </p>
               )}
               {allTypesAcquired && (
@@ -793,7 +881,9 @@ export function AbilityOptimizer({
                       ? targets.length === 3 && allLegendary
                         ? '세 줄 모두 최대치입니다.'
                         : '선택한 목표를 이미 달성했어요.'
-                      : '선택한 종류·등급 확보 완료 · 수치만 완성하는 방법도 비교해요.'}
+                      : normalOptimization
+                        ? '선택한 종류·등급 확보 완료 · 일반 재설정과 서큘레이터 사용량을 비교해요.'
+                        : '선택한 종류·등급 확보 완료 · 수치만 완성하는 방법도 비교해요.'}
                   </span>
                 </div>
               )}
@@ -802,11 +892,16 @@ export function AbilityOptimizer({
                   {targetValidation}
                 </p>
               )}
+              {error && (
+                <p className="notice error" role="alert">
+                  {error}
+                </p>
+              )}
               <div className="optimizer-actions">
                 <button
                   className="button primary"
                   disabled={!!targetValidation}
-                  onClick={() => goToStep('prices')}
+                  onClick={() => (normalOptimization ? calculateNormal() : goToStep('prices'))}
                 >
                   다음 <ArrowRight size={16} />
                 </button>
@@ -907,173 +1002,383 @@ export function AbilityOptimizer({
               </button>
             </div>
           )}
-          {step === 'result' && result && (
-            <div className="optimizer-results" aria-busy="false">
-              <section className="optimizer-target-summary" aria-label="완성할 목표">
-                <div>
-                  <h3>완성할 목표</h3>
-                  <span>
-                    {targets.length}개 옵션 ·{' '}
-                    {allLegendary ? '레전드리 최대치' : '선택한 등급 이상 · 목표 수치 충족'} · 줄
-                    순서 무관
-                  </span>
-                </div>
-                <ul>
-                  {selected.map(
-                    (option, i) =>
-                      option && (
-                        <li key={option.id}>
-                          <GradeBadge grade={targetGrades[i] as 'unique' | 'legendary'} />{' '}
-                          {maximum(option).label}
-                        </li>
-                      ),
-                  )}
-                </ul>
-              </section>
-              {best ? (
-                <section className="panel optimizer-best" aria-label="추천 전략">
-                  <span className="optimizer-best-tag">
-                    {best.status === 'already' ? <Check size={16} /> : <Trophy size={16} />}
-                    {best.status === 'already' ? '목표 달성' : '비교 전략 중 예상 추가비용 최저'}
-                  </span>
-                  <h3>{best.status === 'already' ? '이미 완성됐어요' : best.name}</h3>
-                  <p>
-                    {best.status === 'already'
-                      ? '선택한 목표를 모두 달성했어요. 추가 재설정 없이 그대로 사용하면 돼요.'
-                      : best.description}
-                  </p>
-                  <strong className="optimizer-total">{money(best.totalCost)}</strong>
-                  <p className="optimizer-help">
-                    보유 명성치 {count(honor ?? 0)}를 반영한 예상 추가비용
-                  </p>
-                  {best.status !== 'already' && (
-                    <div className="optimizer-best-condition">
-                      <LockCondition strategy={best} options={options} targets={targets} />
-                      {best.policy.kind !== 'current-types' && (
-                        <p className="optimizer-help">아랫줄은 둘째·셋째 줄을 말해요.</p>
-                      )}
-                    </div>
-                  )}
-                  <CostBreakdown strategy={best} circulatorPrice={circulator!} />
-                  {best.status !== 'already' && <StrategySteps steps={best.steps} />}
+          {step === 'result' &&
+            (result || normalResult || (normalOptimization && allValuesComplete)) && (
+              <div className="optimizer-results" aria-busy="false">
+                <section className="optimizer-target-summary" aria-label="완성할 목표">
+                  <div>
+                    <h3>완성할 목표</h3>
+                    <span>
+                      {targets.length}개 옵션 ·{' '}
+                      {allLegendary ? '레전드리 최대치' : '선택한 등급 이상 · 목표 수치 충족'} ·{' '}
+                      {normalOptimization && !allValuesComplete
+                        ? targets.length === 1
+                          ? '첫째 줄에서 획득'
+                          : '레전드리 첫째 줄 · 유니크 아랫줄'
+                        : '줄 순서 무관'}
+                    </span>
+                  </div>
+                  <ul>
+                    {selected.map(
+                      (option, i) =>
+                        option && (
+                          <li key={option.id}>
+                            <GradeBadge grade={targetGrades[i] as 'unique' | 'legendary'} />{' '}
+                            {maximum(option).label}
+                          </li>
+                        ),
+                    )}
+                  </ul>
                 </section>
-              ) : (
-                <p className="notice error" role="alert">
-                  현재 조건으로 달성할 수 있는 전략이 없습니다. 목표를 확인해 주세요.
-                </p>
-              )}
-              <section
-                className="panel optimizer-comparison"
-                aria-labelledby="optimizer-comparison-title"
-              >
-                <div className="panel-heading">
-                  <h3 id="optimizer-comparison-title">다른 방법과 비교해 보세요</h3>
-                  <span>
-                    {methodGroups.length}가지 방법 · {result.strategies.length}개 조건 비교
-                  </span>
-                </div>
-                <p className="optimizer-help">
-                  방법을 펼치면 어떤 옵션부터 잠글지에 따른 비용을 볼 수 있어요. 아랫줄은 둘째·셋째
-                  줄을 말해요.
-                </p>
-                <div className="optimizer-method-list">
-                  {methodGroups.map((group) => (
-                    <details
-                      className={`optimizer-method-group ${group.best.id === best?.id ? 'best' : ''}`}
-                      key={group.method}
-                      data-method={group.method}
-                      data-best-strategy={group.best.id}
-                    >
-                      <summary className="optimizer-method-summary">
-                        <span className="optimizer-method-name">
-                          <span>{group.title}</span>
-                          <small>{group.strategies.length}개 조건 비교</small>
-                        </span>
-                        <strong>
-                          <small>최저 예상 추가비용</small>
-                          {group.best.status === 'impossible'
-                            ? '달성 불가'
-                            : money(group.best.totalCost)}
-                        </strong>
-                        <ChevronDown
-                          className="optimizer-method-chevron"
-                          size={18}
-                          aria-hidden="true"
-                        />
-                        <LockCondition strategy={group.best} options={options} targets={targets} />
-                      </summary>
-                      <div className="optimizer-strategy-list">
-                        {group.strategies.map((strategy, i) => (
-                          <details
-                            className={`optimizer-strategy ${strategy.id === best?.id ? 'best' : ''}`}
-                            key={strategy.id}
-                            data-strategy={strategy.id}
+                {normalOptimization ? (
+                  <section className="panel optimizer-best" aria-label="추천 전략">
+                    <span className="optimizer-best-tag">
+                      {allValuesComplete ? <Check size={16} /> : <Calculator size={16} />}
+                      {allValuesComplete ? '목표 달성' : '레전드리 목표 1개 · 일반 최적화'}
+                    </span>
+                    <h3>
+                      {allValuesComplete
+                        ? '이미 완성됐어요'
+                        : '일반 재설정과 서큘레이터를 비교해 보세요'}
+                    </h3>
+                    <p>
+                      {allValuesComplete
+                        ? '선택한 목표를 이미 최대치로 달성했어요. 추가 재설정 없이 그대로 사용하면 돼요.'
+                        : '레전드리 목표가 1개라면 고급 재설정 대신 일반 재설정을 사용하세요. 명성치와 미라클·블랙·카오스 서큘레이터의 예상 사용량을 각각 비교해요.'}
+                    </p>
+                    {allValuesComplete ? (
+                      <>
+                        <strong className="optimizer-total">추가 소모 없음</strong>
+                        <p className="optimizer-help">명성치 0 · 서큘레이터 0개</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="optimizer-help">
+                          서큘레이터는 종류별 사용 개수로 표시해요. 필요한 명성치와 아이템을 보고
+                          사용할 방법을 선택하세요.
+                        </p>
+                        <div className="optimizer-actions">
+                          <a
+                            className="button primary"
+                            href="#abilityNormal"
+                            onClick={prepareNormalTarget}
                           >
-                            <summary>
-                              <span className="optimizer-rank">{i + 1}</span>
+                            일반 재설정으로 이동 <ArrowRight size={16} />
+                          </a>
+                        </div>
+                      </>
+                    )}
+                  </section>
+                ) : best ? (
+                  <section className="panel optimizer-best" aria-label="추천 전략">
+                    <span className="optimizer-best-tag">
+                      {best.status === 'already' ? <Check size={16} /> : <Trophy size={16} />}
+                      {best.status === 'already' ? '목표 달성' : '비교 전략 중 예상 추가비용 최저'}
+                    </span>
+                    <h3>{best.status === 'already' ? '이미 완성됐어요' : best.name}</h3>
+                    <p>
+                      {best.status === 'already'
+                        ? '선택한 목표를 모두 달성했어요. 추가 재설정 없이 그대로 사용하면 돼요.'
+                        : best.description}
+                    </p>
+                    <strong className="optimizer-total">{money(best.totalCost)}</strong>
+                    <p className="optimizer-help">
+                      보유 명성치 {count(honor ?? 0)}를 반영한 예상 추가비용
+                    </p>
+                    {best.status !== 'already' && (
+                      <div className="optimizer-best-condition">
+                        <LockCondition strategy={best} options={options} targets={targets} />
+                        {best.policy.kind !== 'current-types' && (
+                          <p className="optimizer-help">아랫줄은 둘째·셋째 줄을 말해요.</p>
+                        )}
+                      </div>
+                    )}
+                    <CostBreakdown strategy={best} circulatorPrice={circulator!} />
+                    {best.status !== 'already' && <StrategySteps steps={best.steps} />}
+                  </section>
+                ) : (
+                  <p className="notice error" role="alert">
+                    현재 조건으로 달성할 수 있는 전략이 없습니다. 목표를 확인해 주세요.
+                  </p>
+                )}
+                {normalOptimization && !allValuesComplete && normalResult && (
+                  <NormalOptimizationStrategies result={normalResult} />
+                )}
+                {!normalOptimization && result && (
+                  <>
+                    <section
+                      className="panel optimizer-comparison"
+                      aria-labelledby="optimizer-comparison-title"
+                    >
+                      <div className="panel-heading">
+                        <h3 id="optimizer-comparison-title">다른 방법과 비교해 보세요</h3>
+                        <span>
+                          {methodGroups.length}가지 방법 · {result.strategies.length}개 조건 비교
+                        </span>
+                      </div>
+                      <p className="optimizer-help">
+                        방법을 펼치면 어떤 옵션부터 잠글지에 따른 비용을 볼 수 있어요. 아랫줄은
+                        둘째·셋째 줄을 말해요.
+                      </p>
+                      <div className="optimizer-method-list">
+                        {methodGroups.map((group) => (
+                          <details
+                            className={`optimizer-method-group ${group.best.id === best?.id ? 'best' : ''}`}
+                            key={group.method}
+                            data-method={group.method}
+                            data-best-strategy={group.best.id}
+                          >
+                            <summary className="optimizer-method-summary">
+                              <span className="optimizer-method-name">
+                                <span>{group.title}</span>
+                                <small>{group.strategies.length}개 조건 비교</small>
+                              </span>
+                              <strong>
+                                <small>최저 예상 추가비용</small>
+                                {group.best.status === 'impossible'
+                                  ? '달성 불가'
+                                  : money(group.best.totalCost)}
+                              </strong>
+                              <ChevronDown
+                                className="optimizer-method-chevron"
+                                size={18}
+                                aria-hidden="true"
+                              />
                               <LockCondition
-                                strategy={strategy}
+                                strategy={group.best}
                                 options={options}
                                 targets={targets}
                               />
-                              <strong>
-                                {strategy.status === 'impossible'
-                                  ? '달성 불가'
-                                  : money(strategy.totalCost)}
-                              </strong>
                             </summary>
-                            <div className="optimizer-strategy-detail">
-                              <p className="optimizer-help">
-                                {strategy.status === 'already'
-                                  ? '선택한 목표를 모두 달성해 추가 재설정이 필요 없어요.'
-                                  : strategy.description}
-                              </p>
-                              <CostBreakdown strategy={strategy} circulatorPrice={circulator!} />
-                              {strategy.status !== 'already' && (
-                                <StrategySteps steps={strategy.steps} />
-                              )}
+                            <div className="optimizer-strategy-list">
+                              {group.strategies.map((strategy, i) => (
+                                <details
+                                  className={`optimizer-strategy ${strategy.id === best?.id ? 'best' : ''}`}
+                                  key={strategy.id}
+                                  data-strategy={strategy.id}
+                                >
+                                  <summary>
+                                    <span className="optimizer-rank">{i + 1}</span>
+                                    <LockCondition
+                                      strategy={strategy}
+                                      options={options}
+                                      targets={targets}
+                                    />
+                                    <strong>
+                                      {strategy.status === 'impossible'
+                                        ? '달성 불가'
+                                        : money(strategy.totalCost)}
+                                    </strong>
+                                  </summary>
+                                  <div className="optimizer-strategy-detail">
+                                    <p className="optimizer-help">
+                                      {strategy.status === 'already'
+                                        ? '선택한 목표를 모두 달성해 추가 재설정이 필요 없어요.'
+                                        : strategy.description}
+                                    </p>
+                                    <CostBreakdown
+                                      strategy={strategy}
+                                      circulatorPrice={circulator!}
+                                    />
+                                    {strategy.status !== 'already' && (
+                                      <StrategySteps steps={strategy.steps} />
+                                    )}
+                                  </div>
+                                </details>
+                              ))}
                             </div>
                           </details>
                         ))}
                       </div>
+                    </section>
+                    <details className="panel optimizer-notes">
+                      <summary>계산 기준과 공식 자료</summary>
+                      <ul>
+                        <li>
+                          예상 추가비용은 필요 명성치의 기댓값에서 보유분을 차감한 추정치입니다.
+                          개별 도전의 추가 구매비용을 정확히 평균한 값은 아닙니다.
+                        </li>
+                        <li>
+                          훈장 개수는 명성치 5,000 단위의 환산 수량이며 정수 구매 개수가 아닙니다.
+                        </li>
+                        {result.notes.map((note, i) => (
+                          <li key={i}>{note}</li>
+                        ))}
+                      </ul>
+                      <div className="optimizer-sources">
+                        <a
+                          href="https://maplestory.nexon.com/Guide/OtherProbability/ability/reputevalue"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          공식 확률표 ↗
+                        </a>
+                        <a
+                          href="https://maplestory.nexon.com/Guide/N23GameInformation/Articles/392"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          공식 어빌리티 가이드 ↗
+                        </a>
+                      </div>
                     </details>
-                  ))}
-                </div>
-              </section>
-              <details className="panel optimizer-notes">
-                <summary>계산 기준과 공식 자료</summary>
-                <ul>
-                  <li>
-                    예상 추가비용은 필요 명성치의 기댓값에서 보유분을 차감한 추정치입니다. 개별
-                    도전의 추가 구매비용을 정확히 평균한 값은 아닙니다.
-                  </li>
-                  <li>훈장 개수는 명성치 5,000 단위의 환산 수량이며 정수 구매 개수가 아닙니다.</li>
-                  {result.notes.map((note, i) => (
-                    <li key={i}>{note}</li>
-                  ))}
-                </ul>
-                <div className="optimizer-sources">
-                  <a
-                    href="https://maplestory.nexon.com/Guide/OtherProbability/ability/reputevalue"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    공식 확률표 ↗
-                  </a>
-                  <a
-                    href="https://maplestory.nexon.com/Guide/N23GameInformation/Articles/392"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    공식 어빌리티 가이드 ↗
-                  </a>
-                </div>
-              </details>
-            </div>
-          )}
+                  </>
+                )}
+              </div>
+            )}
         </>
       )}
     </section>
+  );
+}
+function NormalOptimizationStrategies({ result }: { result: NormalAbilityOptimizerResult }) {
+  const honorStrategies = result.strategies.filter(
+    (strategy) =>
+      strategy.id.startsWith('normal-honor') &&
+      strategy.status === 'ready' &&
+      strategy.expectedHonor !== null &&
+      Number.isFinite(strategy.expectedHonor),
+  );
+  const minimumHonor =
+    honorStrategies.length > 1
+      ? Math.min(...honorStrategies.map((strategy) => strategy.expectedHonor!))
+      : undefined;
+  const usage = (value: number | null, available: string) =>
+    available !== 'unavailable' &&
+    available !== 'impossible' &&
+    value !== null &&
+    Number.isFinite(value)
+      ? count(value)
+      : '—';
+  const status = (value: NormalAbilityOptimizerResult['strategies'][number]['status']) =>
+    value === 'already'
+      ? '목표 달성'
+      : value === 'impossible'
+        ? '달성 불가'
+        : value === 'unavailable'
+          ? '비교 제외'
+          : '사용량 기댓값';
+  return (
+    <>
+      <section
+        className="panel optimizer-normal-comparison"
+        aria-labelledby="optimizer-normal-title"
+      >
+        <div className="panel-heading">
+          <h3 id="optimizer-normal-title">방법별 예상 사용량</h3>
+        </div>
+        <p className="optimizer-help">
+          명성치와 아이템 개수는 서로 다른 단위예요. 기댓값은 평균이며 실제 사용량은 달라질 수
+          있어요.
+        </p>
+        <div className="optimizer-normal-table-wrap">
+          <table className="optimizer-normal-table" aria-label="일반 최적화 재화별 기댓값">
+            <thead>
+              <tr>
+                <th scope="col">방법</th>
+                <th scope="col">명성치</th>
+                <th scope="col">
+                  미라클
+                  <br />
+                  서큘레이터
+                </th>
+                <th scope="col">
+                  블랙
+                  <br />
+                  서큘레이터
+                </th>
+                <th scope="col">
+                  카오스
+                  <br />
+                  서큘레이터
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.strategies.map((strategy) => (
+                <tr key={strategy.id} data-normal-strategy={strategy.id}>
+                  <th scope="row">
+                    {strategy.name}
+                    <small>{status(strategy.status)}</small>
+                    {minimumHonor !== undefined &&
+                      strategy.id.startsWith('normal-honor') &&
+                      strategy.expectedHonor === minimumHonor && (
+                        <small className="optimizer-normal-minimum">
+                          비교한 명성치 전용 전략 중 최소
+                        </small>
+                      )}
+                  </th>
+                  <td>
+                    {usage(strategy.expectedHonor, strategy.status)}
+                    {strategy.expectedResets !== null &&
+                      strategy.status !== 'unavailable' &&
+                      strategy.status !== 'impossible' &&
+                      Number.isFinite(strategy.expectedResets) && (
+                        <small>재설정 {count(strategy.expectedResets)}회</small>
+                      )}
+                  </td>
+                  <td>
+                    {usage(strategy.expectedMiracle, strategy.status)}
+                    <small>개</small>
+                  </td>
+                  <td>
+                    {usage(strategy.expectedBlack, strategy.status)}
+                    <small>개</small>
+                  </td>
+                  <td>
+                    {usage(strategy.expectedChaos, strategy.status)}
+                    <small>개</small>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="optimizer-normal-methods">
+          {result.strategies.map((strategy) => (
+            <details className="optimizer-normal-method" key={strategy.id}>
+              <summary>
+                <span>{strategy.name}</span>
+                <span>{status(strategy.status)}</span>
+              </summary>
+              <p className="optimizer-help">{strategy.description}</p>
+              {strategy.steps.length > 0 && <StrategySteps steps={strategy.steps} />}
+              {strategy.notes.length > 0 && (
+                <ul className="optimizer-help">
+                  {strategy.notes.map((note, index) => (
+                    <li key={index}>{note}</li>
+                  ))}
+                </ul>
+              )}
+            </details>
+          ))}
+        </div>
+      </section>
+      <details className="panel optimizer-notes">
+        <summary>계산 기준과 공식 자료</summary>
+        <ul>
+          {result.notes.map((note, index) => (
+            <li key={index}>{note}</li>
+          ))}
+        </ul>
+        <div className="optimizer-sources">
+          <a
+            href="https://maplestory.nexon.com/Guide/OtherProbability/ability/reputevalue"
+            target="_blank"
+            rel="noreferrer"
+          >
+            공식 확률표 ↗
+          </a>
+          <a
+            href="https://maplestory.nexon.com/Guide/N23GameInformation/Articles/392"
+            target="_blank"
+            rel="noreferrer"
+          >
+            공식 어빌리티 가이드 ↗
+          </a>
+        </div>
+      </details>
+    </>
   );
 }
 function LockCondition({
