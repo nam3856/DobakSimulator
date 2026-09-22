@@ -3,6 +3,15 @@ import { selectSimulator } from './helpers/navigation';
 
 const EXTERNAL_EVENT_URL = 'https://maplestory.nexon.com/News/Event/Ongoing/1389';
 const AUCTION_URL = 'https://auction.maplestory.nexon.com/';
+const CANNON_CHANNEL_URL = 'https://www.youtube.com/@%EC%A7%84%EA%B2%A9%EC%BA%90%EB%84%8C';
+const BANNER_MEDIA = [
+  { file: 'ad-1.png', width: 2057, height: 764 },
+  { file: 'ad-2.png', width: 1028, height: 382 },
+  { file: 'ad-3.png', width: 1028, height: 382 },
+  { file: 'ad-4.png', width: 1028, height: 382 },
+  { file: 'ad-5.mp4', width: 1028, height: 382 },
+];
+const BANNER_SOURCE = /banners\/ad-(?:[1-4]\.png|5\.mp4)(?:\?|$)/;
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/app-config.json', (route) =>
@@ -48,25 +57,35 @@ async function simulationSnapshot(page: Page) {
   };
 }
 
-test('each equal random quarter loads an enabled banner under the Pages subpath', async ({
+test('each equal random fifth loads an enabled banner under the Pages subpath', async ({
   page,
 }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  for (let index = 0; index < 4; index++) {
-    await openBanner(page, (index + 0.5) / 4);
-    const image = page.locator('.fake-ad-banner img');
-    await expect(image).toHaveAttribute(
-      'src',
-      new RegExp(`banners/ad-${index + 1}\\.png(?:\\?|$)`),
+  for (const [index, banner] of BANNER_MEDIA.entries()) {
+    await openBanner(page, (index + 0.5) / BANNER_MEDIA.length);
+    const isVideo = banner.file.endsWith('.mp4');
+    const media = page.locator(`.fake-ad-banner ${isVideo ? 'video' : 'img'}`);
+    await expect(media).toHaveJSProperty(isVideo ? 'videoWidth' : 'naturalWidth', banner.width);
+    await expect(media).toHaveJSProperty(isVideo ? 'videoHeight' : 'naturalHeight', banner.height);
+    await expect(media).toHaveAttribute('width', String(banner.width));
+    await expect(media).toHaveAttribute('height', String(banner.height));
+    if (isVideo) {
+      await expect(media).toHaveJSProperty('autoplay', true);
+      await expect(media).toHaveJSProperty('muted', true);
+      await expect(media).toHaveJSProperty('loop', true);
+      await expect(media).toHaveJSProperty('playsInline', true);
+      await expect(media).toHaveAttribute('poster', /banners\/ad-5-poster\.webp$/);
+      await expect
+        .poll(() => media.evaluate((element: HTMLVideoElement) => element.currentTime))
+        .toBeGreaterThan(0);
+    } else {
+      await expect(media).toHaveAttribute('alt', /\S/);
+    }
+    const resource = await media.evaluate(
+      (element: HTMLImageElement | HTMLVideoElement) => element.currentSrc,
     );
-    await expect(image).toHaveJSProperty('naturalWidth', index === 0 ? 2057 : 1028);
-    await expect(image).toHaveJSProperty('naturalHeight', index === 0 ? 764 : 382);
-    await expect(image).toHaveAttribute('width', index === 0 ? '2057' : '1028');
-    await expect(image).toHaveAttribute('height', index === 0 ? '764' : '382');
-    await expect(image).toHaveAttribute('alt', /\S/);
-    const resource = await image.evaluate((element: HTMLImageElement) => element.currentSrc);
-    expect(new URL(resource).pathname).toBe(`/DobakSimulator/banners/ad-${index + 1}.png`);
+    expect(new URL(resource).pathname).toBe(`/DobakSimulator/banners/${banner.file}`);
     if (index === 0) expect(new URL(resource).searchParams.get('v')).toBe('2');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/이세계 직작/);
     await expect(page.getByRole('heading', { name: '같은 목표, 다른 세계의 나.' })).toHaveCount(0);
@@ -79,80 +98,98 @@ test('minute rotation excludes the current banner and survives rerolls, theme an
 }) => {
   await pauseClock(page);
   await openBanner(page, 0, '#soulAmplification', true);
-  const image = page.locator('.fake-ad-banner img');
-  await expect(image).toHaveAttribute('src', /banners\/ad-[1234]\.png(?:\?|$)/);
-  const first = await image.getAttribute('src');
+  const media = page.locator('.fake-ad-banner img, .fake-ad-banner video');
+  await expect(media).toHaveAttribute('src', BANNER_SOURCE);
+  const first = await media.getAttribute('src');
   await page.clock.fastForward(29700);
   await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
   await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
-  await expect(image).toHaveAttribute('src', first!);
+  await expect(media).toHaveAttribute('src', first!);
   await page.getByRole('button', { name: '밝은 테마', exact: true }).click();
   await selectSimulator(page, '큐브');
-  await expect(image).toHaveAttribute('src', first!);
+  await expect(media).toHaveAttribute('src', first!);
   await page.clock.fastForward(300);
   await expect(page.locator('.expected-stat')).not.toContainText('계산 중');
   const state = await simulationSnapshot(page);
   await page.clock.fastForward(29699);
-  await expect(image).toHaveAttribute('src', first!);
+  await expect(media).toHaveAttribute('src', first!);
   await page.clock.fastForward(1);
-  await expect(image).not.toHaveAttribute('src', first!);
-  await expect(image).toHaveAttribute('src', /banners\/ad-[1234]\.png(?:\?|$)/);
-  let previous = await image.getAttribute('src');
-  for (let index = 0; index < 3; index++) {
+  await expect(media).not.toHaveAttribute('src', first!);
+  await expect(media).toHaveAttribute('src', BANNER_SOURCE);
+  let previous = await media.getAttribute('src');
+  for (let index = 0; index < BANNER_MEDIA.length - 1; index++) {
     await page.clock.fastForward(60000);
-    await expect(image).not.toHaveAttribute('src', previous!);
-    await expect(image).toHaveAttribute('src', /banners\/ad-[1234]\.png(?:\?|$)/);
-    previous = await image.getAttribute('src');
+    await expect(media).not.toHaveAttribute('src', previous!);
+    await expect(media).toHaveAttribute('src', BANNER_SOURCE);
+    previous = await media.getAttribute('src');
   }
   expect(await simulationSnapshot(page)).toEqual(state);
 });
 
-test('the auction banner opens its isolated external tab by mouse and Enter without changing paid progress', async ({
-  page,
-  context,
-}) => {
-  await pauseClock(page);
-  await context.route(AUCTION_URL, (route) =>
-    route.fulfill({
-      contentType: 'text/html; charset=utf-8',
-      body: '<!doctype html><title>메이플스토리 경매장</title><h1>메이플 경매장</h1>',
-    }),
-  );
-  await openBanner(page, 0.125, '#soulAmplification', true);
-  await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
-  await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
-  const state = await simulationSnapshot(page);
-  const url = page.url();
-  const banner = page.getByRole('link', {
-    name: '메이플스토리 경매장 열기 (외부 링크, 새 탭)',
-    exact: true,
+for (const externalBanner of [
+  {
+    name: 'auction',
+    random: 0.1,
+    url: AUCTION_URL,
+    label: '메이플스토리 경매장 열기 (외부 링크, 새 탭)',
+    heading: '메이플 경매장',
+  },
+  {
+    name: 'Cannon channel',
+    random: 0.9,
+    url: CANNON_CHANNEL_URL,
+    label: '진격캐넌 유튜브 채널 열기 (외부 링크, 새 탭)',
+    heading: '진격캐넌 유튜브 채널',
+  },
+]) {
+  test(`the ${externalBanner.name} banner opens its isolated external tab by mouse and Enter without changing paid progress`, async ({
+    page,
+    context,
+  }) => {
+    await pauseClock(page);
+    await context.route(externalBanner.url, (route) =>
+      route.fulfill({
+        contentType: 'text/html; charset=utf-8',
+        body: `<!doctype html><title>${externalBanner.heading}</title><h1>${externalBanner.heading}</h1>`,
+      }),
+    );
+    await openBanner(page, externalBanner.random, '#soulAmplification', true);
+    await page.getByRole('button', { name: '증폭 시도하기', exact: true }).click();
+    await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
+    const state = await simulationSnapshot(page);
+    const url = page.url();
+    const banner = page.getByRole('link', {
+      name: externalBanner.label,
+      exact: true,
+    });
+    await expect(banner).toHaveAttribute('href', externalBanner.url);
+    await expect(banner).toHaveAttribute('target', '_blank');
+    await expect(banner).toHaveAttribute('rel', 'noopener noreferrer');
+    const dialogs: string[] = [];
+    page.on('dialog', async (dialog) => {
+      dialogs.push(dialog.message());
+      await dialog.dismiss();
+    });
+    for (const action of ['click', 'Enter']) {
+      if (action === 'Enter') await banner.focus();
+      const popupPromise = context.waitForEvent('page');
+      if (action === 'click') await banner.click();
+      else await page.keyboard.press('Enter');
+      const popup = await popupPromise;
+      await expect(popup).toHaveURL(externalBanner.url);
+      await expect(
+        popup.getByRole('heading', { name: externalBanner.heading, exact: true }),
+      ).toBeVisible();
+      expect(await popup.evaluate(() => window.opener)).toBeNull();
+      expect(await popup.evaluate(() => document.referrer)).toBe('');
+      expect(dialogs).toEqual([]);
+      expect(page.url()).toBe(url);
+      expect(await simulationSnapshot(page)).toEqual(state);
+      await popup.close();
+      expect(context.pages()).toHaveLength(1);
+    }
   });
-  await expect(banner).toHaveAttribute('href', AUCTION_URL);
-  await expect(banner).toHaveAttribute('target', '_blank');
-  await expect(banner).toHaveAttribute('rel', 'noopener noreferrer');
-  await expect(banner.locator('img')).toHaveAttribute('src', /banners\/ad-1\.png\?v=2$/);
-  const dialogs: string[] = [];
-  page.on('dialog', async (dialog) => {
-    dialogs.push(dialog.message());
-    await dialog.dismiss();
-  });
-  for (const action of ['click', 'Enter']) {
-    if (action === 'Enter') await banner.focus();
-    const popupPromise = context.waitForEvent('page');
-    if (action === 'click') await banner.click();
-    else await page.keyboard.press('Enter');
-    const popup = await popupPromise;
-    await expect(popup).toHaveURL(AUCTION_URL);
-    await expect(popup.getByRole('heading', { name: '메이플 경매장', exact: true })).toBeVisible();
-    expect(await popup.evaluate(() => window.opener)).toBeNull();
-    expect(await popup.evaluate(() => document.referrer)).toBe('');
-    expect(dialogs).toEqual([]);
-    expect(page.url()).toBe(url);
-    expect(await simulationSnapshot(page)).toEqual(state);
-    await popup.close();
-    expect(context.pages()).toHaveLength(1);
-  }
-});
+}
 
 test('the event banner warns before leaving and opens an isolated new tab only after confirmation', async ({
   page,
@@ -206,12 +243,12 @@ test('the event banner warns before leaving and opens an isolated new tab only a
   }
 });
 
-test('banners preserve their full image and layout in both themes, on mobile and on image failure', async ({
+test('banners preserve their full media and layout in both themes, on mobile and on image failure', async ({
   page,
 }) => {
   const banner = page.locator('.fake-ad-banner');
-  const image = banner.locator('img');
-  for (const random of [0.125, 0.5]) {
+  const media = banner.locator('img, video');
+  for (const random of [0.1, 0.9, 0.5]) {
     await openBanner(page, random);
     for (const width of [1440, 360]) {
       await page.setViewportSize({ width, height: 1050 });
@@ -221,13 +258,19 @@ test('banners preserve their full image and layout in both themes, on mobile and
           await page
             .getByRole('button', { name: theme === 'light' ? '밝은 테마' : '어두운 테마' })
             .click();
-        const naturalWidth = random === 0.125 ? 2057 : 1028;
-        const naturalHeight = random === 0.125 ? 764 : 382;
-        await expect(image).toHaveJSProperty('naturalWidth', naturalWidth);
-        await expect(image).toHaveJSProperty('naturalHeight', naturalHeight);
-        await expect(image).toHaveCSS('object-fit', 'contain');
+        const naturalWidth = random === 0.1 ? 2057 : 1028;
+        const naturalHeight = random === 0.1 ? 764 : 382;
+        await expect(media).toHaveJSProperty(
+          random === 0.9 ? 'videoWidth' : 'naturalWidth',
+          naturalWidth,
+        );
+        await expect(media).toHaveJSProperty(
+          random === 0.9 ? 'videoHeight' : 'naturalHeight',
+          naturalHeight,
+        );
+        await expect(media).toHaveCSS('object-fit', 'contain');
         const bounds = (await banner.boundingBox())!;
-        const imageBounds = (await image.boundingBox())!;
+        const imageBounds = (await media.boundingBox())!;
         expect(bounds.width).toBeLessThanOrEqual(593);
         expect(bounds.height).toBeLessThanOrEqual(221);
         expect(imageBounds.width / imageBounds.height).toBeCloseTo(naturalWidth / naturalHeight, 2);
@@ -264,4 +307,20 @@ test('banners preserve their full image and layout in both themes, on mobile and
   await activation;
   expect(page.url()).toBe(url);
   expect(page.context().pages()).toHaveLength(1);
+});
+
+test('the animated banner retains its poster and link if the video fails to load', async ({
+  page,
+}) => {
+  await page.route('**/banners/ad-5.mp4', (route) => route.abort());
+  await openBanner(page, 0.9);
+  const banner = page.getByRole('link', {
+    name: '진격캐넌 유튜브 채널 열기 (외부 링크, 새 탭)',
+    exact: true,
+  });
+  await expect(banner).toHaveAttribute('href', CANNON_CHANNEL_URL);
+  await expect(banner.locator('video')).toHaveCount(0);
+  await expect(banner.locator('img')).toHaveAttribute('src', /banners\/ad-5-poster\.webp$/);
+  await expect(banner.locator('img')).toHaveJSProperty('naturalWidth', 1028);
+  await expect(banner.locator('img')).toHaveJSProperty('naturalHeight', 382);
 });

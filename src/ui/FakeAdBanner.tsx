@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 
 const EVENT_URL = 'https://maplestory.nexon.com/News/Event/Ongoing/1389';
 const AUCTION_URL = 'https://auction.maplestory.nexon.com/';
+const CANNON_CHANNEL_URL = 'https://www.youtube.com/@%EC%A7%84%EA%B2%A9%EC%BA%90%EB%84%8C';
 
 const BANNERS = [
   { file: 'ad-1.png', name: '메이플스토리 경매장' },
   { file: 'ad-2.png', name: '스타포스 지금 누르러 가기' },
   { file: 'ad-3.png', name: '메이플스토리 헬스장' },
   { file: 'ad-4.png', name: '메이플스토리 연애 시뮬레이터' },
+  { file: 'ad-5.mp4', name: '진격캐넌' },
 ];
 
 // Clickable regions in the original 1028 × 382 banner image.
@@ -63,6 +65,28 @@ function BannerImage({
   );
 }
 
+function BannerVideo({ src, name }: { src: string; name: string }) {
+  const [failed, setFailed] = useState(false);
+  const poster = `${import.meta.env.BASE_URL}banners/ad-5-poster.webp`;
+
+  return failed ? (
+    <BannerImage src={poster} name={name} />
+  ) : (
+    <video
+      src={src}
+      poster={poster}
+      aria-label={`${name} 패러디 광고`}
+      width={1028}
+      height={382}
+      autoPlay
+      muted
+      loop
+      playsInline
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export function FakeAdBanner({ onStarforce }: { onStarforce: () => void }) {
   const [index, setIndex] = useState(() => Math.floor(Math.random() * BANNERS.length));
 
@@ -84,15 +108,22 @@ export function FakeAdBanner({ onStarforce }: { onStarforce: () => void }) {
   }
 
   const banner = BANNERS[index];
-  const bannerImage = (
-    <BannerImage
-      key={banner.file}
-      src={`${import.meta.env.BASE_URL}banners/${banner.file}${banner.file === 'ad-1.png' ? '?v=2' : ''}`}
-      name={banner.name}
-      width={banner.file === 'ad-1.png' ? 2057 : 1028}
-      height={banner.file === 'ad-1.png' ? 764 : 382}
-    />
-  );
+  const bannerMedia =
+    banner.file === 'ad-5.mp4' ? (
+      <BannerVideo
+        key={banner.file}
+        src={`${import.meta.env.BASE_URL}banners/${banner.file}`}
+        name={banner.name}
+      />
+    ) : (
+      <BannerImage
+        key={banner.file}
+        src={`${import.meta.env.BASE_URL}banners/${banner.file}${banner.file === 'ad-1.png' ? '?v=2' : ''}`}
+        name={banner.name}
+        width={banner.file === 'ad-1.png' ? 2057 : 1028}
+        height={banner.file === 'ad-1.png' ? 764 : 382}
+      />
+    );
 
   return (
     <div className="hero-banner">
@@ -104,11 +135,21 @@ export function FakeAdBanner({ onStarforce }: { onStarforce: () => void }) {
           rel="noopener noreferrer"
           aria-label="메이플스토리 경매장 열기 (외부 링크, 새 탭)"
         >
-          {bannerImage}
+          {bannerMedia}
+        </a>
+      ) : banner.file === 'ad-5.mp4' ? (
+        <a
+          className="fake-ad-banner"
+          href={CANNON_CHANNEL_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="진격캐넌 유튜브 채널 열기 (외부 링크, 새 탭)"
+        >
+          {bannerMedia}
         </a>
       ) : banner.file === 'ad-4.png' ? (
         <div className="fake-ad-banner" role="group" aria-label={banner.name}>
-          {bannerImage}
+          {bannerMedia}
           {YOUTUBE_LINKS.map((link) => (
             <a
               key={link.href}
@@ -141,7 +182,7 @@ export function FakeAdBanner({ onStarforce }: { onStarforce: () => void }) {
             onStarforce();
           }}
         >
-          {bannerImage}
+          {bannerMedia}
         </button>
       )}
     </div>

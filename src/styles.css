@@ -282,7 +282,8 @@ small {
   background: #fff;
   overflow: hidden;
 }
-.fake-ad-banner img {
+.fake-ad-banner img,
+.fake-ad-banner video {
   display: block;
   width: 100%;
   height: auto;
