@@ -100,6 +100,7 @@ import { AbilityOptimizer } from './ui/AbilityOptimizer';
 import { StarforceSimulator } from './ui/StarforceSimulator';
 import { BonusOptionSimulator } from './ui/BonusOptionSimulator';
 import { SimulatorNavigation } from './ui/SimulatorNavigation';
+import { SimulatorGuides } from './ui/SimulatorGuides';
 import { paidBenchmarkCost } from './engine/soul-cost';
 import {
   buildCharacterShareLink,
@@ -1176,18 +1177,6 @@ export default function App() {
                   </h2>
                   <span className="panel-step">01</span>
                 </div>
-                <div className="mode-fixed">
-                  <span>
-                    <ArrowUpRight size={16} /> 지금부터 업그레이드
-                  </span>
-                  <small>
-                    {config.mode === 'ability'
-                      ? '불러온 현재 어빌리티에서 목표 옵션을 완성합니다.'
-                      : config.mode === 'soulAmplification'
-                        ? '불러온 현재 소울 증폭 단계에서 목표 단계에 도전합니다.'
-                        : '불러온 현재 장비 옵션에서 목표 옵션을 완성합니다.'}
-                  </small>
-                </div>
                 {config.mode !== 'ability' ? (
                   <>
                     <div className="field-row equipment-fields">
@@ -2248,6 +2237,7 @@ export default function App() {
           </div>
         )}
         {activeTab !== 'abilityOptimizer' && <Sources fetchedAt={character.fetchedAt} />}
+        <SimulatorGuides />
       </main>
       <footer className="site-footer">
         <div className="footer-brand">

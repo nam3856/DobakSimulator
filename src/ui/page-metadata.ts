@@ -2,7 +2,7 @@ import { characterShareHeadline } from '../share-metadata';
 
 const SITE_TITLE = '이세계 직작 — 메이플스토리 통합 강화 시뮬레이터';
 const SITE_DESCRIPTION =
-  '메이플스토리 큐브, 추가옵션, 어빌리티, 소울 잠재능력·증폭, 스타포스를 한곳에서 돌려보는 통합 강화 시뮬레이터. 내 캐릭터로 강화하고 기댓값·비용·행운을 확인하세요.';
+  '메이플스토리 큐브·어빌리티 고급 재설정·소울 증폭·소울 잠재 시뮬레이터. 내 캐릭터로 목표까지의 비용과 기댓값을 비교하고 추가옵션·스타포스도 체험하는 통합 강화 시뮬레이터입니다.';
 const SITE_URL = 'https://nam3856.github.io/DobakSimulator/';
 
 /** Browser metadata supplements the server-rendered cards at /share. */

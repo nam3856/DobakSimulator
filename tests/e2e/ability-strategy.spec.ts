@@ -112,7 +112,7 @@ test('job presets start at three legendary minimum values and interchangeable se
   page,
 }) => {
   await boot(page);
-  await expect(page.locator('.mode-fixed')).toContainText('지금부터 업그레이드');
+  await expect(page.getByText('지금부터 업그레이드', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: '현재 옵션 재현', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: '지금부터 업그레이드', exact: true })).toHaveCount(
     0,
@@ -351,7 +351,7 @@ test('legacy recreate ability sessions archive paid progress and migrate to the 
   }, serialize(previous));
   await page.reload();
   await expect(page.getByLabel('직업별 종결 어빌리티')).toHaveValue('메카닉');
-  await expect(page.locator('.mode-fixed')).toContainText('지금부터 업그레이드');
+  await expect(page.getByRole('heading', { name: '고급 어빌리티 시뮬레이터' })).toBeVisible();
   await expect(page.getByLabel('목표 조건 3 옵션')).toHaveValue('attackFlat');
   await expect(page.getByRole('button', { name: '1회', exact: true })).toHaveClass(/selected/);
   await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('0회');

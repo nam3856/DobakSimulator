@@ -149,7 +149,7 @@ test('searching a different job selects its endgame ability goal from the import
   async function expectImportedAbility() {
     await expect(page.getByLabel('직업별 종결 어빌리티')).toHaveValue('비숍');
     await expect(page.getByLabel('어빌리티 프리셋')).toHaveValue('2');
-    await expect(page.locator('.mode-fixed')).toContainText('지금부터 업그레이드');
+    await expect(page.getByRole('heading', { name: '고급 어빌리티 시뮬레이터' })).toBeVisible();
     await expect(page.getByRole('button', { name: '현재 옵션 재현', exact: true })).toHaveCount(0);
     for (const [index, type, value] of [
       [1, 'bossDamagePercent', '15'],

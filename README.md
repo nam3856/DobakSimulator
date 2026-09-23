@@ -42,11 +42,11 @@ npm run test:e2e
 
 메신저에 공유할 때는 캐릭터 아래 **캐릭터 링크 복사**를 사용하세요. 공용 서버의 `/share?character=닉네임&mode=탭` 주소를 복사하며, 미리보기에 **이세계의 닉네임으로 강화하기**가 표시되고 클릭하면 해당 캐릭터와 탭으로 이동합니다. 닉네임 끝 글자에 맞춰 `로/으로`를 선택합니다. 복사 권한이 없으면 직접 복사할 입력란을 제공합니다. 기존 GitHub Pages 주소도 계속 열리지만, 정적 HTML을 읽는 메신저에서는 공통 사이트 설명이 표시됩니다.
 
-검색용 제목·설명, canonical, Open Graph/Twitter 메타 정보와 WebApplication 구조화 데이터는 `index.html`에 포함합니다. `public/sitemap.xml`은 대표 주소 하나를 안내하며 닉네임·탭별 중복 URL을 넣지 않습니다. Google Search Console에 제출할 사이트맵은 `https://nam3856.github.io/DobakSimulator/sitemap.xml`입니다.
+검색용 제목·설명, canonical, Open Graph/Twitter 메타 정보와 WebApplication 구조화 데이터는 `index.html`에 포함합니다. `public/simulators/`에는 큐브·어빌리티 고급 재설정·어빌리티 최적화·소울 증폭·소울 잠재의 기능별 정적 안내 페이지가 있습니다. 각 페이지는 고유한 제목·설명·대표 주소와 실제 사용 방법을 제공하고 해당 시뮬레이터로 바로 연결합니다. 앱의 초기 HTML과 실행 후 이용 안내에서도 이 페이지들을 연결합니다. `public/sitemap.xml`은 실행 페이지와 다섯 개의 안내 페이지를 포함하며 닉네임·탭별 중복 URL은 넣지 않습니다. Google Search Console에 제출할 사이트맵은 `https://nam3856.github.io/DobakSimulator/sitemap.xml`입니다. 배포·색인 확인 절차는 [검색 유입 안내](docs/search-discovery.md)를 참고하세요.
 
 단풍잎 아이콘은 헤더·로딩 화면·하단과 파비콘에 공통 적용합니다. `public/favicon.png`는 96px PNG이며, 32px PNG·ICO·Apple touch icon도 제공합니다. 원본과 제작 프롬프트는 [아이콘 제작 기록](docs/icon-design.md)에 있고, `npm run icons:build`로 크기별 파일을 다시 만듭니다.
 
-도메인 루트 `https://nam3856.github.io/`용 정적 소개 페이지는 `site-root/`에 별도로 준비되어 있습니다. `npm run dev:root`로 `http://127.0.0.1:5174/`에서 확인할 수 있습니다. 루트 페이지는 같은 파비콘, 시뮬레이터 연결 버튼, 루트·시뮬레이터 주소를 담은 `sitemap.xml`과 `robots.txt`를 포함합니다. 실제 루트 도메인에 게시하려면 [루트 홈페이지 안내](site-root/README.md)에 따라 별도 GitHub Pages 저장소에 게시합니다. 프로젝트 경로의 `robots.txt`는 도메인 루트의 크롤링 설정을 대신하지 않습니다.
+도메인 루트 `https://nam3856.github.io/`용 정적 소개 페이지는 `site-root/`에 별도로 준비되어 있습니다. `npm run dev:root`로 `http://127.0.0.1:5174/`에서 디자인을 확인할 수 있습니다. 루트 페이지는 기능별 인터랙티브 진입 요소와 바로가기, 같은 파비콘, 안내 페이지까지 포함한 `sitemap.xml`과 `robots.txt`를 제공합니다. 랜딩페이지에서 앱까지 로컬 이동을 검증하려면 `npm run build` 후 `node scripts/serve-test.mjs`로 `http://127.0.0.1:4173/`을 여세요. 실제 루트 도메인에 게시하려면 [루트 홈페이지 안내](site-root/README.md)에 따라 별도 GitHub Pages 저장소에 게시합니다. 프로젝트 경로의 `robots.txt`는 도메인 루트의 크롤링 설정을 대신하지 않습니다.
 
 상단의 패러디 광고는 1·2·3·4번 배너 중 하나를 같은 확률로 보여주고, 1분마다 다른 배너로 바뀝니다. 1번은 새 경매장 이미지이며 클릭하거나 Enter를 누르면 [메이플스토리 경매장](https://auction.maplestory.nexon.com/)을 새 탭으로 엽니다. 2번은 스타포스 탭으로 이동합니다. 3번은 외부 링크 이동 확인창을 띄우며, 확인하면 [메이플스토리 이벤트 페이지](https://maplestory.nexon.com/News/Event/Ongoing/1389)를 새 탭으로 엽니다. 취소하면 이동하지 않습니다. 4번은 이미지 속 ‘키다리아저씨 고르기’를 누르면 [maplehooni 채널](https://www.youtube.com/@maplehooni), ‘남사친의정석 고르기’를 누르면 [땡 채널](https://www.youtube.com/@%EB%95%A1), 맨 아래 띠 영역을 누르면 [유튜브 영상](https://www.youtube.com/watch?v=IP4RacpJHu0)을 새 탭으로 엽니다. 어빌리티 최적화에서는 단계 입력에 집중할 수 있도록 배너를 숨깁니다.
 

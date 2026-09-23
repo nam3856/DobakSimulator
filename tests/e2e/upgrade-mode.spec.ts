@@ -56,7 +56,7 @@ async function stored(page: Page): Promise<StoredSession> {
 
 async function boot(page: Page, hash = '#cube') {
   await page.goto(`./${hash}`);
-  await expect(page.locator('.mode-fixed')).toContainText('지금부터 업그레이드');
+  await expect(page.getByRole('heading', { name: '도전 설정', exact: true })).toBeVisible();
   await expect(page.locator('.expected-stat')).not.toContainText('계산 중');
 }
 
@@ -64,7 +64,8 @@ const lineValues = (lines: OptionLine[]) =>
   lines.map(({ type, value, unit }) => ({ type, value, unit }));
 
 async function expectImportedStart(page: Page) {
-  await expect(page.locator('.mode-fixed')).toContainText('지금부터 업그레이드');
+  await expect(page.getByRole('heading', { name: '도전 설정', exact: true })).toBeVisible();
+  await expect(page.getByText('지금부터 업그레이드', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: '현재 옵션 재현', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: '지금부터 업그레이드', exact: true })).toHaveCount(
     0,

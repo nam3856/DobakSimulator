@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#10271f" />
-    <title>이세계 직작 — 메이플스토리 통합 강화 시뮬레이터</title>
+    <title>이세계 직작 — 메이플스토리 큐브·어빌리티·소울 시뮬레이터</title>
     <meta
       name="description"
-      content="메이플스토리 강화, 이세계에서 먼저 도전하세요. 내 캐릭터로 큐브·추가옵션·스타포스·어빌리티·소울을 시뮬레이션하고 기대 비용을 비교할 수 있습니다."
+      content="이세계 직작에서 메이플스토리 강화를 미리 경험하세요. 큐브 시뮬레이터, 어빌리티 고급 재설정 시뮬레이터, 어빌리티 최적화, 소울 증폭 시뮬레이터, 소울 잠재 시뮬레이터를 내 캐릭터로 시작하세요."
     />
     <link rel="canonical" href="https://nam3856.github.io/" />
     <link rel="icon" type="image/png" sizes="96x96" href="./favicon.png" />
@@ -18,10 +18,10 @@
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
     <meta property="og:site_name" content="이세계 직작" />
-    <meta property="og:title" content="이세계 직작 — 메이플스토리 통합 강화 시뮬레이터" />
+    <meta property="og:title" content="이세계 직작 — 메이플스토리 큐브·어빌리티·소울 시뮬레이터" />
     <meta
       property="og:description"
-      content="메소는 지키고, 가능성은 마음껏. 메이플스토리 강화, 이세계에서 먼저 도전하세요."
+      content="메소는 지키고, 가능성은 마음껏. 닉네임을 입력하고 큐브, 어빌리티 고급 재설정·최적화, 소울 증폭·잠재를 골라 시작하세요."
     />
     <meta property="og:url" content="https://nam3856.github.io/" />
     <meta property="og:image" content="https://nam3856.github.io/brand-icon.png" />
@@ -32,17 +32,58 @@
       content="짙은 숲색 바탕에 주황빛 단풍잎이 빛나는 이세계 직작 아이콘"
     />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="이세계 직작 — 메이플스토리 통합 강화 시뮬레이터" />
-    <meta name="twitter:description" content="메이플스토리 강화, 이세계에서 먼저 도전하세요." />
+    <meta name="twitter:title" content="이세계 직작 — 메이플스토리 큐브·어빌리티·소울 시뮬레이터" />
+    <meta name="twitter:description" content="원하는 강화를 골라, 이세계에서 먼저 도전하세요." />
     <meta name="twitter:image" content="https://nam3856.github.io/brand-icon.png" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "이세계 직작",
-        "alternateName": "메이플스토리 강화 시뮬레이터",
-        "url": "https://nam3856.github.io/",
-        "inLanguage": "ko-KR"
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://nam3856.github.io/#website",
+            "name": "이세계 직작",
+            "alternateName": "메이플스토리 강화 시뮬레이터",
+            "url": "https://nam3856.github.io/",
+            "inLanguage": "ko-KR"
+          },
+          {
+            "@type": "ItemList",
+            "name": "이세계 직작 시뮬레이터",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "큐브 시뮬레이터",
+                "url": "https://nam3856.github.io/DobakSimulator/simulators/cube/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "어빌리티 고급 재설정 시뮬레이터",
+                "url": "https://nam3856.github.io/DobakSimulator/simulators/ability/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "소울 증폭 시뮬레이터",
+                "url": "https://nam3856.github.io/DobakSimulator/simulators/soul-amplification/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "name": "소울 잠재 시뮬레이터",
+                "url": "https://nam3856.github.io/DobakSimulator/simulators/soul-potential/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 5,
+                "name": "어빌리티 최적화",
+                "url": "https://nam3856.github.io/DobakSimulator/simulators/ability-optimizer/"
+              }
+            ]
+          }
+        ]
       }
     </script>
     <style>
@@ -57,229 +98,1022 @@
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
       }
-
       * {
         box-sizing: border-box;
       }
-
+      [hidden] {
+        display: none !important;
+      }
       body {
         min-width: 280px;
         min-height: 100vh;
         min-height: 100svh;
         margin: 0;
-        display: grid;
-        grid-template-rows: auto 1fr auto;
-        background:
-          radial-gradient(ellipse at 50% 26%, #2e604632, transparent 58%),
-          radial-gradient(ellipse at 50% 100%, #203b2930, transparent 58%);
+        background: radial-gradient(ellipse at 50% 0%, #315d423a, transparent 65%);
       }
-
-      header,
-      footer {
-        padding: 28px clamp(24px, 6vw, 80px);
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
       }
-
+      button,
+      input {
+        font: inherit;
+      }
+      a {
+        color: inherit;
+      }
+      a:focus-visible,
+      button:focus-visible,
+      input:focus-visible {
+        outline: 3px solid #f4d292;
+        outline-offset: 4px;
+      }
+      .skip-link {
+        position: absolute;
+        top: 8px;
+        left: 16px;
+        z-index: 2;
+        padding: 12px;
+        border-radius: 8px;
+        background: #e4c48d;
+        color: #10271f;
+        transform: translateY(-150%);
+      }
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+      .site-header {
+        display: flex;
+        width: min(100%, 1160px);
+        min-height: 76px;
+        margin: auto;
+        padding: 16px 32px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
       .wordmark {
         display: inline-flex;
         align-items: center;
-        gap: 11px;
-        color: #b9cbb8;
-        font-size: 13px;
-        font-weight: 650;
-        letter-spacing: 0.07em;
+        gap: 10px;
+        color: #d2ddcb;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        text-decoration: none;
+        white-space: nowrap;
       }
-
-      .wordmark::before {
-        width: 7px;
-        height: 7px;
-        border-radius: 2px;
-        background: #d3a469;
-        transform: rotate(45deg);
-        content: '';
+      .wordmark img {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
       }
-
+      .header-link {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        gap: 8px;
+        color: #bacbb8;
+        font-size: 12px;
+        text-decoration: none;
+      }
+      .header-link:hover {
+        color: #f3d49e;
+      }
       main {
-        width: min(100%, 800px);
+        width: min(100%, 1160px);
         margin: auto;
-        padding: 48px 24px 72px;
-        text-align: center;
+        padding: 36px 32px 48px;
       }
-
+      .hero {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        margin-bottom: 52px;
+      }
       .brand-icon {
         display: block;
+        flex: 0 0 auto;
         width: 112px;
         height: 112px;
-        margin: 0 auto 34px;
         border: 1px solid #d1bb7633;
-        border-radius: 25px;
+        border-radius: 26px;
         box-shadow:
           0 16px 56px #0005,
           0 0 80px #89c28317;
       }
-
       .eyebrow {
-        margin: 0 0 16px;
+        margin: 0 0 9px;
         color: #cdb991;
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 600;
-        letter-spacing: 0.13em;
+        letter-spacing: 0.06em;
         line-height: 1.6;
       }
-
       h1 {
         margin: 0;
-        font-size: clamp(44px, 8vw, 68px);
+        font-size: clamp(36px, 6vw, 56px);
         font-weight: 800;
         letter-spacing: -0.065em;
-        line-height: 1.16;
+        line-height: 1.18;
       }
-
       .tagline {
-        margin: 27px 0 0;
-        color: #d4dfcc;
-        font-size: clamp(19px, 3.2vw, 24px);
-        font-weight: 500;
-        letter-spacing: -0.045em;
+        margin: 12px 0 0;
+        color: #bacbb8;
+        font-size: 16px;
+        letter-spacing: -0.035em;
         line-height: 1.6;
         word-break: keep-all;
       }
-
-      .description {
-        margin: 15px 0 0;
-        color: #92a895;
-        font-size: 15px;
-        letter-spacing: -0.025em;
-        line-height: 1.9;
+      .section-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      h2 {
+        margin: 0;
+        font-size: 21px;
+        letter-spacing: -0.045em;
+        line-height: 1.5;
+      }
+      .section-heading p {
+        margin: 0;
+        color: #96ac98;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+      .simulator-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .simulator-card {
+        display: flex;
+        min-width: 0;
+        padding: 20px 18px 10px;
+        flex-direction: column;
+        border: 1px solid #31483a;
+        border-radius: 16px;
+        background: linear-gradient(155deg, #183126, #11241c);
+        transition:
+          border-color 160ms ease,
+          background 160ms ease,
+          transform 160ms ease;
+      }
+      .simulator-card:hover {
+        border-color: #68876a;
+        transform: translateY(-3px);
+      }
+      .simulator-card[data-selectable='true'] {
+        cursor: pointer;
+      }
+      .simulator-card:focus-within {
+        border-color: #e4c48d;
+      }
+      .character-entry {
+        display: grid;
+        grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+        align-items: end;
+        gap: 10px 20px;
+        margin: 0 0 20px;
+        padding: 16px 20px;
+        border: 1px solid #a7bc982d;
+        border-radius: 13px;
+        background: #11241c;
+      }
+      .character-field label {
+        display: block;
+        margin-bottom: 8px;
+        color: #e6eadb;
+        font-size: 13px;
+        font-weight: 650;
+      }
+      .character-field label span {
+        margin-left: 8px;
+        color: #a8bba6;
+        font-size: 11px;
+        font-weight: 400;
+      }
+      .character-field input {
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        padding: 11px 13px;
+        border: 1px solid #6c836559;
+        border-radius: 8px;
+        background: #0b1b13;
+        color: #f3f5e9;
+        font-size: 16px;
+      }
+      .character-field input::placeholder {
+        color: #8da58d;
+      }
+      .character-entry p {
+        margin: 0;
+        padding-bottom: 4px;
+        color: #a8bba6;
+        font-size: 12px;
+        line-height: 1.8;
         word-break: keep-all;
       }
-
-      .enter {
+      .simulator-card[data-selected='true'] {
+        border-color: #d7b674;
+        background: linear-gradient(155deg, #2c3927, #172b20);
+        box-shadow: 0 0 0 1px #d7b67418;
+      }
+      .card-top {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .mode-icon {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 auto;
+        place-items: center;
+        border: 1px solid #d4b37836;
+        border-radius: 12px;
+        background: #d4b3780b;
+        color: #e8c990;
+      }
+      .mode-icon svg {
+        width: 24px;
+        height: 24px;
+      }
+      .card-choice {
         display: inline-flex;
-        min-height: 56px;
-        margin-top: 36px;
-        padding: 0 28px;
+        min-height: 44px;
+        margin: -4px -6px -4px 0;
+        padding: 8px 6px;
         align-items: center;
         justify-content: center;
-        gap: 28px;
+        gap: 5px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: #a8bba6;
+        font-size: 11px;
+        cursor: pointer;
+      }
+      .card-choice::before {
+        width: 6px;
+        height: 6px;
+        flex: 0 0 auto;
+        border: 1px solid currentColor;
+        border-radius: 50%;
+        content: '';
+      }
+      .card-choice[aria-pressed='true'] {
+        color: #eed29b;
+      }
+      .card-choice[aria-pressed='true']::before {
+        background: currentColor;
+      }
+      .card-choice:hover {
+        color: #f4d292;
+      }
+      h3 {
+        min-height: 54px;
+        margin: 18px 0 8px;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.045em;
+        line-height: 1.55;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+      .card-description {
+        flex-grow: 1;
+        margin: 0 0 18px;
+        color: #a8bba6;
+        font-size: 12px;
+        line-height: 1.8;
+        letter-spacing: -0.02em;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+      .card-links {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0 8px;
+        border-top: 1px solid #a7bc9823;
+      }
+      .card-links a {
+        display: inline-flex;
+        min-height: 46px;
+        align-items: center;
+        gap: 7px;
+        border-radius: 4px;
+        font-size: 12px;
+        text-decoration: none;
+      }
+      .card-start {
+        color: #f1d49e;
+        font-weight: 700;
+      }
+      .card-guide {
+        color: #acbda9;
+      }
+      .card-links a:hover {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+      .selection-panel {
+        display: flex;
+        min-height: 128px;
+        margin-top: 16px;
+        padding: 24px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        border: 1px solid #556345;
+        border-radius: 16px;
+        background: linear-gradient(100deg, #243222, #17281d);
+      }
+      .preview-copy {
+        min-width: 0;
+      }
+      .preview-eyebrow {
+        margin: 0 0 6px;
+        color: #d3b879;
+        font-size: 11px;
+        line-height: 1.5;
+      }
+      #preview-title {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.6;
+        letter-spacing: -0.03em;
+      }
+      #preview-description {
+        max-width: 590px;
+        margin: 6px 0 0;
+        color: #b3c3ac;
+        font-size: 13px;
+        line-height: 1.8;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+      .enter {
+        display: inline-flex;
+        min-height: 52px;
+        padding: 12px 20px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
         border: 1px solid #f1d7a799;
-        border-radius: 12px;
+        border-radius: 10px;
         background: #e4c48d;
-        box-shadow: 0 8px 32px #0003;
+        box-shadow: 0 8px 24px #0002;
         color: #182a1d;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 750;
         text-decoration: none;
         transition:
           background 160ms ease,
           transform 160ms ease;
       }
-
       .enter:hover {
         background: #f0d5a6;
         transform: translateY(-2px);
       }
-
-      .enter:focus-visible {
-        outline: 3px solid #f5efd6;
-        outline-offset: 5px;
-      }
-
       .enter svg {
         width: 18px;
         height: 18px;
+        flex: 0 0 auto;
       }
-
-      .features {
-        margin: 31px 0 0;
-        color: #96aa96;
+      .more-features {
+        margin: 22px 0 0;
+        color: #96ac98;
         font-size: 12px;
-        letter-spacing: 0.01em;
-        line-height: 2;
+        line-height: 1.9;
+        text-align: center;
         word-break: keep-all;
       }
-
+      .more-features a {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        border-radius: 4px;
+        color: #c5d2bd;
+        text-underline-offset: 4px;
+      }
       footer {
-        color: #809381;
+        padding: 10px 24px 30px;
+        color: #839a85;
         font-size: 11px;
-        letter-spacing: 0.04em;
+        line-height: 1.8;
         text-align: center;
       }
-
       footer span {
-        color: #bbab89;
+        color: #bdad8b;
       }
-
-      @media (max-width: 480px) {
-        header {
-          padding-top: 24px;
+      @media (max-width: 1100px) {
+        .simulator-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-
+        .simulator-card:last-child {
+          grid-column: 1 / -1;
+        }
+        .simulator-card:last-child h3 {
+          min-height: 0;
+        }
+        .section-heading {
+          flex-direction: column;
+          gap: 5px;
+        }
+        .selection-panel {
+          gap: 18px;
+        }
+        .enter {
+          padding-inline: 16px;
+          font-size: 13px;
+        }
+      }
+      @media (max-width: 540px) {
+        .character-entry {
+          grid-template-columns: minmax(0, 1fr);
+          padding: 15px;
+        }
+        .site-header {
+          min-height: 64px;
+          padding: 10px 18px;
+        }
+        .wordmark {
+          gap: 7px;
+          font-size: 12px;
+        }
+        .wordmark img {
+          width: 25px;
+          height: 25px;
+        }
+        .header-link {
+          font-size: 11px;
+          gap: 5px;
+        }
         main {
-          padding-top: 28px;
-          padding-bottom: 44px;
+          padding: 26px 18px 28px;
         }
-
+        .hero {
+          gap: 17px;
+          margin-bottom: 36px;
+        }
         .brand-icon {
-          width: 96px;
-          height: 96px;
-          border-radius: 22px;
+          width: 76px;
+          height: 76px;
+          border-radius: 19px;
         }
-
-        .description {
-          max-width: 285px;
-          margin-right: auto;
-          margin-left: auto;
-          font-size: 14px;
+        .eyebrow {
+          margin-bottom: 5px;
+          font-size: 9px;
+          letter-spacing: 0.01em;
         }
-
-        .features {
-          max-width: 280px;
-          margin-right: auto;
-          margin-left: auto;
+        h1 {
+          font-size: 36px;
+        }
+        .tagline {
+          margin-top: 9px;
+          font-size: 12px;
+        }
+        h2 {
+          font-size: 19px;
+        }
+        .section-heading {
+          margin-bottom: 15px;
+        }
+        .section-heading p {
+          font-size: 11px;
+        }
+        .simulator-grid {
+          gap: 10px;
+        }
+        .simulator-card {
+          padding: 14px 13px 6px;
+          border-radius: 13px;
+        }
+        .mode-icon {
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+        }
+        .mode-icon svg {
+          width: 21px;
+          height: 21px;
+        }
+        .card-top {
+          gap: 2px;
+        }
+        .card-choice {
+          gap: 4px;
+          font-size: 10px;
+        }
+        h3 {
+          min-height: 68px;
+          margin: 13px 0 7px;
+          font-size: 15px;
+          line-height: 1.5;
+        }
+        .card-description {
+          margin-bottom: 12px;
+          font-size: 11px;
+          line-height: 1.7;
+        }
+        .card-links {
+          gap: 0 5px;
+        }
+        .card-links a {
+          gap: 4px;
+          font-size: 11px;
+        }
+        .selection-panel {
+          padding: 19px;
+          flex-direction: column;
+          align-items: stretch;
+        }
+        #preview-title {
+          font-size: 16px;
+        }
+        #preview-description {
+          font-size: 12px;
+        }
+        .enter {
+          justify-content: space-between;
+        }
+        .more-features {
+          margin-top: 18px;
+          font-size: 11px;
+        }
+        footer {
+          padding-bottom: 24px;
         }
       }
-
+      @media (max-width: 350px) {
+        .site-header {
+          padding-inline: 14px;
+        }
+        main {
+          padding-inline: 14px;
+        }
+        .hero {
+          gap: 12px;
+        }
+        .brand-icon {
+          width: 64px;
+          height: 64px;
+          border-radius: 16px;
+        }
+        h1 {
+          font-size: 33px;
+        }
+        .tagline {
+          font-size: 11px;
+        }
+        .simulator-card {
+          padding-inline: 11px;
+        }
+        .card-choice {
+          font-size: 9px;
+        }
+        .card-choice::before {
+          display: none;
+        }
+        .card-links a {
+          font-size: 10px;
+        }
+      }
       @media (prefers-reduced-motion: reduce) {
+        .simulator-card,
         .enter {
           transition: none;
+        }
+        .simulator-card:hover,
+        .enter:hover {
+          transform: none;
         }
       }
     </style>
   </head>
   <body>
-    <header><span class="wordmark">이세계 직작</span></header>
+    <a class="skip-link" href="#simulators">시뮬레이터 선택으로 이동</a>
+    <header class="site-header">
+      <a class="wordmark" href="/" aria-label="이세계 직작 홈"
+        ><img src="./favicon-32.png" alt="" width="32" height="32" />이세계 직작</a
+      >
+      <a class="header-link" href="/DobakSimulator/"
+        >통합 시뮬레이터 <span aria-hidden="true">↗</span></a
+      >
+    </header>
     <main>
-      <img
-        class="brand-icon"
-        src="./brand-icon.png"
-        width="256"
-        height="256"
-        alt="이세계 직작 단풍잎 아이콘"
-        fetchpriority="high"
-      />
-      <p class="eyebrow">메이플스토리 강화 시뮬레이터</p>
-      <h1>이세계 직작</h1>
-      <p class="tagline">메소는 지키고, 가능성은 마음껏.</p>
-      <p class="description">
-        내 캐릭터의 다음 강화를 미리 경험하고,<br />목표까지의 비용과 나의 운을 확인해 보세요.
-      </p>
-      <a class="enter" href="https://nam3856.github.io/DobakSimulator/">
-        시뮬레이터 시작하기
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
+      <section class="hero" aria-labelledby="site-title">
+        <img
+          class="brand-icon"
+          src="./brand-icon.png"
+          width="256"
+          height="256"
+          alt=""
+          fetchpriority="high"
+        />
+        <div>
+          <p class="eyebrow">메이플스토리 강화 시뮬레이터</p>
+          <h1 id="site-title">이세계 직작</h1>
+          <p class="tagline">메소는 지키고, 가능성은 마음껏.</p>
+        </div>
+      </section>
+      <section id="simulators" aria-labelledby="simulators-title">
+        <div class="section-heading">
+          <h2 id="simulators-title">다음 강화, 먼저 골라보세요.</h2>
+          <p>카드를 눌러 선택하고, 내 캐릭터로 시작하세요.</p>
+        </div>
+        <form
+          class="character-entry"
+          id="character-entry"
+          action="/DobakSimulator/#cube"
+          method="get"
+          hidden
         >
-          <path d="M5 12h14M13 6l6 6-6 6" />
-        </svg>
-      </a>
-      <p class="features">큐브 · 추가옵션 · 스타포스 · 어빌리티 · 소울</p>
+          <div class="character-field">
+            <label for="character-name">캐릭터 닉네임<span>선택사항</span></label>
+            <input
+              id="character-name"
+              name="character"
+              type="text"
+              placeholder="닉네임을 입력하세요"
+              autocomplete="nickname"
+              autocapitalize="none"
+              spellcheck="false"
+              enterkeyhint="go"
+              aria-describedby="character-help"
+            />
+          </div>
+          <p id="character-help">
+            입력하면 해당 캐릭터로 시작해요.<br />비워 두면 기본 캐릭터 또는 저장된 설정으로
+            시작해요.
+          </p>
+        </form>
+        <div class="simulator-grid">
+          <article class="simulator-card" data-simulator="cube">
+            <div class="card-top">
+              <span class="mode-icon" aria-hidden="true"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                >
+                  <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" />
+                  <path d="m4 7.5 8 4.5 8-4.5M12 12v9m-4-16 8 4.5" /></svg
+              ></span>
+              <button
+                class="card-choice"
+                type="button"
+                aria-label="큐브 시뮬레이터 선택"
+                aria-controls="simulator-preview"
+                aria-pressed="false"
+                hidden
+              >
+                선택
+              </button>
+            </div>
+            <h3>큐브 시뮬레이터</h3>
+            <p class="card-description">장비의 잠재능력을 바꾸며<br />원하는 옵션에 도전하세요.</p>
+            <div class="card-links">
+              <a
+                class="card-start"
+                href="/DobakSimulator/#cube"
+                aria-label="큐브 시뮬레이터 시작하기"
+                >바로 시작 <span aria-hidden="true">↗</span></a
+              ><a
+                class="card-guide"
+                href="/DobakSimulator/simulators/cube/"
+                aria-label="큐브 시뮬레이터 기능 안내"
+                >기능 안내</a
+              >
+            </div>
+          </article>
+          <article class="simulator-card" data-simulator="ability">
+            <div class="card-top">
+              <span class="mode-icon" aria-hidden="true"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5L12 2Z" />
+                  <path d="m18 3 3 3M3 18l3 3" /></svg
+              ></span>
+              <button
+                class="card-choice"
+                type="button"
+                aria-label="어빌리티 고급 재설정 시뮬레이터 선택"
+                aria-controls="simulator-preview"
+                aria-pressed="false"
+                hidden
+              >
+                선택
+              </button>
+            </div>
+            <h3>어빌리티 고급 재설정 시뮬레이터</h3>
+            <p class="card-description">지킬 옵션은 잠그고,<br />남은 어빌리티를 재설정하세요.</p>
+            <div class="card-links">
+              <a
+                class="card-start"
+                href="/DobakSimulator/#ability"
+                aria-label="어빌리티 고급 재설정 시뮬레이터 시작하기"
+                >바로 시작 <span aria-hidden="true">↗</span></a
+              ><a
+                class="card-guide"
+                href="/DobakSimulator/simulators/ability/"
+                aria-label="어빌리티 고급 재설정 시뮬레이터 기능 안내"
+                >기능 안내</a
+              >
+            </div>
+          </article>
+          <article class="simulator-card" data-simulator="soulAmplification">
+            <div class="card-top">
+              <span class="mode-icon" aria-hidden="true"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                >
+                  <circle cx="12" cy="12" r="4" />
+                  <ellipse cx="12" cy="12" rx="10" ry="5" transform="rotate(-35 12 12)" />
+                  <path d="M12 2v2m0 16v2" /></svg
+              ></span>
+              <button
+                class="card-choice"
+                type="button"
+                aria-label="소울 증폭 시뮬레이터 선택"
+                aria-controls="simulator-preview"
+                aria-pressed="false"
+                hidden
+              >
+                선택
+              </button>
+            </div>
+            <h3>소울 증폭 시뮬레이터</h3>
+            <p class="card-description">소울 증폭에 도전하고<br />도달 단계와 결과를 살펴보세요.</p>
+            <div class="card-links">
+              <a
+                class="card-start"
+                href="/DobakSimulator/#soulAmplification"
+                aria-label="소울 증폭 시뮬레이터 시작하기"
+                >바로 시작 <span aria-hidden="true">↗</span></a
+              ><a
+                class="card-guide"
+                href="/DobakSimulator/simulators/soul-amplification/"
+                aria-label="소울 증폭 시뮬레이터 기능 안내"
+                >기능 안내</a
+              >
+            </div>
+          </article>
+          <article class="simulator-card" data-simulator="soulPotential">
+            <div class="card-top">
+              <span class="mode-icon" aria-hidden="true"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                >
+                  <path d="m7 3-4 6 9 12 9-12-4-6H7Z" />
+                  <path d="M3 9h18M7 3l5 18 5-18M7 3l5 6 5-6" /></svg
+              ></span>
+              <button
+                class="card-choice"
+                type="button"
+                aria-label="소울 잠재 시뮬레이터 선택"
+                aria-controls="simulator-preview"
+                aria-pressed="false"
+                hidden
+              >
+                선택
+              </button>
+            </div>
+            <h3>소울 잠재 시뮬레이터</h3>
+            <p class="card-description">소울 잠재능력을 재설정하며<br />목표 옵션을 찾아보세요.</p>
+            <div class="card-links">
+              <a
+                class="card-start"
+                href="/DobakSimulator/#soulPotential"
+                aria-label="소울 잠재 시뮬레이터 시작하기"
+                >바로 시작 <span aria-hidden="true">↗</span></a
+              ><a
+                class="card-guide"
+                href="/DobakSimulator/simulators/soul-potential/"
+                aria-label="소울 잠재 시뮬레이터 기능 안내"
+                >기능 안내</a
+              >
+            </div>
+          </article>
+          <article class="simulator-card" data-simulator="abilityOptimizer">
+            <div class="card-top">
+              <span class="mode-icon" aria-hidden="true"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="5" cy="5" r="2" />
+                  <circle cx="19" cy="19" r="2" />
+                  <path d="M7 5h8a4 4 0 0 1 0 8H9a4 4 0 0 0 0 8h6M19 17v-4M17 15l2-2 2 2" /></svg
+              ></span>
+              <button
+                class="card-choice"
+                type="button"
+                aria-label="어빌리티 최적화 선택"
+                aria-controls="simulator-preview"
+                aria-pressed="false"
+                hidden
+              >
+                선택
+              </button>
+            </div>
+            <h3>어빌리티 최적화</h3>
+            <p class="card-description">
+              현재 어빌리티와 목표, 보유 재화를 입력하고<br />목표에 맞는 재설정 방법과 예상 비용을
+              비교하세요.
+            </p>
+            <div class="card-links">
+              <a
+                class="card-start"
+                href="/DobakSimulator/#abilityOptimizer"
+                aria-label="어빌리티 최적화 시작하기"
+                >바로 시작 <span aria-hidden="true">↗</span></a
+              >
+              <a
+                class="card-guide"
+                href="/DobakSimulator/simulators/ability-optimizer/"
+                aria-label="어빌리티 최적화 기능 안내"
+                >기능 안내</a
+              >
+            </div>
+          </article>
+        </div>
+        <div class="selection-panel" id="simulator-preview" hidden>
+          <div class="preview-copy" role="status" aria-live="polite" aria-atomic="true">
+            <p class="preview-eyebrow">선택한 시뮬레이터</p>
+            <p id="preview-title">큐브 시뮬레이터</p>
+            <p id="preview-description">
+              장비와 큐브를 선택하고, 목표 잠재능력을 설정하세요. 재설정 결과와 누적 비용을 확인할
+              수 있어요.
+            </p>
+          </div>
+          <a
+            class="enter"
+            id="selected-launch"
+            href="/DobakSimulator/#cube"
+            aria-label="큐브 시뮬레이터 시작하기"
+            ><span id="selected-launch-label">큐브 시작하기</span
+            ><svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6" /></svg
+          ></a>
+        </div>
+        <p class="more-features">
+          추가옵션·스타포스와 더 많은 강화도<br />
+          <a href="/DobakSimulator/">통합 시뮬레이터에서 만나보세요.</a>
+        </p>
+      </section>
     </main>
     <footer><span>이세계 직작</span> &nbsp;·&nbsp; 도전은 이세계에서.</footer>
+    <script>
+      (() => {
+        const descriptions = {
+          cube: {
+            description:
+              '장비와 큐브를 선택하고, 목표 잠재능력을 설정하세요. 재설정 결과와 누적 비용을 확인할 수 있어요.',
+            label: '큐브 시작하기',
+          },
+          ability: {
+            description:
+              '유지할 어빌리티를 잠그고 고급 재설정에 도전하세요. 목표 옵션을 설정하고 메소·명성치 소모량을 확인할 수 있어요.',
+            label: '어빌리티 고급 재설정 시작하기',
+          },
+          soulAmplification: {
+            description:
+              '소울 증폭 단계를 높이며 결과를 확인하세요. 목표 단계까지의 도전과 소모 비용을 미리 경험할 수 있어요.',
+            label: '소울 증폭 시작하기',
+          },
+          soulPotential: {
+            description:
+              '소울 잠재능력의 목표 옵션을 설정하고 재설정하세요. 옵션 변화와 누적 비용을 함께 확인할 수 있어요.',
+            label: '소울 잠재 시작하기',
+          },
+          abilityOptimizer: {
+            description:
+              '현재 어빌리티와 목표 옵션, 보유 재화를 설정하세요. 재설정 방법별 필요 재화와 예상 비용을 비교할 수 있어요.',
+            label: '어빌리티 최적화 시작하기',
+          },
+        };
+        const cards = Array.from(document.querySelectorAll('.simulator-card'));
+        const preview = document.getElementById('simulator-preview');
+        const title = document.getElementById('preview-title');
+        const description = document.getElementById('preview-description');
+        const launch = document.getElementById('selected-launch');
+        const launchLabel = document.getElementById('selected-launch-label');
+        const characterForm = document.getElementById('character-entry');
+        const characterInput = document.getElementById('character-name');
+        const directLinks = Array.from(
+          document.querySelectorAll('.card-start, .header-link, .more-features a'),
+        );
+        const destinations = new Map(directLinks.map((link) => [link, link.getAttribute('href')]));
+        let selectedCard = cards[0];
+        const characterLink = (path) => {
+          const url = new URL(path, location.href);
+          const name = characterInput.value.trim();
+          if (name) url.searchParams.set('character', name);
+          else url.searchParams.delete('character');
+          return `${url.pathname}${url.search}${url.hash}`;
+        };
+        const updateLinks = () => {
+          directLinks.forEach((link) =>
+            link.setAttribute('href', characterLink(destinations.get(link))),
+          );
+          launch.setAttribute(
+            'href',
+            characterLink(`/DobakSimulator/#${selectedCard.dataset.simulator}`),
+          );
+          characterForm.action = `/DobakSimulator/#${selectedCard.dataset.simulator}`;
+        };
+        const select = (card) => {
+          selectedCard = card;
+          cards.forEach((item) => {
+            const selected = item === card;
+            item.dataset.selected = String(selected);
+            const choice = item.querySelector('.card-choice');
+            choice.setAttribute('aria-pressed', String(selected));
+            choice.textContent = selected ? '선택됨' : '선택';
+          });
+          const detail = descriptions[card.dataset.simulator];
+          const name = card.querySelector('h3').textContent;
+          title.textContent = name;
+          description.textContent = detail.description;
+          updateLinks();
+          launch.setAttribute('aria-label', `${name} 시작하기`);
+          launchLabel.textContent = detail.label;
+        };
+        cards.forEach((card) => {
+          const button = card.querySelector('.card-choice');
+          button.hidden = false;
+          card.dataset.selectable = 'true';
+          card.addEventListener('click', (event) => {
+            if (event.target.closest('a')) return;
+            select(card);
+            const bounds = preview.getBoundingClientRect();
+            if (bounds.top < 0 || bounds.bottom > window.innerHeight) {
+              preview.scrollIntoView({
+                block: 'nearest',
+                behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                  ? 'auto'
+                  : 'smooth',
+              });
+            }
+          });
+        });
+        characterInput.addEventListener('input', updateLinks);
+        characterInput.addEventListener('change', updateLinks);
+        characterInput.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' && (event.isComposing || event.keyCode === 229)) {
+            event.preventDefault();
+          }
+        });
+        characterForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          updateLinks();
+          location.assign(launch.href);
+        });
+        select(cards[0]);
+        preview.hidden = false;
+        characterForm.hidden = false;
+      })();
+    </script>
   </body>
 </html>
