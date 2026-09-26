@@ -22,7 +22,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test
+      - name: Run unit tests
+        run: npm test -- --exclude tests/ability-optimizer.test.ts
+      - name: Run optimizer performance tests without competing workers
+        run: npm test -- tests/ability-optimizer.test.ts --no-file-parallelism
       - name: Build for browser tests
         run: npm run build
       - run: npx playwright install --with-deps chromium
