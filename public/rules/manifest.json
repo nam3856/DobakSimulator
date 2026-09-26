@@ -6,7 +6,7 @@
     {
       "kind": "potential",
       "file": "potential.json",
-      "sha256": "6303f3b1e0b1c532fd0436c745beae20dc9c0bee2744b2489c72c673e035ed81",
+      "sha256": "c948d46a6addf4ea5148ac59c037a9966f5b0cbef6d0c7e3c0d587659525db25",
       "optionPoolCount": 1810,
       "queryCount": 2000,
       "availableQueries": 1448,
@@ -17,7 +17,7 @@
     {
       "kind": "additionalPotential",
       "file": "additional-potential.json",
-      "sha256": "6733e2916830c0b8647412dbe90c67b5c26d1d5e1616c050a50f178e86f78169",
+      "sha256": "10f5965d2c627095521931cdac1c19b2a2fd02820cd1396905d49cb7d113b784",
       "optionPoolCount": 1810,
       "queryCount": 2000,
       "availableQueries": 1448,
@@ -28,7 +28,7 @@
     {
       "kind": "gold",
       "file": "gold.json",
-      "sha256": "2fec51e4e163ee91cbe8380e1574f1af7cf978037e516f00b4cf90c4352548b7",
+      "sha256": "fe770bf5fad03c73827ff07f835606a52931e44884602fa4034761ff2dd230d9",
       "optionPoolCount": 1810,
       "queryCount": 2000,
       "availableQueries": 1448,
@@ -68,5 +68,11 @@
     "https://maplestory.nexon.com/news/update/746"
   ],
   "pitySource": "https://maplestory.nexon.com/News/Notice/Notice/144849",
-  "goldSource": "https://maplestory.nexon.com/news/update/799"
+  "goldSource": "https://maplestory.nexon.com/news/update/799",
+  "miracleTime": {
+    "sourceUrl": "https://maplestory.nexon.com/News/Event/Ongoing/1391",
+    "eventDate": "2026-09-27",
+    "checkedAt": "2026-09-23",
+    "failureCountIncrement": 1
+  }
 }

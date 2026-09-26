@@ -144,7 +144,7 @@ describe('pure simulation rules', () => {
     },
   );
   it.each(['cube', 'soulPotential'] as const)(
-    '%s executes singly before promotion and automatically compares three after reaching legendary',
+    '%s stops its sequential batch on promotion and compares three on the next legendary action',
     (mode) => {
       const data = fixture();
       const cfg = { ...config(), mode, batchSize: 3 as const };
@@ -356,6 +356,148 @@ describe('target predicates', () => {
     };
     expect(matchTarget(target, state)).toBe(true);
     expect(matchTarget({ ...target, match: 'all' }, state)).toBe(false);
+  });
+});
+
+describe('sequential potential batches before legendary', () => {
+  const modes = ['cube', 'soulPotential'] as const;
+  const lowerConfig = (mode: (typeof modes)[number]) => {
+    const cfg = { ...config(), mode, batchSize: 3 as const };
+    cfg.start = {
+      grade: 'unique',
+      lines: [line('b', 'unique'), line('b', 'unique'), line('b', 'unique')],
+      stage: 1,
+      failures: 0,
+    };
+    return cfg;
+  };
+
+  it.each(modes)('%s pays for three misses and increments failure progress three times', (mode) => {
+    const data = fixture(),
+      cfg = lowerConfig(mode);
+    data.potential.grades[2].pityThreshold = 11;
+    data.potential.grades[2].gradeUpChance = 0.1;
+    cfg.miracleTime = true;
+    const draws = Array.from({ length: 3 }, () => [0.9, 0.1, 0.1, 0.1]).flat();
+    const before = createState(data, cfg);
+    const after = rollBatch(data, cfg, before, () => draws.shift()!);
+    expect(after).toMatchObject({ grade: 'unique', failures: 3, attempts: 3n, status: 'running' });
+    expect(after.spent.meso).toBe(90n);
+    expect(after.candidates).toHaveLength(3);
+    expect(after.history).toHaveLength(3);
+    expect(after.lines).toEqual(before.lines);
+    expect(draws).toHaveLength(0);
+  });
+
+  it.each([1, 2, 3])(
+    'stops on natural promotion number %i without spending the remainder',
+    (promotion) => {
+      const data = fixture(),
+        cfg = lowerConfig('cube');
+      data.potential.grades[2].pityThreshold = 11;
+      const draws = [
+        ...Array.from({ length: promotion - 1 }, () => [0.9, 0.1, 0.1, 0.1]).flat(),
+        0.1,
+        0.9,
+        0.9,
+        0.9,
+      ];
+      const after = rollBatch(data, cfg, createState(data, cfg), () => {
+        if (!draws.length) throw Error('The batch continued beyond its promotion.');
+        return draws.shift()!;
+      });
+      expect(after).toMatchObject({
+        grade: 'legendary',
+        failures: 0,
+        attempts: BigInt(promotion),
+        status: 'running',
+      });
+      expect(after.spent.meso).toBe(BigInt(30 * promotion));
+      expect(after.candidates).toHaveLength(promotion);
+      expect(after.candidates.at(-1)?.promoted).toBe(true);
+    },
+  );
+
+  it.each([1, 2, 3])('stops when the guaranteed promotion is attempt %i', (promotion) => {
+    const data = fixture(),
+      cfg = lowerConfig('soulPotential');
+    data.soul.potentialGrades[2].gradeUpChance = 0;
+    cfg.start.failures = 3 - promotion;
+    const after = rollBatch(data, cfg, createState(data, cfg), () => 0.1);
+    expect(after.grade).toBe('legendary');
+    expect(after.failures).toBe(0);
+    expect(after.attempts).toBe(BigInt(promotion));
+    expect(after.spent.meso).toBe(BigInt(30 * promotion));
+    expect(after.candidates).toHaveLength(promotion);
+  });
+
+  it.each([1, 2, 3])('stops at lower-grade target success number %i', (success) => {
+    const data = fixture(),
+      cfg = lowerConfig('cube');
+    data.potential.grades[2].pityThreshold = 11;
+    cfg.target.minimumGrade = 'unique';
+    const draws = [
+      ...Array.from({ length: success - 1 }, () => [0.9, 0.1, 0.1, 0.9]).flat(),
+      0.9,
+      0.1,
+      0.1,
+      0.1,
+    ];
+    const after = rollBatch(data, cfg, createState(data, cfg), () => {
+      if (!draws.length) throw Error('The batch continued beyond its target.');
+      return draws.shift()!;
+    });
+    expect(after).toMatchObject({
+      grade: 'unique',
+      failures: success,
+      attempts: BigInt(success),
+      status: 'success',
+    });
+    expect(after.spent.meso).toBe(BigInt(30 * success));
+    expect(after.candidates).toHaveLength(success);
+  });
+
+  it.each(modes)('%s matches the same random stream executed one attempt at a time', (mode) => {
+    const data = fixture();
+    for (const rule of data.potential.grades.slice(0, 3)) {
+      rule.gradeUpChance = 0.1;
+      rule.pityThreshold = 5;
+    }
+    for (const grade of ['rare', 'epic', 'unique'] as Grade[]) {
+      for (let sample = 0; sample < 20; sample++) {
+        const cfg = lowerConfig(mode);
+        cfg.miracleTime = sample % 2 === 0;
+        cfg.start = {
+          ...cfg.start,
+          grade,
+          lines: [line('b', grade), line('b', grade), line('b', grade)],
+          failures: sample % 4,
+        };
+        const initial = createState(data, cfg);
+        const seed = `${mode}-${grade}-${sample}`;
+        const grouped = rollBatch(data, cfg, initial, seededRandom(seed));
+        const rng = seededRandom(seed);
+        let singles = initial;
+        for (let count = 0; count < 3; count++) {
+          singles = rollBatch(data, { ...cfg, batchSize: 1 }, singles, rng);
+          if (singles.grade !== initial.grade || singles.status === 'success') break;
+        }
+        const {
+          candidates: groupedCandidates,
+          startedAt: _groupStart,
+          finishedAt: _groupEnd,
+          ...groupState
+        } = grouped;
+        const {
+          candidates: _singleCandidates,
+          startedAt: _singleStart,
+          finishedAt: _singleEnd,
+          ...singleState
+        } = singles;
+        expect(groupState).toEqual(singleState);
+        expect(groupedCandidates).toEqual(singles.history);
+      }
+    }
   });
 });
 

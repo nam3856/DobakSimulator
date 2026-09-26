@@ -4,27 +4,22 @@ import { selectSimulator } from './helpers/navigation';
 import {
   quoteStarforce,
   rollStarforce,
-  type StarforceConfig,
   type StarforceRules,
   type StarforceState,
 } from '../../src/engine/starforce';
 import type { StarforceRunRequest, StarforceRunResponse } from '../../src/engine/starforce-runner';
-import { deserialize } from '../../src/ui/storage';
+import { formatAmount } from '../../src/ui/format';
 
-const key = 'isekai:starforce:v1:깽미니';
 const rules = JSON.parse(
   readFileSync(new URL('../../public/rules/starforce.json', import.meta.url), 'utf8'),
 ) as StarforceRules;
 type Run = Extract<StarforceRunRequest, { type: 'run' }>;
-interface Saved {
-  config: StarforceConfig;
-  state: StarforceState;
-}
 interface Observed {
   runRequests: StarforceRunRequest[];
   runResponses: StarforceRunResponse[];
   runTerminations: number;
   releaseRunTerminals: (() => void)[];
+  storageWrites: string[];
 }
 
 test.beforeEach(async ({ page }) => {
@@ -37,6 +32,13 @@ test.beforeEach(async ({ page }) => {
     observed.runResponses = [];
     observed.runTerminations = 0;
     observed.releaseRunTerminals = [];
+    observed.storageWrites = [];
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key: string, value: string) {
+      if (this === localStorage && key.startsWith('isekai:starforce:'))
+        observed.storageWrites.push(key);
+      setItem.call(this, key, value);
+    };
     crypto.getRandomValues = <T extends ArrayBufferView | null>(array: T): T => {
       (array as unknown as Uint32Array).fill(0);
       return array;
@@ -83,8 +85,47 @@ test.beforeEach(async ({ page }) => {
   await page.clock.pauseAt(time);
 });
 
-async function saved(page: Page): Promise<Saved> {
-  return deserialize(await page.evaluate((key) => localStorage.getItem(key)!, key));
+async function expectNoSavedProgress(page: Page) {
+  expect(
+    await page.evaluate(() => ({
+      writes: (window as unknown as Observed).storageWrites,
+      keys: Object.keys(localStorage).filter((key) => key.startsWith('isekai:starforce:')),
+    })),
+  ).toEqual({ writes: [], keys: [] });
+}
+async function expectVisibleState(page: Page, state: StarforceState, target: number) {
+  await expect(page.locator('.sf-stats .stat-card').first().locator('strong')).toHaveText(
+    `${formatAmount(state.attempts)}회`,
+  );
+  await expect(page.locator('.sf-stats .spent-stat strong')).toHaveText(
+    `${formatAmount(state.spentMeso)}메소`,
+  );
+  await expect(page.locator('.sf-stars')).toHaveAttribute(
+    'aria-label',
+    `현재 ${state.stars}성 / 목표 ${target}성`,
+  );
+  await expect(page.locator('.resource-ledger b')).toHaveText([
+    `${formatAmount(state.enhancementMeso)} 메소`,
+    `${formatAmount(state.restorationMeso)} 메소`,
+    `${formatAmount(state.replacementMeso)} 메소`,
+  ]);
+  await expect(page.locator('.history-panel summary')).toHaveText(
+    `강화 기록 · 최근 ${state.history.length}회`,
+  );
+  await expect(page.locator('.sf-history > div > span:first-child')).toHaveText(
+    [...state.history].reverse().map((row) => `${row.sequence}회 · ${row.fromStars}성`),
+  );
+}
+async function lastWorkerState(page: Page, terminal = false): Promise<StarforceState> {
+  const response = await page.evaluate(
+    (terminal) =>
+      (window as unknown as Observed).runResponses
+        .filter((row) => row.type === 'state' && (!terminal || row.done))
+        .at(-1),
+    terminal,
+  );
+  if (response?.type !== 'state') throw new Error('Missing Worker state');
+  return response.state;
 }
 async function boot(page: Page, target = 3) {
   await page.goto('./#starforce');
@@ -92,12 +133,14 @@ async function boot(page: Page, target = 3) {
     page.getByRole('heading', { name: '스타포스 시뮬레이터', exact: true }),
   ).toBeVisible();
   await expect(page.locator('.sf-stats .expected-stat')).not.toContainText('계산 중');
+  const initialStars = await page.locator('.sf-stars').getAttribute('aria-label');
   await page.getByRole('combobox', { name: '스타포스 장비', exact: true }).selectOption('manual');
   await page.getByRole('combobox', { name: '시작 스타포스', exact: true }).selectOption('0');
   await page
     .getByRole('combobox', { name: '목표 스타포스', exact: true })
     .selectOption(String(target));
   await expect(page.getByRole('button', { name: '자동 강화', exact: true })).toBeEnabled();
+  return initialStars!;
 }
 async function runRequest(page: Page): Promise<Run> {
   return page.evaluate(
@@ -126,7 +169,6 @@ for (const phase of ['charging', 'result'] as const) {
   }) => {
     await deterministicWorker(page, 0);
     await boot(page);
-    const initial = await saved(page);
     await page.getByRole('button', { name: '자동 강화', exact: true }).click();
     await page.clock.fastForward(phase === 'charging' ? 100 : 150);
     await expect(page.locator('.sf-stage')).toHaveClass(new RegExp(`phase-${phase}`));
@@ -137,28 +179,32 @@ for (const phase of ['charging', 'result'] as const) {
     await expect(page.getByRole('button', { name: '다시 자동 강화', exact: true })).toBeEnabled();
     const request = await runRequest(page);
     expect(request.state.attempts).toBe(phase === 'charging' ? 0n : 1n);
-    const completed = await saved(page);
-    expect(completed.state.status).toBe('success');
-    expect(completed.state.attempts).toBe(3n);
-    expect(completed.state.history.map((row) => row.fromStars)).toEqual([0, 1, 2]);
-    expect(completed.state.history.map((row) => row.sequence)).toEqual([1n, 2n, 3n]);
+    const completed = await lastWorkerState(page, true);
+    expect(completed.status).toBe('success');
+    expect(completed.attempts).toBe(3n);
+    expect(completed.history.map((row) => row.fromStars)).toEqual([0, 1, 2]);
+    expect(completed.history.map((row) => row.sequence)).toEqual([1n, 2n, 3n]);
     const expectedCost = [0, 1, 2].reduce(
-      (sum, stars) => sum + quoteStarforce(rules, initial.config, { stars }).cost,
+      (sum, stars) => sum + quoteStarforce(rules, request.config, { stars }).cost,
       0n,
     );
-    expect(completed.state.spentMeso).toBe(expectedCost);
-    expect(completed.state.enhancementMeso).toBe(expectedCost);
+    expect(completed.spentMeso).toBe(expectedCost);
+    expect(completed.enhancementMeso).toBe(expectedCost);
+    await expectVisibleState(page, completed, request.config.targetStars);
     await page.clock.fastForward(10_000);
-    expect((await saved(page)).state).toEqual(completed.state);
+    await expectVisibleState(page, completed, request.config.targetStars);
     await page.getByRole('button', { name: '다시 자동 강화', exact: true }).click();
     await expect(page.locator('.sf-stage')).toHaveClass(/phase-charging/);
     await expect(page.getByRole('button', { name: '연출 스킵', exact: true })).toBeEnabled();
-    expect((await saved(page)).state.attempts).toBe(0n);
+    const attempts = page.locator('.sf-stats .stat-card').first().locator('strong');
+    await expect(attempts).toHaveText('0회');
     await page.clock.fastForward(149);
-    expect((await saved(page)).state.attempts).toBe(0n);
+    await expect(attempts).toHaveText('0회');
     await page.clock.fastForward(1);
-    expect((await saved(page)).state.attempts).toBe(1n);
+    await expect(attempts).toHaveText('1회');
+    await expect(page.locator('.sf-stars')).toHaveAttribute('aria-label', '현재 1성 / 목표 3성');
     await page.getByRole('button', { name: '중단', exact: true }).click();
+    await expectNoSavedProgress(page);
   });
 }
 
@@ -174,135 +220,155 @@ test('stopping a real skipped run waits for its final paid snapshot and resumes 
   await page.route('**/rules/starforce.json', (route) => route.fulfill({ json: slow }));
   await deterministicWorker(page, 0.5);
   await boot(page);
-  const initial = await saved(page);
   await page.getByRole('button', { name: '자동 강화', exact: true }).click();
   await page.getByRole('button', { name: '연출 스킵', exact: true }).click();
-  await expect.poll(async () => (await saved(page)).state.attempts).toBeGreaterThan(0n);
-  const observedBeforeStop = await saved(page);
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (window as unknown as Observed).runResponses.some(
+          (row) => row.type === 'state' && row.state.attempts > 0n,
+        ),
+      ),
+    )
+    .toBe(true);
+  const observedBeforeStop = await lastWorkerState(page);
   await page.getByRole('button', { name: '중단', exact: true }).click();
   await expect(page.getByRole('button', { name: '중단 중', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: '연출 스킵 중', exact: true })).toBeDisabled();
   await releaseTerminal(page);
   await expect(page.getByRole('button', { name: '자동 강화', exact: true })).toBeEnabled();
-  const paused = await saved(page);
-  expect(paused.state.attempts).toBeGreaterThanOrEqual(observedBeforeStop.state.attempts);
-  const terminal = await page.evaluate(() =>
-    (window as unknown as Observed).runResponses
-      .filter((row) => row.type === 'state' && row.done)
-      .at(-1),
+  const request = await runRequest(page);
+  const paused = await lastWorkerState(page, true);
+  expect(paused.attempts).toBeGreaterThanOrEqual(observedBeforeStop.attempts);
+  expect(paused.spentMeso).toBe(
+    paused.attempts * quoteStarforce(slow, request.config, { stars: 0 }).cost,
   );
-  expect(terminal?.type).toBe('state');
-  if (terminal?.type !== 'state') throw new Error('Missing stop acknowledgement');
-  expect(paused.state).toEqual(terminal.state);
-  expect(paused.state.spentMeso).toBe(
-    paused.state.attempts * quoteStarforce(slow, initial.config, { stars: 0 }).cost,
-  );
-  expect(paused.state.history).toHaveLength(100);
-  expect(paused.state.history.at(-1)?.sequence).toBe(paused.state.attempts);
+  expect(paused.history).toHaveLength(100);
+  expect(paused.history.at(-1)?.sequence).toBe(paused.attempts);
+  await expectVisibleState(page, paused, request.config.targetStars);
   await page.clock.fastForward(10_000);
-  expect((await saved(page)).state).toEqual(paused.state);
+  await expectVisibleState(page, paused, request.config.targetStars);
   await expect
     .poll(() => page.evaluate(() => (window as unknown as Observed).runTerminations))
     .toBe(1);
   await page.getByRole('button', { name: '자동 강화', exact: true }).click();
   await expect(page.locator('.sf-stage')).toHaveClass(/phase-charging/);
   await page.clock.fastForward(149);
-  expect((await saved(page)).state).toEqual(paused.state);
+  await expectVisibleState(page, paused, request.config.targetStars);
   await page.clock.fastForward(1);
-  expect((await saved(page)).state.attempts).toBe(paused.state.attempts + 1n);
-  expect((await saved(page)).state.stars).toBe(1);
+  const resumed = rollStarforce(slow, request.config, paused, () => 0).state;
+  expect(resumed.attempts).toBe(paused.attempts + 1n);
+  expect(resumed.stars).toBe(1);
+  await expectVisibleState(page, resumed, request.config.targetStars);
   await page.getByRole('button', { name: '중단', exact: true }).click();
+  await expectNoSavedProgress(page);
 });
 
-test('leaving a skipped run saves visible progress, rejects queued stale callbacks and restores without continuing', async ({
-  page,
-}) => {
-  await page.addInitScript(() => {
-    const NativeWorker = window.Worker;
-    const controls = window as unknown as {
-      controlledRuns: {
-        request?: Run;
-        onmessage: ((event: MessageEvent<StarforceRunResponse>) => void) | null;
-        staleHandler?: ((event: MessageEvent<StarforceRunResponse>) => void) | null;
-        terminated: boolean;
-      }[];
-    };
-    controls.controlledRuns = [];
-    window.Worker = function (url: string | URL, options?: WorkerOptions) {
-      if (!String(url).includes('starforce-run.worker-')) return new NativeWorker(url, options);
-      const fake = {
-        onmessage: null as ((event: MessageEvent<StarforceRunResponse>) => void) | null,
-        onerror: null,
-        staleHandler: null as ((event: MessageEvent<StarforceRunResponse>) => void) | null,
-        terminated: false,
-        request: undefined as Run | undefined,
-        addEventListener() {},
-        removeEventListener() {},
-        postMessage(message: StarforceRunRequest) {
-          if (message.type === 'run') {
-            this.request = message;
-            this.staleHandler = this.onmessage;
-          }
-        },
-        terminate() {
-          this.terminated = true;
-        },
+for (const departure of ['tab', 'pagehide'] as const) {
+  test(`${departure} stops a skipped run, rejects queued stale callbacks and never saves progress`, async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const NativeWorker = window.Worker;
+      const controls = window as unknown as {
+        controlledRuns: {
+          request?: Run;
+          onmessage: ((event: MessageEvent<StarforceRunResponse>) => void) | null;
+          staleHandler?: ((event: MessageEvent<StarforceRunResponse>) => void) | null;
+          terminated: boolean;
+        }[];
       };
-      controls.controlledRuns.push(fake);
-      return fake as unknown as Worker;
-    } as unknown as typeof Worker;
-  });
-  await boot(page, 5);
-  await page.getByRole('button', { name: '자동 강화', exact: true }).click();
-  await page.getByRole('button', { name: '연출 스킵', exact: true }).click();
-  const request = await page.evaluate(
-    () => (window as unknown as { controlledRuns: { request: Run }[] }).controlledRuns[0].request,
-  );
-  const progressed = rollStarforce(request.rules, request.config, request.state, () => 0).state;
-  await page.evaluate(
-    ({ id, state }) => {
-      const worker = (
-        window as unknown as { controlledRuns: { onmessage: (event: MessageEvent) => void }[] }
-      ).controlledRuns[0];
-      worker.onmessage(
-        new MessageEvent('message', { data: { type: 'state', id, state, done: false } }),
-      );
-    },
-    { id: request.id, state: progressed },
-  );
-  await expect(page.locator('.sf-stats .stat-card').first().locator('strong')).toHaveText('1회');
-  const visible = await saved(page);
-  await selectSimulator(page, '큐브');
-  expect(
+      controls.controlledRuns = [];
+      window.Worker = function (url: string | URL, options?: WorkerOptions) {
+        if (!String(url).includes('starforce-run.worker-')) return new NativeWorker(url, options);
+        const fake = {
+          onmessage: null as ((event: MessageEvent<StarforceRunResponse>) => void) | null,
+          onerror: null,
+          staleHandler: null as ((event: MessageEvent<StarforceRunResponse>) => void) | null,
+          terminated: false,
+          request: undefined as Run | undefined,
+          addEventListener() {},
+          removeEventListener() {},
+          postMessage(message: StarforceRunRequest) {
+            if (message.type === 'run') {
+              this.request = message;
+              this.staleHandler = this.onmessage;
+            }
+          },
+          terminate() {
+            this.terminated = true;
+          },
+        };
+        controls.controlledRuns.push(fake);
+        return fake as unknown as Worker;
+      } as unknown as typeof Worker;
+    });
+    const initialStars = await boot(page, 5);
+    await page.getByRole('button', { name: '자동 강화', exact: true }).click();
+    await page.getByRole('button', { name: '연출 스킵', exact: true }).click();
+    const request = await page.evaluate(
+      () => (window as unknown as { controlledRuns: { request: Run }[] }).controlledRuns[0].request,
+    );
+    const progressed = rollStarforce(request.rules, request.config, request.state, () => 0).state;
     await page.evaluate(
-      () =>
-        (window as unknown as { controlledRuns: { terminated: boolean }[] }).controlledRuns[0]
-          .terminated,
-    ),
-  ).toBe(true);
-  let completed = progressed;
-  while (completed.status !== 'success')
-    completed = rollStarforce(request.rules, request.config, completed, () => 0).state;
-  // A message callback already queued before terminate must still be rejected by the run identity.
-  await page.evaluate(
-    ({ id, state }) => {
-      const worker = (
-        window as unknown as { controlledRuns: { staleHandler: (event: MessageEvent) => void }[] }
-      ).controlledRuns[0];
-      worker.staleHandler(
-        new MessageEvent('message', { data: { type: 'state', id, state, done: true } }),
+      ({ id, state }) => {
+        const worker = (
+          window as unknown as { controlledRuns: { onmessage: (event: MessageEvent) => void }[] }
+        ).controlledRuns[0];
+        worker.onmessage(
+          new MessageEvent('message', { data: { type: 'state', id, state, done: false } }),
+        );
+      },
+      { id: request.id, state: progressed },
+    );
+    await expectVisibleState(page, progressed, request.config.targetStars);
+    await expectNoSavedProgress(page);
+    if (departure === 'tab') await selectSimulator(page, '큐브');
+    else await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+    expect(
+      await page.evaluate(
+        () =>
+          (window as unknown as { controlledRuns: { terminated: boolean }[] }).controlledRuns[0]
+            .terminated,
+      ),
+    ).toBe(true);
+    let completed = progressed;
+    while (completed.status !== 'success')
+      completed = rollStarforce(request.rules, request.config, completed, () => 0).state;
+    // A message callback already queued before terminate must still be rejected by the run identity.
+    await page.evaluate(
+      ({ id, state }) => {
+        const worker = (
+          window as unknown as { controlledRuns: { staleHandler: (event: MessageEvent) => void }[] }
+        ).controlledRuns[0];
+        worker.staleHandler(
+          new MessageEvent('message', { data: { type: 'state', id, state, done: true } }),
+        );
+      },
+      { id: request.id, state: completed },
+    );
+    await page.clock.fastForward(10_000);
+    await expectNoSavedProgress(page);
+    if (departure === 'tab') {
+      await selectSimulator(page, '스타포스');
+      await expect(page.locator('.sf-stats .stat-card').first().locator('strong')).toHaveText(
+        '0회',
       );
-    },
-    { id: request.id, state: completed },
-  );
-  await page.clock.fastForward(10_000);
-  expect((await saved(page)).state).toEqual(visible.state);
-  await selectSimulator(page, '스타포스');
-  await expect(page.getByRole('button', { name: '자동 강화', exact: true })).toBeEnabled();
-  expect((await saved(page)).state).toEqual(visible.state);
-  await page.reload();
-  await expect(page.getByRole('button', { name: '자동 강화', exact: true })).toBeEnabled();
-  await page.clock.fastForward(10_000);
-  expect((await saved(page)).state).toEqual(visible.state);
-  await expect(page.getByRole('button', { name: '연출 스킵 중', exact: true })).toHaveCount(0);
-});
+      await expect(page.locator('.sf-stars')).toHaveAttribute('aria-label', initialStars);
+      await expect(page.locator('.history-panel summary')).toHaveText('강화 기록 · 최근 0회');
+    } else {
+      await expectVisibleState(page, progressed, request.config.targetStars);
+    }
+    await expect(page.getByRole('button', { name: '자동 강화', exact: true })).toBeEnabled();
+    await expectNoSavedProgress(page);
+    await page.reload();
+    await expect(page.getByRole('button', { name: '자동 강화', exact: true })).toBeEnabled();
+    await page.clock.fastForward(10_000);
+    await expect(page.locator('.sf-stats .stat-card').first().locator('strong')).toHaveText('0회');
+    await expect(page.locator('.sf-stats .spent-stat strong')).toHaveText('0메소');
+    await expect(page.locator('.sf-stars')).toHaveAttribute('aria-label', initialStars);
+    await expect(page.locator('.history-panel summary')).toHaveText('강화 기록 · 최근 0회');
+    await expect(page.getByRole('button', { name: '연출 스킵 중', exact: true })).toHaveCount(0);
+    await expectNoSavedProgress(page);
+  });
+}

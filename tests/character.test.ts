@@ -578,6 +578,74 @@ describe('potential inputs and recommendations', () => {
       suggestPotentialTargets(item, 'potential', resolveCharacterProfile('데몬 어벤져')),
     ).toEqual([{ type: 'hpPercent', minValue: 12 }]);
   });
+
+  it('keeps the full imported flat main-stat total when all-stat contributes to its metric', () => {
+    const item = normalizeCharacter(basic, { item_equipment: [weapon] }, {}).equipmentPresets[
+      '1'
+    ][0];
+    item.category = 'hat';
+    item.slot = '모자';
+    item.additional = ['STR : +20', '올스탯 : +5', '공격력 : +10'].map((value) =>
+      parsePotentialLine(value),
+    );
+    const conditions = suggestPotentialTargets(
+      item,
+      'additional',
+      resolveCharacterProfile('히어로'),
+    );
+    expect(conditions).toEqual([
+      { type: 'strFlat', minValue: 25 },
+      { type: 'attackFlat', minValue: 10 },
+    ]);
+    const goal = {
+      mode: 'sum' as const,
+      minimumGrade: 'legendary' as const,
+      conditions,
+      lines: [],
+      stage: 1,
+      match: 'all' as const,
+    };
+    expect(matchTarget(goal, { grade: 'legendary', lines: item.additional, stage: 1 })).toBe(true);
+    for (const [values, expected] of [
+      [['STR : +15', '올스탯 : +5', '공격력 : +10'], false],
+      [['STR : +25', '방어력 : +100', '공격력 : +10'], true],
+      [['올스탯 : +25', '방어력 : +100', '공격력 : +10'], true],
+    ] as const) {
+      expect(
+        matchTarget(goal, {
+          grade: 'legendary',
+          lines: values.map((value) => parsePotentialLine(value)),
+          stage: 1,
+        }),
+      ).toBe(expected);
+    }
+  });
+
+  it('maps imported flat all-stat to all Xenon main stats while leaving HP separate', () => {
+    const item = normalizeCharacter(basic, { item_equipment: [weapon] }, {}).equipmentPresets[
+      '1'
+    ][0];
+    item.category = 'hat';
+    item.slot = '모자';
+    item.additional = ['올스탯 : +5', 'STR : +20', '공격력 : +10'].map((value) =>
+      parsePotentialLine(value),
+    );
+    expect(suggestPotentialTargets(item, 'additional', resolveCharacterProfile('제논'))).toEqual([
+      { type: 'strFlat', minValue: 25 },
+      { type: 'dexFlat', minValue: 5 },
+      { type: 'lukFlat', minValue: 5 },
+      { type: 'attackFlat', minValue: 10 },
+    ]);
+    item.additional = ['HP : +150', '올스탯 : +5', '공격력 : +10'].map((value) =>
+      parsePotentialLine(value),
+    );
+    expect(
+      suggestPotentialTargets(item, 'additional', resolveCharacterProfile('데몬 어벤져')),
+    ).toEqual([
+      { type: 'hpFlat', minValue: 150 },
+      { type: 'attackFlat', minValue: 10 },
+    ]);
+  });
 });
 
 describe('Nexon client', () => {

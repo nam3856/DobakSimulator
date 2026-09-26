@@ -18,7 +18,6 @@ import {
   quoteStarforce,
   restoreStarforce,
   rollStarforce,
-  validateStarforceConfig,
   type StarforceBenchmark,
   type StarforceConfig,
   type StarforceRules,
@@ -27,7 +26,6 @@ import {
 import { DistributionChart, Field, ReactionStage } from './components';
 import { evaluateLuck } from '../engine/benchmark';
 import { formatAmount, formatPercent } from './format';
-import { deserialize, serialize } from './storage';
 import type { StarforceOptimization } from '../engine/starforce-optimizer';
 import type { StarforceRunResponse } from '../engine/starforce-runner';
 import './starforce.css';
@@ -57,15 +55,6 @@ const eligible = (item: EquipmentSnapshot) =>
   !/이벤트 링|어웨이크 링|테네브리스 원정대 반지|글로리온 링|이터널 플레임 링|결속의 반지|벤젼스 링|코스모스 링|딥다크 크리티컬 링/.test(
     item.name,
   );
-interface SavedChallenge {
-  version: 1;
-  ruleId: string;
-  preset: string;
-  itemId: string;
-  config: StarforceConfig;
-  state: StarforceState;
-}
-
 function EquipmentArt({ item }: { item?: EquipmentSnapshot }) {
   const [failed, setFailed] = useState(false);
   return item?.imageUrl && !failed ? (
@@ -113,46 +102,7 @@ function StarforceChallenge({
   character: CharacterSnapshot;
   rules: StarforceRules;
 }) {
-  const key = `isekai:starforce:v1:${character.name}`;
   const [initial] = useState(() => {
-    try {
-      const saved = deserialize<SavedChallenge>(localStorage.getItem(key) ?? 'null');
-      if (
-        saved?.version === 1 &&
-        saved.ruleId === rules.ruleId &&
-        character.equipmentPresets[saved.preset] &&
-        (saved.itemId === 'manual' ||
-          character.equipmentPresets[saved.preset].some(
-            (item) => item.id === saved.itemId && eligible(item),
-          )) &&
-        validateStarforceConfig(rules, saved.config).length === 0 &&
-        ['ready', 'success', 'destroyed'].includes(saved.state.status) &&
-        Number.isInteger(saved.state.stars) &&
-        saved.state.stars >= 0 &&
-        saved.state.stars <= maxStarforceStars(rules, saved.config.level) &&
-        [
-          'attempts',
-          'destructions',
-          'restorations',
-          'enhancementMeso',
-          'restorationMeso',
-          'replacementMeso',
-          'replacementCopies',
-          'spentMeso',
-        ].every(
-          (field) =>
-            typeof saved.state[field as keyof StarforceState] === 'bigint' &&
-            (saved.state[field as keyof StarforceState] as bigint) >= 0n,
-        ) &&
-        Array.isArray(saved.state.history) &&
-        saved.state.history.length <= 100 &&
-        (saved.state.status !== 'destroyed' ||
-          typeof saved.state.pendingRestoration?.totalCost === 'bigint')
-      )
-        return saved;
-    } catch {
-      /* A damaged local save must not prevent a new challenge. */
-    }
     const preset = character.activeEquipmentPreset;
     const item = character.equipmentPresets[preset]?.find(eligible);
     const level = item?.level ?? 200;
@@ -168,8 +118,6 @@ function StarforceChallenge({
       equipmentType: 'normal',
     };
     return {
-      version: 1 as const,
-      ruleId: rules.ruleId,
       preset,
       itemId: item?.id ?? 'manual',
       config,
@@ -186,7 +134,6 @@ function StarforceChallenge({
   const [stopping, setStopping] = useState(false);
   const [timing, setTiming] = useState(() => pacing(initial.state, initial.config));
   const [error, setError] = useState('');
-  const [saved, setSaved] = useState(true);
   const [benchmark, setBenchmark] = useState<StarforceBenchmark>();
   const [benchmarkError, setBenchmarkError] = useState('');
   const [distribution, setDistribution] =
@@ -205,19 +152,6 @@ function StarforceChallenge({
   const generation = useRef(0);
   const live = useRef({ config, state, auto });
   live.current = { config, state, auto };
-  const persistProgress = useRef(() => {});
-  persistProgress.current = () =>
-    localStorage.setItem(
-      key,
-      serialize({
-        version: 1,
-        ruleId: rules.ruleId,
-        preset,
-        itemId,
-        config: live.current.config,
-        state: live.current.state,
-      }),
-    );
   const items = (character.equipmentPresets[preset] ?? []).filter(eligible);
   const item = items.find((candidate) => candidate.id === itemId);
   const maximum = maxStarforceStars(rules, config.level);
@@ -302,33 +236,11 @@ function StarforceChallenge({
     else setPercentile(undefined);
   }, [done, actualCost, distribution]);
   useEffect(() => {
-    try {
-      localStorage.setItem(
-        key,
-        serialize({ version: 1, ruleId: rules.ruleId, preset, itemId, config, state }),
-      );
-      setSaved(true);
-    } catch {
-      setSaved(false);
-    }
-  }, [key, rules.ruleId, preset, itemId, config, state]);
-  useEffect(() => {
-    const save = () => {
-      try {
-        persistProgress.current();
-      } catch {
-        /* The visible state remains usable. */
-      }
-    };
-    const leavePage = () => {
-      finishExecution();
-      save();
-    };
+    const leavePage = () => finishExecution();
     window.addEventListener('pagehide', leavePage);
     return () => {
       window.removeEventListener('pagehide', leavePage);
       disposeExecution();
-      save();
       optimizeWorker.current?.terminate();
     };
   }, []);
@@ -385,15 +297,7 @@ function StarforceChallenge({
     worker.onmessage = (event: MessageEvent<StarforceRunResponse>) => {
       if (runWorker.current !== worker || event.data.id !== id) return;
       const response = event.data;
-      if (response.state) {
-        commit(response.state);
-        try {
-          persistProgress.current();
-          setSaved(true);
-        } catch {
-          setSaved(false);
-        }
-      }
+      if (response.state) commit(response.state);
       if (response.type === 'error') {
         setError(response.message);
         finishExecution();
@@ -401,7 +305,7 @@ function StarforceChallenge({
     };
     worker.onerror = () => {
       if (runWorker.current !== worker) return;
-      setError('자동 강화를 실행하지 못했습니다. 저장된 진행에서 다시 시작해 주세요.');
+      setError('자동 강화를 실행하지 못했습니다. 현재 진행에서 다시 시작해 주세요.');
       finishExecution();
     };
     worker.postMessage({
@@ -948,7 +852,6 @@ function StarforceChallenge({
               <RotateCcw size={14} />
               처음부터 다시
             </button>
-            <span>{saved ? '이 브라우저에 저장됨' : '브라우저 저장 공간을 확인해 주세요'}</span>
           </div>
         </section>
         <section className="stats-row sf-stats">

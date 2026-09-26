@@ -1,5 +1,8 @@
 import type { Goal, Grade, OptionLine, SimulationState, TargetCondition } from '../types';
 import { gradeRank, lineIdentity } from './rules';
+import { metricValue } from './metrics';
+
+export { metricValue } from './metrics';
 
 export type TargetState = Pick<SimulationState, 'grade' | 'lines' | 'stage'>;
 
@@ -20,20 +23,6 @@ export function conditionMatchesLine(
     line.value >= condition.minValue &&
     (condition.maxValue === undefined || line.value <= condition.maxValue)
   );
-}
-
-export function metricValue(lines: readonly OptionLine[], type: string): number {
-  if (type === 'ignoreDefensePercent')
-    return (
-      (1 - lines.filter((l) => l.type === type).reduce((p, l) => p * (1 - l.value / 100), 1)) * 100
-    );
-  if (['strPercent', 'dexPercent', 'intPercent', 'lukPercent'].includes(type)) {
-    return lines.reduce(
-      (sum, line) => sum + (line.type === type || line.type === 'allStatPercent' ? line.value : 0),
-      0,
-    );
-  }
-  return lines.reduce((sum, line) => sum + (line.type === type ? line.value : 0), 0);
 }
 
 export function matchTarget(target: Goal, state: TargetState): boolean {

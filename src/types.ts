@@ -38,9 +38,13 @@ export interface StartState {
 export interface SimulationConfig {
   mode: SimulatorMode;
   cubeType: CubeType;
+  /** Missing in older saves: Miracle Time is disabled. */
+  miracleTime?: boolean;
   category: string;
   level: number;
   start: StartState;
+  /** Original cube/soul-potential setup, retained when changing run settings after progress. */
+  retryStart?: StartState;
   lockedSlots: number[];
   /** Missing in older saves: preserve advanced reset behavior. */
   abilityResetMode?: 'normal' | 'advanced';

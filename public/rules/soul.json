@@ -86,7 +86,8 @@
             }
           ]
         }
-      ]
+      ],
+      "miracleTimeGradeUpChance": 0.03
     },
     {
       "grade": "epic",
@@ -129,7 +130,8 @@
             }
           ]
         }
-      ]
+      ],
+      "miracleTimeGradeUpChance": 0.011751
     },
     {
       "grade": "unique",
@@ -172,7 +174,8 @@
             }
           ]
         }
-      ]
+      ],
+      "miracleTimeGradeUpChance": 0.006645
     },
     {
       "grade": "legendary",
@@ -215,7 +218,8 @@
             }
           ]
         }
-      ]
+      ],
+      "miracleTimeGradeUpChance": 0
     }
   ],
   "assumptions": [
@@ -3532,5 +3536,12 @@
         }
       ]
     }
-  ]
+  ],
+  "miracleTime": {
+    "sourceUrl": "https://maplestory.nexon.com/News/Event/Ongoing/1391",
+    "eventDate": "2026-09-27",
+    "checkedAt": "2026-09-23",
+    "failureCountIncrement": 1,
+    "probabilitySourceUrl": "https://maplestory.nexon.com/Guide/OtherProbability/cube/Soulpotential"
+  }
 }

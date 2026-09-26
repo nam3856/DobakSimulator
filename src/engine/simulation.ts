@@ -16,8 +16,10 @@ import {
   GRADES,
   gradeRank,
   guaranteedAfterFailures,
+  effectiveGradeUpChance,
   isPrime,
   isNormalAbility,
+  isSequentialPotentialBatch,
   lineIdentity,
   potentialRules,
   resolveOptionLine,
@@ -153,8 +155,12 @@ export function drawDifferent(
   throw new Error('서로 다른 결과를 만들 수 없습니다. 고정 옵션을 확인해주세요.');
 }
 
-export function validateConfig(data: RuleData, config: SimulationConfig): string[] {
-  const errors: string[] = abilityStrategyErrors(config);
+export function validateConfig(
+  data: RuleData,
+  config: SimulationConfig,
+  options: { ignoreTarget?: boolean } = {},
+): string[] {
+  const errors: string[] = options.ignoreTarget ? [] : abilityStrategyErrors(config);
   const maximumLevel = config.mode === 'cube' ? 250 : 300;
   if (!Number.isInteger(config.level) || config.level < 1 || config.level > maximumLevel)
     errors.push(`장비 레벨은 1~${maximumLevel} 정수로 입력해주세요.`);
@@ -186,8 +192,7 @@ export function validateConfig(data: RuleData, config: SimulationConfig): string
     (!Number.isInteger(config.start.stage) ||
       config.start.stage < 0 ||
       config.start.stage > 4 ||
-      config.target.stage < 1 ||
-      config.target.stage > 4)
+      (!options.ignoreTarget && (config.target.stage < 1 || config.target.stage > 4)))
   )
     errors.push('소울 증폭 단계 설정이 올바르지 않습니다.');
   if (
@@ -195,11 +200,13 @@ export function validateConfig(data: RuleData, config: SimulationConfig): string
     (!Number.isInteger(config.start.stage) || config.start.stage < 1 || config.start.stage > 4)
   )
     errors.push('소울 잠재능력은 증폭 1~4단계에서만 사용할 수 있습니다.');
-  if (config.target.mode === 'exact' && config.target.lines.length !== 3)
-    errors.push('정확한 옵션 목표는 세 줄을 모두 선택해주세요.');
-  if (['sum', 'ability'].includes(config.target.mode) && !config.target.conditions.length)
-    errors.push('목표 옵션을 하나 이상 설정해주세요.');
-  for (const condition of config.target.conditions) {
+  if (!options.ignoreTarget) {
+    if (config.target.mode === 'exact' && config.target.lines.length !== 3)
+      errors.push('정확한 옵션 목표는 세 줄을 모두 선택해주세요.');
+    if (['sum', 'ability'].includes(config.target.mode) && !config.target.conditions.length)
+      errors.push('목표 옵션을 하나 이상 설정해주세요.');
+  }
+  for (const condition of options.ignoreTarget ? [] : config.target.conditions) {
     if (
       (condition.slot !== undefined && ![0, 1, 2].includes(condition.slot)) ||
       (condition.slots !== undefined &&
@@ -253,6 +260,13 @@ export function validateConfig(data: RuleData, config: SimulationConfig): string
     errors.push(error instanceof Error ? error.message : String(error));
   }
   return [...new Set(errors)];
+}
+
+/** Manual rerolls still require valid equipment, pools and starting state. */
+export function validateManualConfig(data: RuleData, config: SimulationConfig): string[] {
+  if (config.mode !== 'cube' && config.mode !== 'soulPotential')
+    return ['목표 없는 수동 재설정은 큐브와 소울 잠재능력에서 사용할 수 있습니다.'];
+  return validateConfig(data, config, { ignoreTarget: true });
 }
 
 export function createState(
@@ -318,13 +332,41 @@ export function rollBatch(
   state: SimulationState,
   rng: () => number = cryptoRandom,
 ): SimulationState {
-  if (state.status === 'success' || state.status === 'impossible') return state;
+  return rollBatchInternal(data, config, state, rng, false);
+}
+
+/** Manual potential rerolls ignore goals while retaining promotion, pity and payment rules. */
+export function rollManualBatch(
+  data: RuleData,
+  config: SimulationConfig,
+  state: SimulationState,
+  rng: () => number = cryptoRandom,
+): SimulationState {
+  const currentConfig = {
+    ...config,
+    start: { grade: state.grade, lines: state.lines, stage: state.stage, failures: state.failures },
+  };
+  const errors = validateManualConfig(data, currentConfig);
+  if (state.lines.length !== 3) errors.push('현재 옵션은 세 줄을 모두 선택해주세요.');
+  if (errors.length) throw new Error([...new Set(errors)].join('\n'));
+  return rollBatchInternal(data, currentConfig, state, rng, true);
+}
+
+function rollBatchInternal(
+  data: RuleData,
+  config: SimulationConfig,
+  state: SimulationState,
+  rng: () => number,
+  manual: boolean,
+): SimulationState {
+  if (!manual && (state.status === 'success' || state.status === 'impossible')) return state;
   const next: SimulationState = {
     ...state,
     lines: [...state.lines],
     spent: { ...state.spent, ethers: [...state.spent.ethers] },
     history: [...state.history],
     candidates: [],
+    ...(manual ? { finishedAt: undefined } : {}),
     ...(state.lockedSlots ? { lockedSlots: [...state.lockedSlots] } : {}),
   };
   if (config.mode === 'soulAmplification') {
@@ -360,9 +402,11 @@ export function rollBatch(
       ? abilityProgress(config, baseline).matchedLower
       : 0;
     const count = effectiveBatchSize(config, baselineGrade);
+    const sequential = isSequentialPotentialBatch(config, baselineGrade);
     if (
       count === 3 &&
       !(
+        sequential ||
         config.mode === 'ability' ||
         ((config.mode === 'cube' || config.mode === 'soulPotential') &&
           baselineGrade === 'legendary')
@@ -376,7 +420,10 @@ export function rollBatch(
       if (config.mode !== 'ability' && !isPrime(config) && grade !== 'legendary') {
         const rule = potentialRules(data, config).grades.find((r) => r.grade === grade)!;
         const guarantee = guaranteedAfterFailures(rule);
-        const p = guarantee !== undefined && next.failures >= guarantee ? 1 : rule.gradeUpChance;
+        const p =
+          guarantee !== undefined && next.failures >= guarantee
+            ? 1
+            : effectiveGradeUpChance(config, rule);
         if (rng() < p) {
           grade = GRADES[GRADES.indexOf(grade) + 1];
           promoted = true;
@@ -385,7 +432,7 @@ export function rollBatch(
       }
       const prepared = prepareDraw(data, drawConfig, grade, baseline);
       const lines = promoted ? drawLines(prepared, rng) : drawDifferent(prepared, baseline, rng);
-      const hit = matchTarget(config.target, { grade, lines, stage: state.stage });
+      const hit = !manual && matchTarget(config.target, { grade, lines, stage: state.stage });
       next.attempts++;
       next.spent = addCost(next.spent, cost);
       const result: RollResult = {
@@ -407,6 +454,8 @@ export function rollBatch(
       };
       next.candidates.push(result);
       next.history.push(result);
+      // Sequential lower-grade attempts have no prepaid remainder after an early result.
+      if (sequential && (promoted || hit)) break;
     }
     const selected = isNormalAbility(config)
       ? next.candidates[0]

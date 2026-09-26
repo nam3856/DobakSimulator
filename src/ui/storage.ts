@@ -68,7 +68,18 @@ export function readSession(): StoredSession | null {
       !['black', 'additional', 'gold', 'prime', 'primeAdditional'].includes(x.config?.cubeType) ||
       !validLines(x.config?.start?.lines) ||
       !validGrade(x.config?.start?.grade) ||
+      (x.config.retryStart !== undefined &&
+        (!x.config.retryStart ||
+          !validLines(x.config.retryStart.lines) ||
+          x.config.retryStart.lines.length !== 3 ||
+          !['rare', 'epic', 'unique', 'legendary'].includes(x.config.retryStart.grade) ||
+          !Number.isInteger(x.config.retryStart.stage) ||
+          x.config.retryStart.stage < 0 ||
+          x.config.retryStart.stage > 4 ||
+          !Number.isInteger(x.config.retryStart.failures) ||
+          x.config.retryStart.failures < 0)) ||
       !Array.isArray(x.config?.lockedSlots) ||
+      (x.config.miracleTime !== undefined && typeof x.config.miracleTime !== 'boolean') ||
       (x.config.abilityResetMode !== undefined &&
         !['normal', 'advanced'].includes(x.config.abilityResetMode)) ||
       (x.config.abilityStrategy !== undefined &&

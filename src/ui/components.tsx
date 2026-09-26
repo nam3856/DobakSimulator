@@ -121,6 +121,7 @@ export function LineEditor({
   lines,
   options,
   onChange,
+  lineCount = 3,
   locks,
   onLock,
   canLock = false,
@@ -129,6 +130,7 @@ export function LineEditor({
   lines: OptionLine[];
   options: OptionLine[][];
   onChange: (lines: OptionLine[]) => void;
+  lineCount?: 1 | 3;
   locks?: number[];
   onLock?: (slot: number) => void;
   canLock?: boolean;
@@ -136,7 +138,7 @@ export function LineEditor({
 }) {
   return (
     <div className="line-editors">
-      {[0, 1, 2].map((slot) => {
+      {Array.from({ length: lineCount }, (_, slot) => {
         const current = lines[slot];
         const pool = options[slot] ?? [];
         const index = pool.findIndex((x) => x.id === current?.id && x.grade === current?.grade);
@@ -828,13 +830,15 @@ export function Sources({ fetchedAt }: { fetchedAt: string }) {
       </summary>
       <div>
         <p>
-          2026년 9월 17일 한국 본서버 · 평상시 확률. 공개 표의 반올림된 확률을 정규화한 모형이며
-          실제 게임의 내부 난수와는 독립적입니다.
+          2026년 9월 17일 한국 본서버 기준입니다. 미라클타임 선택 시 9월 27일 공식 이벤트의 등급
+          상승 확률을 적용하며 보장 누적은 1회씩 증가합니다. 공개 표의 반올림된 확률을 사용한
+          모형이며 실제 게임의 내부 난수와는 독립적입니다.
         </p>
         <p>
           현재와 같은 등급·줄 순서·표시값의 결과는 다시 추첨합니다. 도전에서는 기존 옵션을 유지하고
-          등급 상승은 적용합니다. 3회 비교는 같은 시작 옵션에서 독립 추첨하고 세 번 모두 비용에
-          포함합니다.
+          등급 상승은 적용합니다. 레어~유니크 잠재는 최대 3회 연속 시도하며 등급 상승·목표 달성 시
+          중단합니다. 레전드리 잠재와 고급 어빌리티의 3회 비교는 같은 시작 옵션에서 독립 추첨하고 세
+          번 모두 비용에 포함합니다.
         </p>
         <p>
           기본 캐릭터 조회: {new Date(fetchedAt).toLocaleDateString('ko-KR')}. API에 없는 보장
@@ -851,6 +855,7 @@ export function Sources({ fetchedAt }: { fetchedAt: string }) {
             ['골드·명장', 'https://maplestory.nexon.com/Guide/OtherProbability/cube/artisan'],
             ['어빌리티', 'https://maplestory.nexon.com/Guide/OtherProbability/ability/reputevalue'],
             ['소울 잠재', 'https://maplestory.nexon.com/Guide/OtherProbability/cube/Soulpotential'],
+            ['미라클타임', 'https://maplestory.nexon.com/News/Event/Ongoing/1391'],
             ['참고 시뮬레이터', 'https://smrong98.github.io/cubesimul/'],
           ].map(([label, url]) => (
             <a href={url} target="_blank" rel="noreferrer" key={url}>

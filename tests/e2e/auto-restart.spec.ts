@@ -269,3 +269,103 @@ test('a free already-satisfied start does not offer an automatic retry', async (
   await expect(page.getByRole('button', { name: '자동 재설정', exact: true })).toBeDisabled();
   expect(await runs(page)).toHaveLength(0);
 });
+
+for (const mode of ['cube', 'soulPotential'] as const)
+  test(`${mode} retry preserves the original grade, options and failures after promotion and settings changes`, async ({
+    page,
+  }) => {
+    await forceWorkerRandom(page, []);
+    await boot(page, mode);
+    await page.getByLabel('시작 등급', { exact: true }).selectOption('rare');
+    await page.getByLabel('성공 기준', { exact: true }).selectOption('grade');
+    await page.getByLabel('목표 등급', { exact: true }).selectOption('legendary');
+    await page.getByRole('button', { name: '1회', exact: true }).click();
+    await page.getByLabel('등급 상승 누적 실패', { exact: true }).fill('7');
+    await ready(page);
+    const original = await stored(page);
+    expect(original.config.start.grade).toBe('rare');
+    expect(original.config.start.failures).toBe(7);
+    expect(original.config.start.lines).toHaveLength(3);
+
+    // Fix the manual draw too: all rule, promotion, guarantee and cost logic stays real.
+    await page.evaluate(() => {
+      Object.defineProperty(globalThis.crypto, 'getRandomValues', {
+        value: (values: Uint32Array) => {
+          values.fill(0);
+          return values;
+        },
+      });
+    });
+    await page.getByRole('button', { name: '1회 재설정하기', exact: true }).click();
+    await expect.poll(async () => (await stored(page)).state.grade).toBe('epic');
+    const promoted = await stored(page);
+    expect(promoted.state.attempts).toBe(1n);
+    expect(promoted.state.failures).toBe(0);
+    expect(promoted.state.spent.meso).toBeGreaterThan(0n);
+
+    // These edits intentionally make the current challenge start at the promoted state.
+    // They must not replace the independently remembered origin used by "다시 자동재설정".
+    await page.getByRole('button', { name: '3회 연속', exact: true }).click();
+    await page.getByLabel('목표 등급', { exact: true }).selectOption('unique');
+    await page.getByLabel('목표 등급', { exact: true }).selectOption('legendary');
+    await page.getByRole('checkbox', { name: '미라클타임', exact: true }).check();
+    await ready(page);
+    const changed = await stored(page);
+    expect(changed.config.start.grade).toBe('epic');
+    expect(changed.config.start.lines).toEqual(promoted.state.lines);
+    expect(changed.config.start.failures).toBe(0);
+    expect(changed.config.retryStart).toEqual(original.config.start);
+    expect(changed.state.spent).toEqual(original.state.spent);
+
+    await page.getByRole('button', { name: '자동 재설정', exact: true }).click();
+    await expect(page.getByRole('button', { name: '다시 자동재설정', exact: true })).toBeEnabled();
+    const completedFromEpic = await stored(page);
+    expect(completedFromEpic.state.grade).toBe('legendary');
+    expect(completedFromEpic.state.attempts).toBe(2n);
+    const totalFromOrigin = promoted.state.spent.meso + completedFromEpic.state.spent.meso;
+    let previousRetry: SimulationState | undefined;
+
+    // A completed result becomes a zero-cost already-satisfied challenge on a batch edit.
+    // Retry must remain available because the remembered origin still needs paid upgrades.
+    await page.getByRole('button', { name: '1회', exact: true }).click();
+    await expect(page.getByRole('button', { name: '다시 자동재설정', exact: true })).toBeEnabled();
+    await page.getByRole('button', { name: '3회 비교', exact: true }).click();
+    await expect(page.getByRole('button', { name: '다시 자동재설정', exact: true })).toBeEnabled();
+    const completedAfterEdit = await stored(page);
+    expect(completedAfterEdit.state.grade).toBe('legendary');
+    expect(completedAfterEdit.state.attempts).toBe(0n);
+    expect(completedAfterEdit.config.retryStart).toEqual(original.config.start);
+
+    for (const reload of [false, true]) {
+      if (reload) {
+        await page.reload();
+        await expect(
+          page.getByRole('button', { name: '다시 자동재설정', exact: true }),
+        ).toBeEnabled();
+      }
+      const runCount = (await runs(page)).length;
+      await page.getByRole('button', { name: '다시 자동재설정', exact: true }).click();
+      await expect.poll(async () => (await runs(page)).length).toBe(runCount + 1);
+      await expect(
+        page.getByRole('button', { name: '다시 자동재설정', exact: true }),
+      ).toBeEnabled();
+      const restarted = (await runs(page)).at(-1)!;
+      expect(restarted.config.start).toEqual(original.config.start);
+      expect(restarted.config.retryStart).toEqual(original.config.start);
+      expect(restarted.config.batchSize).toBe(3);
+      expect(restarted.config.miracleTime).toBe(true);
+      expect(restarted.state.grade).toBe(original.config.start.grade);
+      expect(restarted.state.lines).toEqual(original.config.start.lines);
+      expect(restarted.state.stage).toBe(original.config.start.stage);
+      expect(restarted.state.failures).toBe(7);
+      expect(restarted.state.attempts).toBe(0n);
+      expect(restarted.state.spent).toEqual(original.state.spent);
+      expect(restarted.state.history).toEqual([]);
+      const completed = await stored(page);
+      expect(completed.state.status).toBe('success');
+      expect(completed.state.attempts).toBe(3n);
+      expect(completed.state.spent.meso).toBe(totalFromOrigin);
+      if (previousRetry) expect(completed.state.spent).toEqual(previousRetry.spent);
+      previousRetry = completed.state;
+    }
+  });

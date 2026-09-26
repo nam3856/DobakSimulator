@@ -20,6 +20,16 @@ const arg = (name, fallback) => process.argv[process.argv.indexOf(name) + 1] ?? 
 const concurrency = flag('--concurrency') ? Number(arg('--concurrency', 3)) : 3;
 if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 6) throw Error('Concurrency must be 1–6.');
 const grades = ['rare', 'epic', 'unique', 'legendary'];
+const miracleTime = {
+  sourceUrl: 'https://maplestory.nexon.com/News/Event/Ongoing/1391',
+  eventDate: '2026-09-27', checkedAt: '2026-09-23', failureCountIncrement: 1,
+};
+// Preserve the published event rates rather than doubling already rounded base rates.
+const miracleTimeRates = {
+  potential: [0.30000000255, 0.07000002406, 0.028, 0],
+  additionalPotential: [0.047619, 0.019608, 0.014, 0],
+  gold: [0.159989, 0.033917, 0.003992, 0],
+};
 export const levelBands = [{ minimumLevel: 1, maximumLevel: 9, representativeLevel: 1 }];
 for (let level = 10; level <= 110; level += 10) {
   levelBands.push({ minimumLevel: level, maximumLevel: level, representativeLevel: level });
@@ -160,6 +170,9 @@ for (const cube of cubes) {
           [{ grade, probability: cube.upper[index] }, { grade: index ? grades[index - 1] : 'normal', probability: 1 - cube.upper[index] }] })) })) };
   }
   rule.ruleId = `kms-${cube.kind}-2026-09-17`;
+  rule.grades = rule.grades.map((grade, index) => ({ ...grade,
+    miracleTimeGradeUpChance: miracleTimeRates[cube.kind][index] }));
+  rule.miracleTime = { ...miracleTime, probabilitySourceUrl: cube.sourcePage };
   rule.checkedAt = checkedAt;
   rule.sourceUrl = cube.sourcePage;
   rule.preview = false;
@@ -185,6 +198,6 @@ const manifest = { ruleSetId: 'kms-2026-09-17', schemaVersion: 1, checkedAt, sou
   credits: { sourceUrl: 'https://maplestory.nexon.com/news/update/813', primeCube: 10000, primeAdditionalCube: 20000 },
   costsSources: ['https://maplestory.nexon.com/news/update/737', 'https://maplestory.nexon.com/news/update/746'],
   pitySource: 'https://maplestory.nexon.com/News/Notice/Notice/144849',
-  goldSource: 'https://maplestory.nexon.com/news/update/799' };
+  goldSource: 'https://maplestory.nexon.com/news/update/799', miracleTime };
 await atomic(join(output, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 console.log(`Wrote ${coverage.map(entry => `${entry.file}: ${entry.optionPoolCount} pools`).join(', ')}.`);

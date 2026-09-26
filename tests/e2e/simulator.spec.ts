@@ -56,7 +56,7 @@ test('three comparison rolls charge all three and persist BigInt costs', async (
   await expect(page.locator('.candidate-card')).toHaveCount(3);
 });
 
-test('both prime cubes preserve the acquired first line and account for credits', async ({
+test('both prime cubes edit only their fixed first line and account for credits', async ({
   page,
 }) => {
   await boot(page);
@@ -69,26 +69,58 @@ test('both prime cubes preserve the acquired first line and account for credits'
       .getByRole('button', { name: new RegExp(`^${name}`) })
       .click();
     await page.getByRole('button', { name: '1회', exact: true }).click();
-    // Make an explicit unsuccessful suffix; free setup can legitimately hit the target.
-    await page.getByLabel('2번째 시작 옵션').selectOption({ index: 1 });
-    await page.getByLabel('3번째 시작 옵션').selectOption({ index: 1 });
+    await expect(page.locator('.start-details summary')).toHaveText('시작 옵션 · 첫 줄 고정');
+    await expect(page.getByLabel('1번째 시작 옵션')).toBeVisible();
+    await expect(page.getByLabel('2번째 시작 옵션')).toHaveCount(0);
+    await expect(page.getByLabel('3번째 시작 옵션')).toHaveCount(0);
+    const before = await page.locator('.current-result .option-row').allTextContents();
+    await page.getByLabel('1번째 시작 옵션').selectOption({ index: 1 });
+    const selected = await page.getByLabel('1번째 시작 옵션').inputValue();
+    expect((await page.locator('.current-result .option-row').allTextContents()).slice(1)).toEqual(
+      before.slice(1),
+    );
     const anchor = await page.locator('.current-result .option-row').first().innerText();
+    await expect(page.locator('.spent-stat strong')).toHaveAttribute('title', '0');
+    await page.reload();
+    await expect(page.getByLabel('1번째 시작 옵션')).toHaveValue(selected);
+    await expect(page.getByLabel('2번째 시작 옵션')).toHaveCount(0);
+    await expect(page.getByLabel('3번째 시작 옵션')).toHaveCount(0);
+    expect((await page.locator('.current-result .option-row').allTextContents()).slice(1)).toEqual(
+      before.slice(1),
+    );
+    await expect(page.locator('.spent-stat strong')).toHaveAttribute('title', '0');
     await page.getByRole('button', { name: '1회 재설정하기', exact: true }).click();
     await expect(page.locator('.candidate-card .option-row').first()).toHaveText(anchor);
+    await expect(page.locator('.spent-stat strong')).toHaveAttribute('title', '1');
     await expect(page.locator('.resource-ledger')).toContainText(credits);
     await expect(page.getByLabel('시작 등급')).toBeDisabled();
   }
+  await page
+    .locator('.cube-picker')
+    .getByRole('button', { name: /^블랙큐브/ })
+    .click();
+  await expect(page.locator('.line-editors select')).toHaveCount(3);
+  await selectSimulator(page, '소울 잠재');
+  await expect(page.locator('.line-editors select')).toHaveCount(3);
 });
 
-test('soul potential starts with a three-comparison preference and uses it after legendary', async ({
+test('soul potential starts with three sequential rolls and switches to comparison after legendary', async ({
   page,
 }) => {
   await boot(page, '#soulPotential');
   await expect(page.getByLabel('시작 등급')).toHaveValue('rare');
-  await expect(page.getByRole('button', { name: '3회 비교', exact: true })).toHaveClass(/selected/);
-  await page.getByRole('button', { name: '1회 재설정하기', exact: true }).click();
-  await expect(page.locator('.candidate-card')).toHaveCount(1);
-  await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('1회');
+  await expect(page.getByRole('button', { name: '3회 연속', exact: true })).toHaveClass(/selected/);
+  await page.evaluate(() => {
+    Object.defineProperty(globalThis.crypto, 'getRandomValues', {
+      value: (values: Uint32Array) => {
+        values.fill(0xffffffff);
+        return values;
+      },
+    });
+  });
+  await page.getByRole('button', { name: '최대 3회 재설정하기', exact: true }).click();
+  await expect(page.locator('.candidate-card')).toHaveCount(3);
+  await expect(page.locator('.stat-card').first().locator('strong')).toHaveText('3회');
 
   await page.getByLabel('시작 등급').selectOption('legendary');
   await page.getByLabel('목표 조건 1 수치').fill('6');
@@ -212,7 +244,7 @@ test('clamping an edited aggregate goal after promotion keeps the actual promote
   await boot(page);
   await page.getByLabel('시작 등급').selectOption('unique');
   await page.getByLabel('등급 상승 누적 실패').fill('107');
-  await page.getByRole('button', { name: '1회 재설정하기', exact: true }).click();
+  await page.getByRole('button', { name: '최대 3회 재설정하기', exact: true }).click();
   await expect(page.locator('.current-result .grade-badge')).toHaveText('레전드리');
   const promoted = await page.locator('.current-result .option-row').allTextContents();
   const goalValue = page.getByLabel('목표 조건 1 수치');

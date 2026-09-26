@@ -91,6 +91,29 @@ function fixture(mode: 'cube' | 'soulPotential' = 'cube') {
 
 describe('automatic legendary comparisons benchmark', () => {
   it.each(['cube', 'soulPotential'] as const)(
+    'ignores the %s retry origin when seeding the current challenge distribution',
+    (mode) => {
+      const { data, config } = fixture(mode);
+      config.start.failures = 0;
+      data.potential.grades[2].gradeUpChance = 0.2;
+      const options = { sampleCount: 2000 };
+      const current = computeBenchmark(data, config, 150, options);
+      for (const grade of ['rare', 'epic'] as const) {
+        const withOrigin: SimulationConfig = {
+          ...config,
+          retryStart: {
+            ...config.start,
+            grade,
+            lines: [0, 1, 2].map(() => option('b', grade)),
+            failures: 1,
+          },
+        };
+        expect(computeBenchmark(data, withOrigin, 150, options)).toEqual(current);
+      }
+    },
+  );
+
+  it.each(['cube', 'soulPotential'] as const)(
     'charges a single promotion then three candidates per legendary comparison for %s',
     (mode) => {
       const { data, config } = fixture(mode);
@@ -132,7 +155,7 @@ describe('automatic legendary comparisons benchmark', () => {
     expect(state.candidates).toHaveLength(1);
   });
 
-  it('keeps lower-grade successes at one candidate and preserves missing pity progress', () => {
+  it('stops immediately at a lower-grade success and preserves missing pity progress', () => {
     const { data, config } = fixture();
     config.start.failures = 0;
     config.target.minimumGrade = 'unique';
@@ -155,6 +178,30 @@ describe('automatic legendary comparisons benchmark', () => {
     expect(state.attempts).toBe(1n);
     expect(state.spent.meso).toBe(30n);
   });
+
+  it.each(['cube', 'soulPotential'] as const)(
+    'keeps sequential %s promotion means and distributions identical to single attempts',
+    (mode) => {
+      const { data, config } = fixture(mode);
+      config.start = {
+        ...config.start,
+        grade: 'rare',
+        failures: 0,
+        lines: [0, 1, 2].map(() => option('b', 'rare')),
+      };
+      config.target.mode = 'grade';
+      config.target.minimumGrade = 'unique';
+      for (const rule of data.potential.grades.slice(0, 3)) rule.gradeUpChance = 0.2;
+      const options = { sampleCount: 12000, seed: 'sequential-grade-goal' };
+      const grouped = computeBenchmark(data, config, 60, options);
+      const single = computeBenchmark(data, { ...config, batchSize: 1 }, 60, options);
+      const phaseAttempts = 1 + 0.8 + 0.8 ** 2;
+      expect(grouped.expectedAttempts).toBeCloseTo(2 * phaseAttempts, 12);
+      expect(grouped.expectedCost).toBeCloseTo(30 * phaseAttempts, 12);
+      expect({ ...grouped, note: undefined }).toEqual({ ...single, note: undefined });
+      expect(grouped.distribution.at(-1)).toEqual({ cost: 90, cdf: 1 });
+    },
+  );
 
   it('uses three independent draws from the frozen baseline for legendary soul potential', () => {
     const { data, config } = fixture('soulPotential');

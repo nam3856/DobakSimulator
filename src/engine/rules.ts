@@ -23,6 +23,8 @@ export interface GradeRule {
   grade: Grade;
   rank: number;
   gradeUpChance: number;
+  /** Published event probability, preserving rounding from the official table. */
+  miracleTimeGradeUpChance?: number;
   pityThreshold?: number | null;
   guaranteedAfterFailures?: number | null;
   lineGrades: { slot: number; chances: { grade: LineGrade; probability: number }[] }[];
@@ -341,6 +343,24 @@ export function guaranteedAfterFailures(rule: GradeRule): number | undefined {
   return rule.pityThreshold != null ? rule.pityThreshold - 1 : undefined;
 }
 
+/** Event eligibility is independent of the currently selected potential grade. */
+export function supportsMiracleTime(config: Pick<SimulationConfig, 'mode' | 'cubeType'>): boolean {
+  return (
+    config.mode === 'soulPotential' ||
+    (config.mode === 'cube' && ['black', 'additional', 'gold'].includes(config.cubeType))
+  );
+}
+
+/** The September 2026 event doubles natural promotions; pity still advances once per failure. */
+export function effectiveGradeUpChance(
+  config: Pick<SimulationConfig, 'mode' | 'cubeType' | 'miracleTime'>,
+  rule: GradeRule,
+): number {
+  return config.miracleTime === true && supportsMiracleTime(config)
+    ? Math.min(1, rule.miracleTimeGradeUpChance ?? rule.gradeUpChance * 2)
+    : rule.gradeUpChance;
+}
+
 export function isPrime(config: SimulationConfig): boolean {
   return (
     config.mode === 'cube' && (config.cubeType === 'prime' || config.cubeType === 'primeAdditional')
@@ -353,11 +373,24 @@ export function benchmarkUnit(config: SimulationConfig): 'meso' | 'cubes' | 'hon
     : 'meso';
 }
 
-/** A selected three-result mode begins once potential rerolls reach legendary. */
+/** Lower potential grades run sequentially and stop at a promotion or target hit. */
+export function isSequentialPotentialBatch(
+  config: Pick<SimulationConfig, 'mode' | 'batchSize'>,
+  grade: Grade,
+): boolean {
+  return (
+    config.batchSize === 3 &&
+    (config.mode === 'cube' || config.mode === 'soulPotential') &&
+    grade !== 'legendary'
+  );
+}
+
+/** Maximum attempts per action; lower potential grades can stop before all three. */
 export function effectiveBatchSize(
   config: Pick<SimulationConfig, 'mode' | 'batchSize' | 'abilityResetMode'>,
   grade: Grade,
 ): 1 | 3 {
+  if (isSequentialPotentialBatch(config, grade)) return 3;
   return !isNormalAbility(config) && config.batchSize === 3 &&
     (config.mode === 'ability' ||
       ((config.mode === 'cube' || config.mode === 'soulPotential') && grade === 'legendary'))

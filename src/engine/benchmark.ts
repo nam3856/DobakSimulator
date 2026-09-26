@@ -4,11 +4,13 @@ import {
   benchmarkUnit,
   eligibleCandidates,
   effectiveBatchSize,
+  effectiveGradeUpChance,
   GRADES,
   gradeRank,
   guaranteedAfterFailures,
   isPrime,
   isNormalAbility,
+  isSequentialPotentialBatch,
   lineIdentity,
   potentialRules,
   tupleIdentity,
@@ -562,10 +564,11 @@ export function computeBenchmark(
     return {
       grade,
       analysis: analyzeOutcomes(data, config, grade, true),
-      upgrade: rule.gradeUpChance,
+      upgrade: effectiveGradeUpChance(config, rule),
       guarantee: guaranteedAfterFailures(rule),
       cost: Number(costValue(config, attemptCost(data, config, grade, config.start.stage))),
-      batchSize: effectiveBatchSize(config, grade),
+      // Grouping sequential attempts does not change their stopping time or paid distribution.
+      batchSize: isSequentialPotentialBatch(config, grade) ? 1 : effectiveBatchSize(config, grade),
     };
   });
   const includedMeans: PhaseMean[] = new Array(phases.length);
@@ -603,7 +606,10 @@ export function computeBenchmark(
   const sampleCount = options.sampleCount ?? 500_000;
   const rng = seededRandom(
     options.seed ??
-      stableStringify({ config: { ...config, unitPrices: {} }, engine: 'keep-before-v1' }),
+      stableStringify({
+        config: { ...config, unitPrices: {}, retryStart: undefined },
+        engine: 'keep-before-v1',
+      }),
   );
   const samples = new Float64Array(sampleCount);
   const groupCdfs = phases.map((phase) => {
@@ -687,7 +693,7 @@ export function computeBenchmark(
       actualCost === undefined ? undefined : upperBound(samples, actualCost) / sampleCount,
     note: partial
       ? '등급 상승 후 목표를 얻을 수 없는 경로가 있어 무조건부 평균 비용은 무한대입니다.'
-      : `평균은 해석 계산, 분포는 고정 시드 ${sampleCount.toLocaleString('ko-KR')}회 역누적분포 표본입니다. 기존 옵션 유지·등급 상승 적용 전략 기준입니다.${config.batchSize === 3 ? ' 레전드리 도달 전에는 1회씩, 도달 이후에는 같은 보관 옵션으로 3회 비교합니다.' : ''}`,
+      : `평균은 해석 계산, 분포는 고정 시드 ${sampleCount.toLocaleString('ko-KR')}회 역누적분포 표본입니다. 기존 옵션 유지·등급 상승 적용 전략 기준입니다.${config.batchSize === 3 ? ' 레전드리 전에는 최대 3회 순차 진행하며 등급 상승·목표 달성 시 멈춥니다. 레전드리에서는 같은 보관 옵션으로 3회 비교하고 모두 과금합니다.' : ''}`,
   };
 }
 

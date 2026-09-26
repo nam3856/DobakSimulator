@@ -58,10 +58,21 @@ import {
   evaluateLuck,
   getLineOptions,
   loadRuleData,
+  matchTarget,
+  rollManualBatch,
   rollBatch,
   validateConfig,
+  validateManualConfig,
 } from './engine';
-import { abilityResetCosts, isNormalAbility, type RuleData } from './engine/rules';
+import {
+  abilityResetCosts,
+  effectiveGradeUpChance,
+  guaranteedAfterFailures,
+  isNormalAbility,
+  potentialRules,
+  supportsMiracleTime,
+  type RuleData,
+} from './engine/rules';
 import {
   Avatar,
   DistributionChart,
@@ -108,6 +119,7 @@ import {
   replaceCharacterLink,
 } from './ui/character-link';
 import { CharacterShareButton } from './ui/CharacterShareButton';
+import { ResultAnalysis, type ResultAnalysisSelection } from './ui/ResultAnalysis';
 import { updateCharacterMetadata } from './ui/page-metadata';
 import { SoulAmplificationDisplay } from './ui/SoulAmplificationDisplay';
 import { useSoulAmplificationAnimation } from './ui/use-soul-amplification-animation';
@@ -134,6 +146,10 @@ function makeConfigForTab(...args: Parameters<typeof makeConfig>): SimulationCon
   return makeConfig(...args);
 }
 
+function configForRetry(config: SimulationConfig): SimulationConfig {
+  return { ...config, start: structuredClone(config.retryStart ?? config.start) };
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<AppTab>(getTabFromHash);
   const [data, setData] = useState<RuleData>();
@@ -144,6 +160,7 @@ export default function App() {
   const [abilityPreset, setAbilityPreset] = useState('1');
   const [equipmentId, setEquipmentId] = useState('');
   const [benchmark, setBenchmark] = useState<BenchmarkResult>();
+  const [resultAnalysis, setResultAnalysis] = useState<ResultAnalysisSelection>();
   const [bootError, setBootError] = useState('');
   const [message, setMessage] = useState('');
   const [auto, setAuto] = useState(false);
@@ -225,6 +242,15 @@ export default function App() {
       return [e instanceof Error ? e.message : '설정을 확인해 주세요.'];
     }
   }, [data, config]);
+  const freeManual = config?.mode === 'cube' || config?.mode === 'soulPotential';
+  const manualErrors = useMemo(() => {
+    if (!data || !config || !freeManual) return errors;
+    try {
+      return validateManualConfig(data, config);
+    } catch (e) {
+      return [e instanceof Error ? e.message : '시작 설정을 확인해 주세요.'];
+    }
+  }, [data, config, freeManual, errors]);
   const editorOptions = useMemo(
     () =>
       [0, 1, 2].map((slot) => {
@@ -281,6 +307,7 @@ export default function App() {
     state.status !== 'impossible' &&
     benchmark?.status !== 'impossible' &&
     benchmark?.status !== 'already';
+  const canManualRun = freeManual ? !!data && !!config && !!state && !manualErrors.length : canRun;
   const automaticAbilityTarget =
     config?.mode === 'ability' &&
     config.abilityStrategy !== 'firstLocked' &&
@@ -299,8 +326,19 @@ export default function App() {
       !errors.length &&
       !!automaticAbilityTarget);
   const canRestartAuto =
-    !!data && !!config && !errors.length && state?.status === 'success' && state.attempts > 0n;
+    !!data &&
+    !!config &&
+    !errors.length &&
+    !!state &&
+    (state.status === 'success' || (freeManual && matchTarget(config.target, state))) &&
+    (!freeManual || !matchTarget(config.target, config.retryStart ?? config.start)) &&
+    (state.attempts > 0n ||
+      (!!config.retryStart && !matchTarget(config.target, config.retryStart)));
   const normalAbility = !!config && isNormalAbility(config);
+  const potentialGradeUp =
+    !!config &&
+    (config.mode === 'cube' || config.mode === 'soulPotential') &&
+    (state?.grade ?? config.start.grade) !== 'legendary';
   const itemBased = config?.mode === 'cube' && isItemCube(config.cubeType);
   const paidCost = state && config ? paidBenchmarkCost(config, state.spent) : 0n;
   const actualCost = Number(paidCost);
@@ -348,24 +386,33 @@ export default function App() {
   }, [clearSoulAnimation]);
   const begin = useCallback(
     (draft: SimulationConfig, ruleData: RuleData = data!, preserve = true) => {
+      draft = {
+        ...draft,
+        miracleTime: draft.miracleTime ?? latest.current.config?.miracleTime ?? false,
+      };
       clearSoulAnimation();
       runWorker.current?.terminate();
       runWorker.current = null;
       runId.current = '';
       setAuto(false);
       setMessage('');
+      setResultAnalysis(undefined);
       if (preserve && latest.current.config && latest.current.state)
         archiveSession(latest.current.config, latest.current.state);
       try {
         const next = createState(ruleData, draft);
+        const start = {
+          grade: next.grade,
+          lines: next.lines,
+          stage: next.stage,
+          failures: next.failures,
+        };
         const frozen = {
           ...draft,
-          start: {
-            grade: next.grade,
-            lines: next.lines,
-            stage: next.stage,
-            failures: next.failures,
-          },
+          start,
+          ...(draft.mode === 'cube' || draft.mode === 'soulPotential'
+            ? { retryStart: structuredClone(draft.retryStart ?? start) }
+            : {}),
         };
         setConfig(frozen);
         setState(next);
@@ -463,14 +510,17 @@ export default function App() {
                 : items.find((x) => x.id === stored.equipmentId);
             setEquipmentId(selected?.id ?? '');
             begin(
-              makeConfigForTab(
-                rules,
-                stored.character,
-                selected,
-                requested,
-                stored.config.cubeType,
-                stored.abilityPreset,
-              ),
+              {
+                ...makeConfigForTab(
+                  rules,
+                  stored.character,
+                  selected,
+                  requested,
+                  stored.config.cubeType,
+                  stored.abilityPreset,
+                ),
+                miracleTime: stored.config.miracleTime,
+              },
               rules,
               false,
             );
@@ -498,6 +548,7 @@ export default function App() {
                 target: stored.config.mode === 'ability' ? draft.target : stored.config.target,
                 batchSize: stored.config.batchSize,
                 unitPrices: stored.config.unitPrices,
+                miracleTime: stored.config.miracleTime,
               },
               rules,
               false,
@@ -535,7 +586,12 @@ export default function App() {
               '아랫줄 우선 방식으로 변경되었습니다. 기존 보관 옵션에서 새 도전을 시작합니다.',
             );
           } else {
-            setConfig(stored.config);
+            setConfig({
+              ...stored.config,
+              ...(stored.config.mode === 'cube' || stored.config.mode === 'soulPotential'
+                ? { retryStart: structuredClone(stored.config.retryStart ?? stored.config.start) }
+                : {}),
+            });
             setState({
               ...stored.state,
               status: stored.state.status === 'running' ? 'paused' : stored.state.status,
@@ -701,10 +757,18 @@ export default function App() {
       return;
     }
     const currentStart =
-      state && (patch.target || patch.lockedSlots || patch.batchSize || patch.abilityStrategy)
+      state &&
+      (patch.target ||
+        patch.lockedSlots ||
+        patch.batchSize ||
+        patch.abilityStrategy ||
+        'miracleTime' in patch)
         ? { grade: state.grade, lines: state.lines, stage: state.stage, failures: state.failures }
         : config.start;
     const draft = { ...config, start: currentStart, ...patch };
+    if (draft.mode === 'cube' || draft.mode === 'soulPotential')
+      draft.retryStart =
+        patch.start || resetLines ? undefined : structuredClone(config.retryStart ?? config.start);
     if (patch.target && !('abilityPresetJob' in patch)) draft.abilityPresetJob = undefined;
     let strategyNotice = '';
     if (
@@ -960,10 +1024,13 @@ export default function App() {
     }
   }
   function oneRoll() {
-    if (!canRun || !config || !state || !data || auto || soulAnimationBusy.current) return;
+    if (!canManualRun || !config || !state || !data || auto || soulAnimationBusy.current) return;
     try {
       setMessage('');
-      const next = rollBatch(data, config, state);
+      setResultAnalysis(undefined);
+      const next = freeManual
+        ? rollManualBatch(data, config, state)
+        : rollBatch(data, config, state);
       // Persist the paid result immediately; the animation only delays its visual reveal.
       setState(next);
       if (config.mode === 'soulAmplification') playSoulAnimation(next);
@@ -974,13 +1041,14 @@ export default function App() {
   function startAuto() {
     if ((!canAutoRun && !canRestartAuto) || !config || !state || soulAnimationBusy.current) return;
     setMessage('');
+    setResultAnalysis(undefined);
     let runConfig = config;
     let runState = state;
     if (canRestartAuto || automaticAbilityTarget) {
       const prepared = begin({
         ...config,
         start: canRestartAuto
-          ? config.start
+          ? configForRetry(config).start
           : {
               grade: state.grade,
               lines: state.lines,
@@ -999,7 +1067,8 @@ export default function App() {
       runConfig = prepared.config;
       runState = prepared.state;
       if (runState.status === 'success' || runState.status === 'impossible') return;
-      if (automaticAbilityTarget && !canRestartAuto)
+      if (canRestartAuto) setMessage('처음 설정한 시작 상태로 돌아가 새 자동 도전을 시작했어요.');
+      else if (automaticAbilityTarget)
         setMessage('목표에 맞게 잠금을 다시 설정했어요. 현재 옵션에서 자동 도전을 시작합니다.');
     }
     setAuto(true);
@@ -1316,6 +1385,38 @@ export default function App() {
                     </Field>
                   </div>
                 )}
+                {(config.mode === 'cube' || config.mode === 'soulPotential') && (
+                  <label className="miracle-time-option">
+                    <input
+                      type="checkbox"
+                      aria-label="미라클타임"
+                      aria-describedby="miracle-time-description"
+                      checked={supportsMiracleTime(config) && config.miracleTime === true}
+                      disabled={!supportsMiracleTime(config)}
+                      onChange={(e) => {
+                        const enabled = e.target.checked;
+                        patchConfig({ miracleTime: enabled });
+                        setMessage(
+                          `미라클타임을 ${enabled ? '적용' : '해제'}했어요. 현재 옵션과 누적 실패를 유지해 새 도전을 시작합니다.`,
+                        );
+                      }}
+                    />
+                    <span>
+                      <b>미라클타임</b>
+                      <small id="miracle-time-description">
+                        {!supportsMiracleTime(config)
+                          ? '프라임큐브는 레전드리 전용입니다.'
+                          : config.mode === 'cube' && config.cubeType === 'gold'
+                            ? '선택 시 등급 상승 확률 2배 · 등급 상승 보장 없음'
+                            : '선택 시 등급 상승 확률 2배 · 보장 누적은 1회씩'}
+                      </small>
+                      {supportsMiracleTime(config) && config.start.grade === 'legendary' && (
+                        <small>레전드리 옵션 확률은 그대로입니다.</small>
+                      )}
+                    </span>
+                    <Sparkles size={18} aria-hidden="true" />
+                  </label>
+                )}
                 {config.mode === 'soulAmplification' ? (
                   <>
                     <div className="field-row">
@@ -1472,12 +1573,15 @@ export default function App() {
                               ? '· 첫 줄 고정, 보조 줄 자동 잠금'
                               : '· 목표 보조 줄 자동 잠금'
                             : '· 잠금 설정'
-                          : '직접 설정'}
+                          : config.mode === 'cube' && isPrime(config.cubeType)
+                            ? '· 첫 줄 고정'
+                            : '직접 설정'}
                         <ChevronDown size={14} />
                       </summary>
                       <LineEditor
                         lines={config.start.lines}
                         options={editorOptions}
+                        lineCount={config.mode === 'cube' && isPrime(config.cubeType) ? 1 : 3}
                         onChange={(lines) => patchConfig({ start: { ...config.start, lines } })}
                         canLock={config.mode === 'ability' && !usesAbilityProgression(config)}
                         locks={config.lockedSlots}
@@ -1492,7 +1596,8 @@ export default function App() {
                       />
                       {config.mode === 'cube' && isPrime(config.cubeType) && (
                         <small className="inline-note">
-                          첫 번째 옵션은 고정됩니다. 확보 과정은 비용에 포함되지 않습니다.
+                          고정할 첫 번째 옵션만 설정하세요. 두 번째·세 번째 옵션은 큐브를 사용할 때
+                          다시 뽑습니다. 첫 번째 옵션 확보 비용은 포함되지 않습니다.
                         </small>
                       )}
                     </details>
@@ -1558,6 +1663,12 @@ export default function App() {
                   </h2>
                   <span className="panel-step">02</span>
                 </div>
+                {freeManual && (
+                  <p className="inline-note manual-goal-note">
+                    목표는 자동 재설정에 사용합니다. 수동은 목표 없이 진행하고, 나온 결과를 눌러
+                    주요 수치가 이 이상인 옵션의 기댓값과 행운을 확인할 수 있어요.
+                  </p>
+                )}
                 {config.mode === 'ability' && !normalAbility && (
                   <div className="ability-presets">
                     <Field label="직업별 종결 어빌리티">
@@ -1884,7 +1995,7 @@ export default function App() {
                     <div className={`candidate-grid count-${state.candidates.length}`}>
                       {state.candidates.map((candidate, i) => (
                         <article
-                          className={`candidate-card ${candidate.hit ? 'is-hit' : ''}`}
+                          className={`candidate-card ${candidate.hit ? 'is-hit' : ''} ${resultAnalysis?.result.sequence === candidate.sequence ? 'is-analysis-selected' : ''}`}
                           key={`${candidate.sequence}-${i}`}
                         >
                           <div className="card-title">
@@ -1901,6 +2012,28 @@ export default function App() {
                             <GradeBadge grade={candidate.grade} />
                           </div>
                           <OptionLines lines={candidate.lines} />
+                          {freeManual && (
+                            <button
+                              type="button"
+                              className="candidate-analysis-button"
+                              aria-label={`재설정 ${formatAmount(candidate.sequence)} 결과 기댓값과 행운 분석`}
+                              aria-pressed={resultAnalysis?.result.sequence === candidate.sequence}
+                              aria-controls={resultAnalysis ? 'result-analysis' : undefined}
+                              disabled={auto}
+                              onClick={() =>
+                                setResultAnalysis(
+                                  structuredClone({
+                                    config,
+                                    result: candidate,
+                                    spent: state.spent,
+                                    attempts: state.attempts,
+                                  }),
+                                )
+                              }
+                            >
+                              기댓값·행운 보기 <ArrowUpRight size={13} />
+                            </button>
+                          )}
                           <div className="candidate-footer">
                             {candidate.adopted && candidate.progressed && (
                               <span className="kept-label">보조 목표 확보 · 자동 잠금</span>
@@ -1912,6 +2045,7 @@ export default function App() {
                                 onClick={() =>
                                   begin({
                                     ...config,
+                                    retryStart: undefined,
                                     start: {
                                       grade: candidate.grade,
                                       lines: candidate.lines,
@@ -1962,6 +2096,14 @@ export default function App() {
                     </div>
                   )
                 )}
+                {freeManual && resultAnalysis && (
+                  <ResultAnalysis
+                    selection={resultAnalysis}
+                    character={character}
+                    baseUrl={baseUrl}
+                    onClose={() => setResultAnalysis(undefined)}
+                  />
+                )}
                 <div className="roll-controls">
                   <div className="roll-options">
                     <span>한 번에</span>
@@ -1978,23 +2120,26 @@ export default function App() {
                         disabled={auto || config.mode === 'soulAmplification' || normalAbility}
                         onClick={() => config.batchSize !== 3 && patchConfig({ batchSize: 3 })}
                       >
-                        3회 비교
+                        {potentialGradeUp ? '3회 연속' : '3회 비교'}
                       </button>
                     </div>
-                    <button className="text-button reset-button" onClick={() => begin(config)}>
+                    <button
+                      className="text-button reset-button"
+                      onClick={() => begin(configForRetry(config))}
+                    >
                       <RotateCcw size={13} /> 새 도전
                     </button>
                   </div>
                   <div className="roll-button-row">
                     <button
                       className="button primary roll-button"
-                      disabled={!canRun || auto || !!soulAnimation}
+                      disabled={!canManualRun || auto || !!soulAnimation}
                       onClick={oneRoll}
                     >
                       <Boxes size={18} />
                       {config.mode === 'soulAmplification'
                         ? '증폭 시도하기'
-                        : `${effectiveBatchSize(config, state?.grade ?? config.start.grade)}회 재설정하기`}
+                        : `${potentialGradeUp && config.batchSize === 3 ? '최대 ' : ''}${effectiveBatchSize(config, state?.grade ?? config.start.grade)}회 재설정하기`}
                       <ArrowRight size={17} />
                     </button>
                     <button
@@ -2024,22 +2169,27 @@ export default function App() {
                     {normalAbility
                       ? '목표 달성 여부와 관계없이 새 옵션이 즉시 적용됩니다. 자동 재설정은 현재 잠금을 유지합니다.'
                       : config.batchSize === 3
-                        ? effectiveBatchSize(config, state?.grade ?? config.start.grade) === 1
-                          ? '등급 상승 구간은 1회씩 진행하고, 레전드리에 도달하면 3회 비교로 자동 전환합니다.'
+                        ? potentialGradeUp
+                          ? '수동은 최대 3회 연속 시도하며 등급 상승 시 멈춥니다. 자동은 목표 달성 시에도 멈추고, 실제 진행한 횟수만 과금합니다.'
                           : usesAbilityProgression(config)
                             ? '같은 잠금 상태에서 3회분을 모두 사용하고, 목표 달성 또는 보조 줄을 더 많이 확보한 결과를 채택합니다.'
                             : '3개를 모두 뽑고 비용도 3회분을 사용합니다.'
                         : usesAbilityProgression(config)
                           ? '목표 보조 줄을 확보하면 채택·잠금합니다. 나머지 결과는 기존 옵션을 유지합니다.'
-                          : '목표 미달 시 기존 옵션을 유지하며, 등급 상승은 적용합니다.'}
+                          : freeManual
+                            ? '수동은 목표 없이 계속 진행할 수 있습니다. 기존 옵션을 유지하며 등급 상승은 적용합니다.'
+                            : '목표 미달 시 기존 옵션을 유지하며, 등급 상승은 적용합니다.'}
                   </p>
                 </div>
-                {errors.length > 0 && (
+                {(freeManual ? manualErrors : errors).length > 0 && (
                   <div className="notice error" role="alert">
-                    {errors.map((error, i) => (
+                    {(freeManual ? manualErrors : errors).map((error, i) => (
                       <p key={i}>{error}</p>
                     ))}
                   </div>
+                )}
+                {freeManual && !manualErrors.length && errors.length > 0 && (
+                  <p className="inline-note">자동 재설정을 사용하려면 목표를 완성해 주세요.</p>
                 )}
                 {message && (
                   <div className="notice" role="status">
@@ -2065,9 +2215,9 @@ export default function App() {
                       </strong>
                       <div>
                         {config.batchSize === 3
-                          ? effectiveBatchSize(config, state.grade) === 3
-                            ? '3회 비교 모드'
-                            : '승급까지 1회 · 이후 3회 비교'
+                          ? potentialGradeUp
+                            ? '최대 3회 연속 · 등급 상승 시 중단'
+                            : '3회 비교 모드'
                           : '한 번 한 번 쌓이는 가능성'}
                       </div>
                     </div>
@@ -2099,11 +2249,15 @@ export default function App() {
                     </div>
                     <div className="stat-card expected-stat">
                       <span>
-                        목표까지 기댓값{' '}
+                        {freeManual ? '자동 목표까지 기댓값' : '목표까지 기댓값'}{' '}
                         {benchmarkBusy && <LoaderCircle size={12} className="spin" />}
                       </span>
                       <strong>
-                        {benchmark ? formatAmount(benchmark.expectedCost) : '계산 중'}
+                        {benchmark
+                          ? formatAmount(benchmark.expectedCost)
+                          : errors.length
+                            ? '목표 미설정'
+                            : '계산 중'}
                         <small>
                           {benchmark?.unit === 'cubes'
                             ? '개'
@@ -2123,7 +2277,11 @@ export default function App() {
                               ? '시작 상태가 이미 목표를 만족'
                               : benchmark
                                 ? '같은 조건의 평균 소비'
-                                : '같은 목표의 다른 세계를 살피는 중'}
+                                : errors.length
+                                  ? freeManual && !manualErrors.length
+                                    ? '수동 재설정 결과를 눌러 개별 분석할 수 있어요.'
+                                    : '도전 설정을 확인해 주세요.'
+                                  : '같은 목표의 다른 세계를 살피는 중'}
                       </div>
                     </div>
                   </section>
@@ -2459,30 +2617,31 @@ function ProgressDisplay({
   if (
     config.mode === 'ability' ||
     state.grade === 'legendary' ||
-    (config.mode === 'cube' && isItemCube(config.cubeType))
+    (config.mode === 'cube' && isPrime(config.cubeType))
   )
     return null;
-  const rules =
-    config.mode === 'soulPotential'
-      ? data.soul.potentialGrades
-      : config.cubeType === 'additional'
-        ? data.additional.grades
-        : data.potential.grades;
+  const rules = potentialRules(data, config).grades;
   const rule = rules.find((x) => x.grade === state.grade);
   if (!rule) return null;
-  const threshold = rule.guaranteedAfterFailures ?? (rule.pityThreshold ?? 0) - 1;
+  const threshold = guaranteedAfterFailures(rule);
   return (
     <div className="pity-area">
       <div>
         <span>
-          등급 상승 보장{' '}
-          <b>
-            {state.failures} / {threshold}
-          </b>
+          {threshold === undefined ? (
+            '등급 상승 보장 없음'
+          ) : (
+            <>
+              등급 상승 보장{' '}
+              <b>
+                {state.failures} / {threshold}
+              </b>
+            </>
+          )}
         </span>
-        <span>자연 상승률 {(rule.gradeUpChance * 100).toFixed(4)}%</span>
+        <span>자연 상승률 {(effectiveGradeUpChance(config, rule) * 100).toFixed(4)}%</span>
       </div>
-      <progress max={Math.max(1, threshold)} value={state.failures} />
+      {threshold !== undefined && <progress max={Math.max(1, threshold)} value={state.failures} />}
     </div>
   );
 }

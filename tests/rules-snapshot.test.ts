@@ -306,7 +306,12 @@ describe('advanced ability and all soul stages', () => {
     expect(soul.optionStages.map((s: { stage: number }) => s.stage)).toEqual([1, 2, 3, 4]);
     expect(soul.amplificationStages).toEqual(snapshot.amplificationStages);
     expect(soul.potentialResetCosts).toEqual(snapshot.potentialResetCosts);
-    expect(soul.potentialGrades).toEqual(snapshot.potentialGrades);
+    // Event odds were added after this immutable base-probability snapshot.
+    expect(
+      soul.potentialGrades.map(
+        ({ miracleTimeGradeUpChance: _event, ...grade }: GradeRule) => grade,
+      ),
+    ).toEqual(snapshot.potentialGrades);
     expect(
       soul.amplificationStages.map(
         (s: { guaranteedAfterFailures: number }) => s.guaranteedAfterFailures,

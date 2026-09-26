@@ -5,6 +5,7 @@ import type {
   OptionLine,
   TargetCondition,
 } from '../types.ts';
+import { metricValue } from '../engine/metrics.ts';
 
 export function parsePotentialLine(raw: string, grade: LineGrade = 'rare'): OptionLine {
   const text = raw.trim();
@@ -127,29 +128,12 @@ export function suggestPotentialTargets(
     if (!allowed) continue;
     // STR/DEX/INT/LUK goals already include all-stat. An extra all-stat goal
     // would prevent an equally effective replacement by the character's stat.
-    if (line.type === 'allStatPercent') {
+    if (line.type === 'allStatPercent' || line.type === 'allStatFlat') {
+      const suffix = line.type === 'allStatPercent' ? 'Percent' : 'Flat';
       for (const stat of profile.mainStats) {
-        if (['str', 'dex', 'int', 'luk'].includes(stat)) metrics.add(`${stat}Percent`);
+        if (['str', 'dex', 'int', 'luk'].includes(stat)) metrics.add(`${stat}${suffix}`);
       }
     } else metrics.add(line.type);
   }
-  return [...metrics].map((type) => {
-    const includesAllStat = ['strPercent', 'dexPercent', 'intPercent', 'lukPercent'].includes(type);
-    const minValue =
-      type === 'ignoreDefensePercent'
-        ? (1 -
-            lines
-              .filter((line) => line.type === type)
-              .reduce((left, line) => left * (1 - line.value / 100), 1)) *
-          100
-        : lines.reduce(
-            (sum, line) =>
-              sum +
-              (line.type === type || (includesAllStat && line.type === 'allStatPercent')
-                ? line.value
-                : 0),
-            0,
-          );
-    return { type, minValue };
-  });
+  return [...metrics].map((type) => ({ type, minValue: metricValue(lines, type) }));
 }

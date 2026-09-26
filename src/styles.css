@@ -552,6 +552,53 @@ small {
 .equipment-fields {
   grid-template-columns: 108px minmax(0, 1fr);
 }
+.miracle-time-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 12px;
+  margin-bottom: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.miracle-time-option:has(input:checked) {
+  background: var(--accent-wash);
+  border-color: var(--accent);
+}
+.miracle-time-option:has(input:disabled) {
+  cursor: not-allowed;
+  color: var(--muted);
+}
+.miracle-time-option input {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+  accent-color: var(--accent);
+}
+.miracle-time-option > span {
+  flex: 1;
+  min-width: 0;
+}
+.miracle-time-option b {
+  font-size: 13px;
+  font-weight: 600;
+}
+.miracle-time-option small {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.miracle-time-option > svg {
+  color: var(--accent);
+}
 .selected-item {
   display: flex;
   align-items: center;
@@ -1066,6 +1113,11 @@ small {
 }
 .candidate-grid.count-1 {
   grid-template-columns: 1fr;
+}
+@media (min-width: 1101px) {
+  .candidate-grid.count-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .candidate-card {
   min-width: 0;
@@ -2723,14 +2775,56 @@ progress::-moz-progress-bar {
   min-height: var(--potential-result-height);
 }
 :is(.mode-cube, .mode-soulPotential) .candidate-card {
+  position: relative;
   display: flex;
   flex-direction: column;
 }
+:is(.mode-cube, .mode-soulPotential) .candidate-card.is-analysis-selected {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+.candidate-analysis-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  text-align: left;
+}
+.candidate-analysis-button::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  content: '';
+}
+.candidate-analysis-button:focus-visible {
+  outline: none;
+}
+.candidate-analysis-button:focus-visible::after {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.candidate-analysis-button:not(:disabled):hover::after {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
 :is(.mode-cube, .mode-soulPotential) .candidate-footer {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-end;
   min-height: 32px;
   margin-top: auto;
+}
+.manual-goal-note {
+  margin: 0 0 16px;
+  line-height: 1.8;
 }
 @media (max-width: 1100px) {
   .simulation-panel:is(.mode-cube, .mode-soulPotential)[data-selected-batch-size='3'] {

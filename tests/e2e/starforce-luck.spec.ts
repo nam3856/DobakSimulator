@@ -48,7 +48,7 @@ for (const scenario of [
   { attempts: 30, reaction: 'cry', message: '아무튼 내가 이긴거야..', ratio: '150.0%' },
   { attempts: 60, reaction: 'ghost', message: '이세계여서 다행이다…', ratio: '300.0%' },
 ]) {
-  test(`${scenario.reaction} at ${scenario.attempts} attempts: completed cost, inclusive percentile, reaction and graph agree and restore`, async ({
+  test(`${scenario.reaction} at ${scenario.attempts} attempts: completed cost, inclusive percentile, reaction and graph agree and reset`, async ({
     page,
   }) => {
     await page.evaluate((failures) => {
@@ -85,19 +85,16 @@ for (const scenario of [
     expect(Math.abs(percentile / 100 - (1 - 0.95 ** scenario.attempts))).toBeLessThan(0.005);
     await expect(page.locator('.chart-actual-label')).toHaveText('이번의 나');
     await expect(page.getByRole('img', { name: '목표 달성 비용 누적 분포' })).toBeVisible();
-    await page.reload();
-    await expect(page.locator('.reaction-stage')).toHaveClass(
-      new RegExp(`is-${scenario.reaction}`),
-    );
-    await expect(page.locator('.reaction-stage h3')).toHaveText(scenario.message);
-    await expect(page.locator('.ratio-copy')).toContainText(scenario.ratio);
-    if (scenario.reaction === 'ghost')
-      await expect(page.locator('.reaction-tombstone')).toBeVisible();
     await page.getByRole('button', { name: '다시 자동 강화', exact: true }).click();
     await expect(page.locator('.luck-badge')).toHaveCount(0);
     await expect(page.locator('.chart-actual')).toHaveCount(0);
     await expect(page.locator('.reaction-tombstone')).toHaveCount(0);
     await page.getByRole('button', { name: '중단', exact: true }).click();
+    await page.reload();
+    await expect(page.locator('.sf-stats .stat-card').first().locator('strong')).toHaveText('0회');
+    await expect(page.locator('.luck-badge')).toHaveCount(0);
+    await expect(page.locator('.chart-actual')).toHaveCount(0);
+    await expect(page.locator('.reaction-tombstone')).toHaveCount(0);
   });
 }
 

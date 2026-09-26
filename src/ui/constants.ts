@@ -141,6 +141,8 @@ export const METRIC_LABELS: Record<string, string> = {
   dexPerLevel: '9레벨당 DEX',
   intPerLevel: '9레벨당 INT',
   lukPerLevel: '9레벨당 LUK',
+  attackPerLevel: '9레벨당 공격력',
+  magicAttackPerLevel: '9레벨당 마력',
 };
 export function isItemCube(cube: CubeType) {
   return ['gold', 'prime', 'primeAdditional'].includes(cube);
