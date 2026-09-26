@@ -58,6 +58,18 @@ const TIPS = [
   '목표 종류와 등급을 갖췄다면, 서큘레이터로 수치만 완성하는 방법도 비교해 보세요.',
   '기댓값은 평균이에요. 실제로 필요한 비용은 도전마다 달라질 수 있어요.',
 ];
+const NORMAL_TIPS = [
+  '일반 최적화는 명성치와 서큘레이터 종류별 사용 개수를 각각 비교해요.',
+  TIPS[1],
+  TIPS[5],
+  '목표 등급과 수치를 확인하면 필요한 옵션에 맞춰 결과를 비교할 수 있어요.',
+];
+const CALCULATION_MESSAGES = [
+  '내 어빌리티에 맞는 순서를 찾고 있어요.',
+  '아직 계산 중이에요. 여러 강화 순서를 비교하고 있어요.',
+  '거의 다 됐어요. 조금만 더 기다려 주세요.',
+  '마무리 중이에요. 계산이 끝나면 바로 보여드릴게요.',
+];
 type Step = 'intro' | 'character' | 'target' | 'prices' | 'calculating' | 'result';
 type TargetGrade = 'none' | 'unique' | 'legendary';
 type TargetGrades = ['legendary', TargetGrade, TargetGrade];
@@ -228,6 +240,7 @@ export function AbilityOptimizer({
     [character, selectedCharacter],
   );
   const [tip, setTip] = useState('');
+  const [calculationStage, setCalculationStage] = useState(0);
   const worker = useRef<Worker | null>(null);
   const requestId = useRef('');
   const inFlight = useRef(false);
@@ -354,6 +367,18 @@ export function AbilityOptimizer({
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [step]);
   useEffect(() => {
+    setCalculationStage(0);
+    if (step !== 'calculating') return;
+    const tips = normalOptimization ? NORMAL_TIPS : TIPS;
+    const timers = [10_000, 20_000, 25_000].map((delay, index) =>
+      setTimeout(() => {
+        setCalculationStage(index + 1);
+        setTip((current) => tips[(tips.indexOf(current) + 1) % tips.length]);
+      }, delay),
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [step, normalOptimization]);
+  useEffect(() => {
     if (step !== 'character' || !pendingLink.current || !searchReady || !apiBase) return;
     const nextName = pendingLink.current;
     pendingLink.current = '';
@@ -429,7 +454,7 @@ export function AbilityOptimizer({
     requestId.current = id;
     inFlight.current = true;
     setAvatar(createOptimizerAvatar(selectedCharacter));
-    setTip('일반 최적화는 명성치와 서큘레이터 종류별 사용 개수를 각각 비교해요.');
+    setTip(NORMAL_TIPS[0]);
     setError('');
     setNormalResult(undefined);
     goToStep('calculating');
@@ -992,7 +1017,9 @@ export function AbilityOptimizer({
               <div className="optimizer-walk-stage">
                 {avatar && <OptimizerWalkingAvatar avatar={avatar} />}
               </div>
-              <p role="status">내 어빌리티에 맞는 순서를 찾고 있어요.</p>
+              <p role="status" aria-live="polite" aria-atomic="true">
+                {CALCULATION_MESSAGES[calculationStage]}
+              </p>
               <div className="optimizer-tip">
                 <span>알아두면 좋은 팁</span>
                 <p>{tip}</p>

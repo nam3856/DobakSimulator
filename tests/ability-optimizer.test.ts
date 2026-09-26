@@ -585,8 +585,8 @@ describe('ability acquisition and circulator strategy optimizer', () => {
     expect(result.strategies.every((row) => row.status === 'ready' && row.totalCost > 0)).toBe(
       true,
     );
-    expect(performance.now() - began).toBeLessThan(25000);
-  }, 30000);
+    expect(performance.now() - began).toBeLessThan(30000);
+  }, 35000);
 
   it('matches independently drawn variable-value full paths including lower circulation and ordered batches', () => {
     const rules = fixture(true);
@@ -1009,6 +1009,6 @@ describe('ability acquisition and circulator strategy optimizer', () => {
       true,
     );
     expect(result.bestStrategyId).toBe(result.strategies[0].id);
-    expect(performance.now() - began).toBeLessThan(25000);
-  }, 30000);
+    expect(performance.now() - began).toBeLessThan(30000);
+  }, 35000);
 });

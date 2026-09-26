@@ -483,30 +483,82 @@ test('real worker compares current types and first-line retention and reprices h
   await expect(page.locator('.optimizer-notes')).toContainText('정확히 평균한 값은 아닙니다');
 });
 
-test('calculation displays a walking avatar and a tip, and cancel restores the price step', async ({
-  page,
-}) => {
-  const workerRoute = '**/assets/ability-optimizer.worker-*.js';
-  await page.route(workerRoute, (route) =>
-    route.fulfill({ contentType: 'application/javascript', body: 'self.onmessage = () => {};' }),
-  );
-  await boot(page);
-  await start(page);
-  await chooseManual(page);
-  await next(page, 'target');
-  await next(page, 'prices');
-  await page.getByRole('button', { name: '계산', exact: true }).click();
-  await atStep(page, 'calculating');
-  await expect(page.getByRole('heading', { name: '계산중', exact: true })).toBeVisible();
-  await expect(page.locator('.optimizer-calculation')).toHaveAttribute('aria-busy', 'true');
-  await expect(page.locator('.optimizer-walking-avatar')).toBeVisible();
-  await expect(page.locator('.optimizer-tip')).toContainText('알아두면 좋은 팁');
-  await expect(page.getByLabel('현재 보유 명성치', { exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: '계산 취소', exact: true }).click();
-  await atStep(page, 'prices');
-  await expect(page.getByRole('button', { name: '계산', exact: true })).toBeEnabled();
-  await expect(page.locator('.optimizer-comparison')).toHaveCount(0);
-});
+for (const mode of ['advanced', 'normal'] as const) {
+  test(`${mode} calculation updates its message and tip at 10, 20, and 25 seconds and resets after cancellation`, async ({
+    page,
+  }) => {
+    const time = new Date('2026-09-26T00:00:00Z');
+    await page.clock.install({ time });
+    await page.clock.pauseAt(time);
+    const workerName = mode === 'normal' ? 'ability-normal-optimizer' : 'ability-optimizer';
+    await page.route(`**/assets/${workerName}.worker-*.js`, (route) =>
+      route.fulfill({ contentType: 'application/javascript', body: 'self.onmessage = () => {};' }),
+    );
+    await boot(page);
+    await start(page);
+    await chooseManual(page);
+    await next(page, 'target');
+    if (mode === 'normal') {
+      await page.getByLabel('목표 옵션 2 등급', { exact: true }).selectOption('none');
+      await page.getByLabel('목표 옵션 3 등급', { exact: true }).selectOption('none');
+      await page.getByLabel('목표 옵션 1', { exact: true }).selectOption('bossDamagePercent');
+    } else await next(page, 'prices');
+    const submit =
+      mode === 'normal'
+        ? nextButton(page)
+        : page.getByRole('button', { name: '계산', exact: true });
+    await submit.click();
+    await atStep(page, 'calculating');
+    const calculation = page.locator('.optimizer-calculation');
+    const status = calculation.getByRole('status');
+    const tip = calculation.locator('.optimizer-tip p');
+    const initialMessage = '내 어빌리티에 맞는 순서를 찾고 있어요.';
+    await expect(page.getByRole('heading', { name: '계산중', exact: true })).toBeVisible();
+    await expect(calculation).toHaveAttribute('aria-busy', 'true');
+    await expect(calculation.locator('.optimizer-walking-avatar')).toBeVisible();
+    await expect(calculation.locator('.optimizer-tip > span')).toHaveText('알아두면 좋은 팁');
+    await expect(status).toHaveText(initialMessage);
+    await expect(page.getByLabel('현재 보유 명성치', { exact: true })).toHaveCount(0);
+    let elapsed = 0;
+    let previousMessage = initialMessage;
+    let previousTip = await tip.innerText();
+    for (const [boundary, message] of [
+      [10_000, '아직 계산 중이에요. 여러 강화 순서를 비교하고 있어요.'],
+      [20_000, '거의 다 됐어요. 조금만 더 기다려 주세요.'],
+      [25_000, '마무리 중이에요. 계산이 끝나면 바로 보여드릴게요.'],
+    ] as const) {
+      await page.clock.fastForward(boundary - elapsed - 1);
+      await expect(status).toHaveText(previousMessage);
+      await expect(tip).toHaveText(previousTip);
+      await page.clock.fastForward(1);
+      await expect(status).toHaveText(message);
+      await expect(tip).not.toHaveText(previousTip);
+      previousMessage = message;
+      previousTip = await tip.innerText();
+      elapsed = boundary;
+    }
+    await page.getByRole('button', { name: '계산 취소', exact: true }).click();
+    await atStep(page, mode === 'normal' ? 'target' : 'prices');
+    await expect(submit).toBeEnabled();
+    await expect(calculation).toHaveCount(0);
+    await expect(page.locator('.optimizer-comparison')).toHaveCount(0);
+    await page.clock.fastForward(30_000);
+    await submit.click();
+    await atStep(page, 'calculating');
+    await expect(status).toHaveText(initialMessage);
+    const restartedTip = await tip.innerText();
+    await page.clock.fastForward(9_999);
+    await expect(status).toHaveText(initialMessage);
+    await expect(tip).toHaveText(restartedTip);
+    await page.clock.fastForward(1);
+    await expect(status).toHaveText('아직 계산 중이에요. 여러 강화 순서를 비교하고 있어요.');
+    await expect(tip).not.toHaveText(restartedTip);
+    await page.getByRole('button', { name: '계산 취소', exact: true }).click();
+    await page.clock.fastForward(30_000);
+    await atStep(page, mode === 'normal' ? 'target' : 'prices');
+    await expect(calculation).toHaveCount(0);
+  });
+}
 
 test('method groups omit first-line retention when the current first line is not a target maximum', async ({
   page,
